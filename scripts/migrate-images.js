@@ -75,9 +75,7 @@ async function migrateImages() {
   console.log('Migration complete!');
 }
 
-migrateImages().catch(console.error);
-```
-
-**Add to .env.local:**
-```
-BLOB_READ_WRITE_TOKEN=your_vercel_blob_token_here
+migrateImages().catch((error) => {
+  console.error('Migration failed:', error);
+  process.exit(1);
+});
