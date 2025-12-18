@@ -1,37 +1,59 @@
 // Path: app/shop/page.tsx
 
 import ShopPage from '@/components/ShopPage';
+import { neon } from '@neondatabase/serverless';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+const sql = neon(process.env.DATABASE_URL!);
+
 async function getProducts() {
   try {
-    // Use absolute URL for production
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}` 
-      : 'http://localhost:3000';
+    console.log('[Shop Page] Fetching products directly from database...');
     
-    const res = await fetch(`${baseUrl}/api/shop/products`, {
-      cache: 'no-store',
-      next: { revalidate: 0 }
-    });
+    const products = await sql`
+      SELECT 
+        p.id,
+        p.title,
+        p.description,
+        p.categories,
+        p.product_url,
+        p.visible,
+        p.featured,
+        p.created_at,
+        json_build_object(
+          'id', pv.id,
+          'price', pv.price,
+          'sale_price', pv.sale_price,
+          'on_sale', pv.on_sale,
+          'stock', pv.stock,
+          'images', pv.images
+        ) as variant
+      FROM products p
+      LEFT JOIN LATERAL (
+        SELECT * FROM product_variants 
+        WHERE product_id = p.id 
+        LIMIT 1
+      ) pv ON true
+      WHERE p.visible = true
+      ORDER BY p.created_at DESC
+    `;
+
+    console.log(`[Shop Page] Found ${products.length} products`);
     
-    if (!res.ok) {
-      console.error('Failed to fetch products:', res.status);
-      return [];
-    }
-    
-    return res.json();
+    return products as any[];
   } catch (error) {
-    console.error('Error fetching products:', error);
+    console.error('[Shop Page] Error fetching products:', error);
     return [];
   }
 }
 
 export default async function Shop() {
   const products = await getProducts();
+  
+  console.log(`[Shop Page] Rendering with ${products.length} products`);
   
   return <ShopPage products={products} />;
 }
