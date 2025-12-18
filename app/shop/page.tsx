@@ -2,30 +2,28 @@
 
 import ShopPage from '@/components/ShopPage';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 async function getProducts() {
   try {
-    // In production, use relative path
+    // Use absolute URL for production
     const baseUrl = process.env.VERCEL_URL 
       ? `https://${process.env.VERCEL_URL}` 
       : 'http://localhost:3000';
     
-    console.log('Fetching from:', `${baseUrl}/api/shop/products`);
-    
     const res = await fetch(`${baseUrl}/api/shop/products`, {
-      cache: 'no-store'
+      cache: 'no-store',
+      next: { revalidate: 0 }
     });
     
-    console.log('Response status:', res.status);
-    
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error('Fetch failed:', res.status, errorText);
+      console.error('Failed to fetch products:', res.status);
       return [];
     }
     
-    const data = await res.json();
-    console.log('Products fetched:', data.length);
-    return data;
+    return res.json();
   } catch (error) {
     console.error('Error fetching products:', error);
     return [];
@@ -34,8 +32,6 @@ async function getProducts() {
 
 export default async function Shop() {
   const products = await getProducts();
-  
-  console.log('Rendering shop page with', products.length, 'products');
   
   return <ShopPage products={products} />;
 }
