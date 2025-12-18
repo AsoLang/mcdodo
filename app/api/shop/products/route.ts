@@ -5,8 +5,13 @@ import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   try {
+    console.log('Fetching products from database...');
+    
     const products = await sql`
       SELECT 
         p.id,
@@ -35,9 +40,14 @@ export async function GET() {
       ORDER BY p.created_at DESC
     `;
 
+    console.log(`Found ${products.length} products`);
+    
     return NextResponse.json(products);
   } catch (error) {
     console.error('Failed to fetch products:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to fetch products',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
