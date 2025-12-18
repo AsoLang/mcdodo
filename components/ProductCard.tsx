@@ -21,11 +21,11 @@ export default function ProductCard({ id, title, price, salePrice, onSale, image
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <Link href={`/product/${id}`}>
+    <Link href={`/shop/p/${id}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.05, duration: 0.4 }}
+        transition={{ delay: index * 0.03, duration: 0.4 }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className="group relative cursor-pointer h-full"
@@ -38,14 +38,14 @@ export default function ProductCard({ id, title, price, salePrice, onSale, image
               ? "0 20px 40px rgba(0,0,0,0.15)" 
               : "0 4px 20px rgba(0,0,0,0.08)"
           }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
         >
           {/* Sale badge */}
           {onSale && (
             <motion.div 
-              initial={{ scale: 0, rotate: -180 }} 
-              animate={{ scale: 1, rotate: 0 }} 
-              transition={{ delay: index * 0.05 + 0.2 }}
+              initial={{ scale: 0 }} 
+              animate={{ scale: 1 }} 
+              transition={{ delay: index * 0.03 + 0.2, duration: 0.3 }}
               className="absolute top-4 right-4 z-10 bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-lg"
             >
               SALE
@@ -65,31 +65,32 @@ export default function ProductCard({ id, title, price, salePrice, onSale, image
                 fill 
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                loading="lazy"
               />
             </motion.div>
           </div>
           
           {/* Product info */}
-          <div className="p-6 bg-white flex-1 flex flex-col">
-            <h3 className="font-semibold text-lg mb-3 line-clamp-2 text-gray-900 min-h-[3.5rem]">
+          <div className="p-4 md:p-6 bg-white flex-1 flex flex-col">
+            <h3 className="font-semibold text-base md:text-lg mb-2 md:mb-3 line-clamp-2 text-gray-900 min-h-[2.5rem] md:min-h-[3.5rem]">
               {title}
             </h3>
             
-            <div className="flex items-center gap-3 mt-auto mb-3">
+            <div className="flex items-center gap-2 md:gap-3 mt-auto mb-2 md:mb-3 flex-wrap">
               {onSale ? (
                 <>
-                  <span className="text-2xl font-bold text-orange-500">
+                  <span className="text-xl md:text-2xl font-bold text-orange-500">
                     £{salePrice.toFixed(2)}
                   </span>
-                  <span className="text-lg text-gray-400 line-through">
+                  <span className="text-base md:text-lg text-gray-400 line-through">
                     £{price.toFixed(2)}
                   </span>
-                  <span className="ml-auto text-sm font-semibold text-orange-500 bg-orange-50 px-2 py-1 rounded">
+                  <span className="ml-auto text-xs md:text-sm font-semibold text-orange-500 bg-orange-50 px-2 py-1 rounded">
                     {Math.round(((price - salePrice) / price) * 100)}% OFF
                   </span>
                 </>
               ) : (
-                <span className="text-2xl font-bold text-gray-900">
+                <span className="text-xl md:text-2xl font-bold text-gray-900">
                   £{price.toFixed(2)}
                 </span>
               )}
@@ -103,7 +104,7 @@ export default function ProductCard({ id, title, price, salePrice, onSale, image
                 height: isHovered ? 'auto' : 0
               }}
               transition={{ duration: 0.2 }}
-              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all shadow-md"
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2.5 md:py-3 rounded-xl font-semibold hover:from-orange-600 hover:to-orange-700 transition-all shadow-md text-sm md:text-base"
             >
               View Details
             </motion.button>

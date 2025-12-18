@@ -26,15 +26,20 @@ export default function Navbar() {
       className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b border-gray-100"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16 md:h-20">
           <Link href="/">
-            <motion.div whileHover={{ scale: 1.05 }} className="flex items-center">
+            <motion.div 
+              whileHover={{ scale: 1.05 }} 
+              transition={{ duration: 0.2 }}
+              className="flex items-center"
+            >
               <Image 
                 src="/mcdodo-logo.png" 
                 alt="Mcdodo" 
-                width={120} 
-                height={40} 
-                className="h-10 w-auto" 
+                width={140} 
+                height={45}
+                className="h-6 md:h-10 w-auto"
+                priority
               />
             </motion.div>
           </Link>
@@ -51,22 +56,24 @@ export default function Navbar() {
             </Link>
           </div>
           
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-4 md:space-x-6">
             <motion.button 
               whileHover={{ scale: 1.1 }} 
               whileTap={{ scale: 0.9 }} 
+              transition={{ duration: 0.2 }}
               className="text-gray-700 hover:text-orange-600 transition-colors"
             >
-              <Search size={24} />
+              <Search size={20} className="md:w-6 md:h-6" />
             </motion.button>
             
             <motion.button 
               whileHover={{ scale: 1.1 }} 
               whileTap={{ scale: 0.9 }} 
+              transition={{ duration: 0.2 }}
               className="text-gray-700 hover:text-orange-600 relative transition-colors"
             >
-              <ShoppingCart size={24} />
-              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+              <ShoppingCart size={20} className="md:w-6 md:h-6" />
+              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center font-semibold text-[10px] md:text-xs">
                 0
               </span>
             </motion.button>
@@ -74,9 +81,10 @@ export default function Navbar() {
             <motion.button 
               whileHover={{ scale: 1.1 }} 
               whileTap={{ scale: 0.9 }} 
+              transition={{ duration: 0.2 }}
               className="md:hidden text-gray-700 hover:text-orange-600 transition-colors"
             >
-              <Menu size={24} />
+              <Menu size={20} />
             </motion.button>
           </div>
         </div>
