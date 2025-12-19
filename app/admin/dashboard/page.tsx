@@ -1,20 +1,21 @@
-// Path: /app/admin/dashboard/page.tsx
+// Path: app/admin/dashboard/page.tsx
 
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { Package, ShoppingCart, Users, Settings, LogOut } from 'lucide-react';
+import { Package, ShoppingCart, Users, LogOut } from 'lucide-react';
+
+interface Stats {
+  products: number;
+  orders: number;
+  customers: number;
+}
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState<Stats>({ products: 0, orders: 0, customers: 0 });
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    products: 0,
-    orders: 0,
-    customers: 0,
-  });
   const router = useRouter();
 
   useEffect(() => {
@@ -25,10 +26,8 @@ export default function AdminDashboard() {
   const checkAuth = async () => {
     try {
       const res = await fetch('/api/admin/auth');
-      if (!res.ok) {
-        router.push('/admin');
-      }
-    } catch (error) {
+      if (!res.ok) router.push('/admin');
+    } catch {
       router.push('/admin');
     }
   };
@@ -59,109 +58,62 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Mcdodo Admin</h1>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition"
-            >
-              <LogOut size={20} />
-              <span>Logout</span>
-            </button>
-          </div>
+    <div className="min-h-screen bg-gray-50 pt-20">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Header with Logout on SAME line */}
+        <div className="flex flex-row items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition shadow-md whitespace-nowrap"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Grid */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-xl shadow-sm p-6"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Package className="text-orange-600" size={24} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Products</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.products}</p>
-              </div>
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-gray-600 font-semibold">Products</h3>
+              <Package className="text-orange-600" size={32} />
             </div>
-          </motion.div>
+            <p className="text-4xl font-bold text-gray-900">{stats.products}</p>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl shadow-sm p-6"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <ShoppingCart className="text-blue-600" size={24} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Orders</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.orders}</p>
-              </div>
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-gray-600 font-semibold">Orders</h3>
+              <ShoppingCart className="text-orange-600" size={32} />
             </div>
-          </motion.div>
+            <p className="text-4xl font-bold text-gray-900">{stats.orders}</p>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-white rounded-xl shadow-sm p-6"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <Users className="text-green-600" size={24} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Customers</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.customers}</p>
-              </div>
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-gray-600 font-semibold">Customers</h3>
+              <Users className="text-orange-600" size={32} />
             </div>
-          </motion.div>
+            <p className="text-4xl font-bold text-gray-900">{stats.customers}</p>
+          </div>
         </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/admin/products">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              whileHover={{ scale: 1.02 }}
-              className="bg-white rounded-xl shadow-sm p-8 cursor-pointer hover:shadow-md transition"
-            >
-              <Package className="text-orange-600 mb-4" size={32} />
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Manage Products</h2>
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition cursor-pointer">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Manage Products</h3>
               <p className="text-gray-600">Edit products, prices, variants, and images</p>
-            </motion.div>
+            </div>
           </Link>
 
-          <Link href="/admin/orders">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              whileHover={{ scale: 1.02 }}
-              className="bg-white rounded-xl shadow-sm p-8 cursor-pointer hover:shadow-md transition"
-            >
-              <ShoppingCart className="text-blue-600 mb-4" size={32} />
-              <h2 className="text-xl font-bold text-gray-900 mb-2">View Orders</h2>
-              <p className="text-gray-600">View and manage customer orders</p>
-            </motion.div>
-          </Link>
+          <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition cursor-pointer opacity-50">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">View Orders</h3>
+            <p className="text-gray-600">View and manage customer orders</p>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

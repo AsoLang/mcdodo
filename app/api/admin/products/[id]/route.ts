@@ -1,121 +1,133 @@
 // Path: app/api/admin/products/[id]/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
+// Auth check helper
+async function isAuthenticated() {
+  const cookieStore = await cookies();
+  const session = cookieStore.get('admin_session');
+  return session?.value === 'authenticated';
+}
+
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-
   try {
-    console.log('Fetching product with ID:', id);
+    // Check authentication
+    if (!(await isAuthenticated())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Fetch product
-    const productResult = await sql`
+    const { id } = await params;
+
+    // Get product data
+    const productData = await sql`
       SELECT * FROM products WHERE id = ${id}
     `;
 
-    console.log('Product result:', productResult);
-
-    if (productResult.length === 0) {
+    if (!productData || productData.length === 0) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    const product = productResult[0];
+    const product = productData[0];
 
-    // Fetch variants
-    const variantsResult = await sql`
+    // Get variants for this product
+    const variants = await sql`
       SELECT * FROM product_variants WHERE product_id = ${id}
     `;
 
-    console.log('Variants result:', variantsResult);
-
-    const variants = variantsResult.map(v => ({
-      ...v,
-      images: typeof v.images === 'string' ? JSON.parse(v.images) : (v.images || []),
-    }));
-
+    // Combine product and variants
     const response = {
       ...product,
-      variants: variants || [],
+      variants: variants || []
     };
-
-    console.log('Returning response:', response);
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Failed to fetch product:', error);
+    console.error('Error fetching product:', error);
     return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
   }
 }
 
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const body = await request.json();
-
   try {
+    // Check authentication
+    if (!(await isAuthenticated())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const body = await request.json();
+    const { title, description, categories, visible, featured, product_url, seo_title, seo_description, seo_keywords, variants } = body;
+
     // Update product
     await sql`
-      UPDATE products 
+      UPDATE products
       SET 
-        title = ${body.title},
-        description = ${body.description},
-        categories = ${body.categories},
-        visible = ${body.visible},
-        featured = ${body.featured || false},
-        product_url = ${body.product_url},
-        seo_title = ${body.seo_title || null},
-        seo_description = ${body.seo_description || null},
-        seo_keywords = ${body.seo_keywords || null}
+        title = ${title},
+        description = ${description},
+        categories = ${categories},
+        visible = ${visible},
+        featured = ${featured},
+        product_url = ${product_url},
+        seo_title = ${seo_title},
+        seo_description = ${seo_description},
+        seo_keywords = ${seo_keywords}
       WHERE id = ${id}
     `;
 
-    // Update variants
-    if (body.variants && Array.isArray(body.variants)) {
-      for (const variant of body.variants) {
+    // Update variants if provided
+    if (variants && Array.isArray(variants)) {
+      for (const variant of variants) {
         await sql`
-          UPDATE product_variants 
-          SET 
+          UPDATE product_variants
+          SET
             price = ${variant.price},
             sale_price = ${variant.sale_price},
             on_sale = ${variant.on_sale},
             stock = ${variant.stock},
-            images = ${JSON.stringify(variant.images || [])}
-          WHERE id = ${variant.id}
+            images = ${variant.images}
+          WHERE id = ${variant.id} AND product_id = ${id}
         `;
       }
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Update failed:', error);
+    console.error('Error updating product:', error);
     return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
   }
 }
 
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-
   try {
+    // Check authentication
+    if (!(await isAuthenticated())) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+
     // Delete variants first (foreign key constraint)
     await sql`DELETE FROM product_variants WHERE product_id = ${id}`;
-
+    
     // Delete product
     await sql`DELETE FROM products WHERE id = ${id}`;
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Delete failed:', error);
+    console.error('Error deleting product:', error);
     return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 });
   }
 }
