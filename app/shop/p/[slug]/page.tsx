@@ -1,4 +1,4 @@
-// Path: app/product/[slug]/page.tsx
+// Path: app/shop/p/[slug]/page.tsx
 
 import { notFound } from 'next/navigation';
 import { neon } from '@neondatabase/serverless';
@@ -18,6 +18,12 @@ interface ProductVariant {
   images: string[];
 }
 
+interface Accordion {
+  id: string;
+  title: string;
+  content: string;
+}
+
 interface Product {
   id: string;
   title: string;
@@ -28,6 +34,10 @@ interface Product {
   seo_keywords: string | null;
   product_url: string;
   variants: ProductVariant[];
+  accordions?: Accordion[];
+  gallery_images?: string[];
+  review_count?: number;
+  review_rating?: number;
 }
 
 interface Props {
@@ -53,7 +63,11 @@ async function getProduct(slug: string): Promise<Product | null> {
 
     return { 
       ...product,
-      variants: variants as ProductVariant[]
+      variants: variants as ProductVariant[],
+      accordions: product.accordions || [],
+      gallery_images: product.gallery_images || [],
+      review_count: product.review_count || 0,
+      review_rating: product.review_rating || 5
     } as Product;
   } catch (error) {
     console.error('Error fetching product:', error);

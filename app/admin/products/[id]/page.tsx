@@ -1,18 +1,18 @@
-// Path: app/admin/products/[id]/page.tsx
-
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Save, Upload, X, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Save, Upload, X, Plus, Trash2, ChevronDown, ChevronUp, GripVertical, Bold } from 'lucide-react';
 
 interface ProductVariant {
   id: string;
   sku: string;
   option_value_1: string;
+  color?: string;
+  size?: string;
   price: number;
   sale_price: number;
   on_sale: boolean;
@@ -56,6 +56,10 @@ export default function EditProductPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [error, setError] = useState('');
   const [expandedAccordions, setExpandedAccordions] = useState<{ [key: string]: boolean }>({});
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
+  const [draggedVariantIndex, setDraggedVariantIndex] = useState<number | null>(null);
+  
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
   // New variant form
   const [showNewVariantForm, setShowNewVariantForm] = useState(false);
@@ -64,6 +68,7 @@ export default function EditProductPage() {
     size: '',
     sku: '',
     price: 0,
+    sale_price: 0,
     stock: 0
   });
 
@@ -143,7 +148,8 @@ export default function EditProductPage() {
         setHasChanges(false);
         setTimeout(() => setMessage(''), 3000);
       } else {
-        setMessage('✗ Failed to save product');
+        const errorData = await res.json();
+        setMessage(`✗ Failed to save: ${errorData.details || 'Unknown error'}`);
       }
     } catch (error) {
       setMessage('✗ Error saving product');
@@ -154,19 +160,29 @@ export default function EditProductPage() {
 
   const handleImageUpload = async (variantId: string, files: FileList | null) => {
     if (!files || files.length === 0) return;
+    
+    console.log('Upload started, files:', files.length);
     setUploading(true);
 
     try {
       const formData = new FormData();
-      Array.from(files).forEach(file => formData.append('images', file));
+      Array.from(files).forEach(file => {
+        console.log('Adding file:', file.name);
+        formData.append('images', file);
+      });
 
+      console.log('Uploading to:', `/api/admin/upload?variantId=${variantId}`);
       const res = await fetch(`/api/admin/upload?variantId=${variantId}`, {
         method: 'POST',
         body: formData,
       });
 
+      console.log('Upload response status:', res.status);
+
       if (res.ok) {
         const { urls } = await res.json();
+        console.log('Upload successful, URLs:', urls);
+        
         setProduct(prev => {
           if (!prev) return prev;
           return {
@@ -180,8 +196,13 @@ export default function EditProductPage() {
         });
         setMessage('✓ Images uploaded successfully!');
         setTimeout(() => setMessage(''), 3000);
+      } else {
+        const errorText = await res.text();
+        console.error('Upload failed:', errorText);
+        setMessage('✗ Failed to upload images');
       }
     } catch (error) {
+      console.error('Upload error:', error);
       setMessage('✗ Failed to upload images');
     } finally {
       setUploading(false);
@@ -202,6 +223,38 @@ export default function EditProductPage() {
     });
   };
 
+  const handleImageDragStart = (variantId: string, index: number) => {
+    setDraggedImageIndex(index);
+  };
+
+  const handleImageDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleImageDrop = (variantId: string, dropIndex: number) => {
+    if (draggedImageIndex === null) return;
+
+    setProduct(prev => {
+      if (!prev) return prev;
+      
+      return {
+        ...prev,
+        variants: prev.variants.map(v => {
+          if (v.id === variantId) {
+            const newImages = [...(v.images || [])];
+            const draggedImage = newImages[draggedImageIndex];
+            newImages.splice(draggedImageIndex, 1);
+            newImages.splice(dropIndex, 0, draggedImage);
+            return { ...v, images: newImages };
+          }
+          return v;
+        }),
+      };
+    });
+
+    setDraggedImageIndex(null);
+  };
+
   const updateVariant = (variantId: string, field: keyof ProductVariant, value: any) => {
     setProduct(prev => {
       if (!prev) return prev;
@@ -212,7 +265,16 @@ export default function EditProductPage() {
             if (field === 'on_sale' && !value) {
               return { ...v, on_sale: false, sale_price: v.price };
             }
-            return { ...v, [field]: value };
+            
+            // Update option_value_1 when color or size changes
+            const updatedVariant = { ...v, [field]: value };
+            if (field === 'color' || field === 'size') {
+              const color = field === 'color' ? value : v.color;
+              const size = field === 'size' ? value : v.size;
+              updatedVariant.option_value_1 = [color, size].filter(Boolean).join(' - ') || 'Default';
+            }
+            
+            return updatedVariant;
           }
           return v;
         }),
@@ -221,21 +283,23 @@ export default function EditProductPage() {
   };
 
   const addNewVariant = () => {
-    if (!product || !newVariant.color) {
-      alert('Please fill in at least the color/option field');
+    if (!product) return;
+    
+    if (!newVariant.color && !newVariant.size) {
+      alert('Please fill in at least color or size');
       return;
     }
 
-    const variantName = newVariant.size 
-      ? `${newVariant.color} - ${newVariant.size}`
-      : newVariant.color;
+    const variantName = [newVariant.color, newVariant.size].filter(Boolean).join(' - ') || 'Default';
 
     const variant: ProductVariant = {
-      id: `temp_${Date.now()}`,
-      sku: newVariant.sku || `SKU-${Date.now()}`,
+      id: `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      sku: newVariant.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
       option_value_1: variantName,
+      color: newVariant.color || undefined,
+      size: newVariant.size || undefined,
       price: newVariant.price,
-      sale_price: newVariant.price,
+      sale_price: newVariant.sale_price,
       on_sale: false,
       stock: newVariant.stock,
       images: []
@@ -249,7 +313,7 @@ export default function EditProductPage() {
       };
     });
 
-    setNewVariant({ color: '', size: '', sku: '', price: 0, stock: 0 });
+    setNewVariant({ color: '', size: '', sku: '', price: 0, sale_price: 0, stock: 0 });
     setShowNewVariantForm(false);
   };
 
@@ -321,6 +385,29 @@ export default function EditProductPage() {
       .replace(/^-+|-+$/g, '');
   };
 
+  const makeBold = () => {
+    if (!product || !descriptionRef.current) return;
+    
+    const textarea = descriptionRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = product.description.substring(start, end);
+    
+    if (selectedText) {
+      const newDescription = 
+        product.description.substring(0, start) +
+        `<b>${selectedText}</b>` +
+        product.description.substring(end);
+      
+      setProduct({ ...product, description: newDescription });
+      
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + 3, end + 3);
+      }, 0);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -369,8 +456,8 @@ export default function EditProductPage() {
             )}
             <button
               onClick={handleSave}
-              disabled={!hasChanges || saving}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={saving || !hasChanges}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition"
             >
               <Save size={16} />
               {saving ? 'Saving...' : 'Save Changes'}
@@ -383,15 +470,13 @@ export default function EditProductPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column */}
           <div className="space-y-6">
-            {/* Basic Info */}
+            {/* Basic Details */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Basic Details</h2>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Product Title *
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Product Title</label>
                   <input
                     type="text"
                     value={product.title}
@@ -401,21 +486,29 @@ export default function EditProductPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Description
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-gray-900">Description</label>
+                    <button
+                      onClick={makeBold}
+                      className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition"
+                      title="Make selected text bold"
+                    >
+                      <Bold size={14} />
+                      Bold
+                    </button>
+                  </div>
                   <textarea
+                    ref={descriptionRef}
                     value={product.description}
                     onChange={(e) => setProduct({ ...product, description: e.target.value })}
-                    rows={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900"
+                    rows={5}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900 font-mono text-sm"
                   />
+                  <p className="text-xs text-gray-500 mt-1">Select text and click Bold to wrap in &lt;b&gt; tags</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Categories
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Categories (comma-separated)</label>
                   <input
                     type="text"
                     value={product.categories}
@@ -432,9 +525,8 @@ export default function EditProductPage() {
                       onChange={(e) => setProduct({ ...product, visible: e.target.checked })}
                       className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                     />
-                    <span className="text-sm font-semibold text-gray-900">Visible</span>
+                    <span className="text-sm font-semibold text-gray-900">Visible on Store</span>
                   </label>
-
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -442,48 +534,16 @@ export default function EditProductPage() {
                       onChange={(e) => setProduct({ ...product, featured: e.target.checked })}
                       className="w-4 h-4 text-orange-600 rounded focus:ring-orange-500"
                     />
-                    <span className="text-sm font-semibold text-gray-900">Featured</span>
+                    <span className="text-sm font-semibold text-gray-900">Featured Product</span>
                   </label>
                 </div>
               </div>
             </div>
 
-            {/* Reviews */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Reviews (Display Only)</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Review Count
-                  </label>
-                  <input
-                    type="number"
-                    value={product.review_count || 0}
-                    onChange={(e) => setProduct({ ...product, review_count: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Rating (1-5)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    max="5"
-                    value={product.review_rating || 5}
-                    onChange={(e) => setProduct({ ...product, review_rating: parseFloat(e.target.value) || 5 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Accordions Section */}
+            {/* Accordion Sections */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-gray-900">Product Details (Accordions)</h2>
+                <h2 className="text-lg font-bold text-gray-900">Product Details</h2>
                 <button
                   onClick={addAccordion}
                   className="flex items-center gap-2 px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-semibold transition"
@@ -498,26 +558,26 @@ export default function EditProductPage() {
                   product.accordions.map((accordion) => (
                     <div key={accordion.id} className="border border-gray-200 rounded-lg overflow-hidden">
                       <div
-                        className="flex items-center justify-between p-3 bg-gray-50 cursor-pointer hover:bg-gray-100"
                         onClick={() => toggleAccordion(accordion.id)}
+                        className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition"
                       >
-                        <span className="font-semibold text-gray-900 text-sm">{accordion.title || 'Untitled Section'}</span>
+                        <span className="font-semibold text-gray-900">{accordion.title || 'Untitled Section'}</span>
                         <div className="flex items-center gap-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               deleteAccordion(accordion.id);
                             }}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                            className="p-1 text-red-600 hover:bg-red-50 rounded transition"
                           >
                             <Trash2 size={14} />
                           </button>
-                          {expandedAccordions[accordion.id] ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                          {expandedAccordions[accordion.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </div>
                       </div>
 
                       {expandedAccordions[accordion.id] && (
-                        <div className="p-3 space-y-3 bg-white">
+                        <div className="p-4 border-t border-gray-200 space-y-3 bg-gray-50">
                           <div>
                             <label className="block text-xs font-semibold text-gray-700 mb-1">
                               Section Title
@@ -693,12 +753,12 @@ export default function EditProductPage() {
                   <div className="space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">Color/Option *</label>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Color (Optional)</label>
                         <input
                           type="text"
                           value={newVariant.color}
                           onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
-                          placeholder="e.g., Black, Blue"
+                          placeholder="e.g., Black, White"
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900"
                         />
                       </div>
@@ -713,17 +773,8 @@ export default function EditProductPage() {
                         />
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">SKU</label>
-                        <input
-                          type="text"
-                          value={newVariant.sku}
-                          onChange={(e) => setNewVariant({ ...newVariant, sku: e.target.value })}
-                          placeholder="SKU-001"
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900"
-                        />
-                      </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="block text-xs font-semibold text-gray-700 mb-1">Price (£)</label>
                         <input
@@ -731,6 +782,29 @@ export default function EditProductPage() {
                           step="0.01"
                           value={newVariant.price}
                           onChange={(e) => setNewVariant({ ...newVariant, price: parseFloat(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Sale Price (£)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={newVariant.sale_price}
+                          onChange={(e) => setNewVariant({ ...newVariant, sale_price: parseFloat(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">SKU</label>
+                        <input
+                          type="text"
+                          value={newVariant.sku}
+                          onChange={(e) => setNewVariant({ ...newVariant, sku: e.target.value })}
+                          placeholder="SKU-001"
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900"
                         />
                       </div>
@@ -744,6 +818,7 @@ export default function EditProductPage() {
                         />
                       </div>
                     </div>
+                    
                     <div className="flex gap-2">
                       <button
                         onClick={addNewVariant}
@@ -766,11 +841,43 @@ export default function EditProductPage() {
               <div className="space-y-4">
                 {product.variants && product.variants.length > 0 ? (
                   product.variants.map((variant, index) => (
-                    <div key={variant.id} className="border border-gray-200 rounded-lg p-4">
+                    <div
+                      key={variant.id}
+                      draggable
+                      onDragStart={() => setDraggedVariantIndex(index)}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => {
+                        if (draggedVariantIndex === null) return;
+                        
+                        setProduct(prev => {
+                          if (!prev) return prev;
+                          const newVariants = [...prev.variants];
+                          const draggedVariant = newVariants[draggedVariantIndex];
+                          newVariants.splice(draggedVariantIndex, 1);
+                          newVariants.splice(index, 0, draggedVariant);
+                          return { ...prev, variants: newVariants };
+                        });
+                        
+                        setDraggedVariantIndex(null);
+                      }}
+                      className={`border rounded-lg p-4 cursor-move transition ${
+                        draggedVariantIndex === index 
+                          ? 'border-orange-500 bg-orange-50 opacity-50' 
+                          : 'border-gray-200 hover:border-orange-300'
+                      }`}
+                    >
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-bold text-gray-900">
-                          Variant {index + 1}: {variant.option_value_1}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <GripVertical size={18} className="text-gray-400" />
+                          <h3 className="font-bold text-gray-900">
+                            Variant {index + 1}: {variant.option_value_1}
+                          </h3>
+                          {index === 0 && (
+                            <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded font-semibold">
+                              DEFAULT
+                            </span>
+                          )}
+                        </div>
                         <button
                           onClick={() => deleteVariant(variant.id)}
                           className="p-1 text-red-600 hover:bg-red-50 rounded"
@@ -780,6 +887,30 @@ export default function EditProductPage() {
                       </div>
 
                       <div className="space-y-3">
+                        {/* Color and Size */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Color</label>
+                            <input
+                              type="text"
+                              value={variant.color || ''}
+                              onChange={(e) => updateVariant(variant.id, 'color', e.target.value)}
+                              placeholder="e.g., Black"
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">Size</label>
+                            <input
+                              type="text"
+                              value={variant.size || ''}
+                              onChange={(e) => updateVariant(variant.id, 'size', e.target.value)}
+                              placeholder="e.g., 1m"
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-white text-gray-900"
+                            />
+                          </div>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-semibold text-gray-700 mb-1">Price (£)</label>
@@ -831,14 +962,29 @@ export default function EditProductPage() {
                           </div>
                         </div>
 
-                        {/* Images */}
+                        {/* Images with Drag & Drop */}
                         <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">Images</label>
+                          <label className="block text-xs font-semibold text-gray-700 mb-2">
+                            Images <span className="text-gray-500 font-normal">(Drag to reorder • First = Main)</span>
+                          </label>
                           {variant.images && variant.images.length > 0 && (
                             <div className="grid grid-cols-3 gap-2 mb-2">
                               {variant.images.map((img, idx) => (
-                                <div key={idx} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group">
+                                <div
+                                  key={idx}
+                                  draggable
+                                  onDragStart={() => handleImageDragStart(variant.id, idx)}
+                                  onDragOver={handleImageDragOver}
+                                  onDrop={() => handleImageDrop(variant.id, idx)}
+                                  className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 group cursor-move"
+                                >
                                   <Image src={img} alt={`Image ${idx + 1}`} fill className="object-cover" />
+                                  <div className="absolute top-1 left-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
+                                    {idx === 0 ? 'MAIN' : idx + 1}
+                                  </div>
+                                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                                    <GripVertical size={20} className="text-white" />
+                                  </div>
                                   <button
                                     onClick={() => handleRemoveImage(variant.id, img)}
                                     className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
@@ -858,7 +1004,11 @@ export default function EditProductPage() {
                               type="file"
                               multiple
                               accept="image/*"
-                              onChange={(e) => handleImageUpload(variant.id, e.target.files)}
+                              onChange={(e) => {
+                                console.log('File input change triggered');
+                                handleImageUpload(variant.id, e.target.files);
+                                e.target.value = ''; // Reset input
+                              }}
                               disabled={uploading}
                               className="hidden"
                             />
