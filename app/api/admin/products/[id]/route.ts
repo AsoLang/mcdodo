@@ -27,7 +27,11 @@ export async function GET(
     }
 
     const product = productData[0];
-    const variants = await sql`SELECT * FROM product_variants WHERE product_id = ${id}`;
+    const variants = await sql`
+      SELECT * FROM product_variants 
+      WHERE product_id = ${id} 
+      ORDER BY position ASC
+    `;
 
     return NextResponse.json({
       ...product,
@@ -53,11 +57,12 @@ export async function PUT(
     const { 
       title, description, categories, visible, featured, product_url, 
       seo_title, seo_description, seo_keywords, variants,
-      accordions, gallery_images, review_count, review_rating
+      accordions, gallery_images, review_count, review_rating, related_products
     } = body;
 
     console.log('=== UPDATING PRODUCT ===');
     console.log('Product ID:', id);
+    console.log('Product Images:', body.product_images?.length || 0);
     console.log('Number of variants:', variants?.length);
 
     // Update product
@@ -75,9 +80,11 @@ export async function PUT(
           seo_description = ${seo_description || null},
           seo_keywords = ${seo_keywords || null},
           accordions = ${JSON.stringify(accordions || [])},
+          product_images = ${body.product_images || []},
           gallery_images = ${gallery_images || []},
           review_count = ${review_count || 0},
-          review_rating = ${review_rating || 5}
+          review_rating = ${review_rating || 5},
+          related_products = ${related_products || []}
         WHERE id = ${id}
       `;
       console.log('✓ Product updated');
@@ -90,14 +97,49 @@ export async function PUT(
     if (variants && Array.isArray(variants)) {
       console.log('Processing', variants.length, 'variants...');
       
+      // STEP 1: Get existing variant IDs from database
+      const existingVariants = await sql`
+        SELECT id FROM product_variants WHERE product_id = ${id}
+      `;
+      const existingVariantIds = existingVariants.map((v: any) => v.id);
+      console.log('Existing variant IDs in DB:', existingVariantIds);
+      
+      // STEP 2: Get incoming variant IDs (exclude temp_ IDs)
+      const incomingVariantIds = variants
+        .filter((v: any) => !String(v.id).startsWith('temp_'))
+        .map((v: any) => v.id);
+      console.log('Incoming variant IDs:', incomingVariantIds);
+      
+      // STEP 3: Find and DELETE removed variants
+      const variantsToDelete = existingVariantIds.filter(
+        (existingId: string) => !incomingVariantIds.includes(existingId)
+      );
+      
+      if (variantsToDelete.length > 0) {
+        console.log('Deleting', variantsToDelete.length, 'removed variants:', variantsToDelete);
+        for (const variantId of variantsToDelete) {
+          try {
+            await sql`DELETE FROM product_variants WHERE id = ${variantId}`;
+            console.log('✓ Deleted variant:', variantId);
+          } catch (deleteError) {
+            console.error('✗ Failed to delete variant:', variantId, deleteError);
+          }
+        }
+      }
+      
+      // STEP 4: Update or Insert remaining variants
       for (let i = 0; i < variants.length; i++) {
         const variant = variants[i];
+        const position = i;
+        
         console.log(`\nVariant ${i + 1}:`, {
           id: variant.id,
           color: variant.color,
           size: variant.size,
           price: variant.price,
-          stock: variant.stock
+          stock: variant.stock,
+          images: variant.images?.length || 0,
+          position: position
         });
         
         const variantImages = Array.isArray(variant.images) ? variant.images : [];
@@ -120,7 +162,8 @@ export async function PUT(
                 sale_price, 
                 on_sale, 
                 stock, 
-                images
+                images,
+                position
               ) VALUES (
                 ${newVariantId},
                 ${id},
@@ -132,7 +175,8 @@ export async function PUT(
                 ${Number(variant.sale_price) || Number(variant.price) || 0},
                 ${Boolean(variant.on_sale)},
                 ${Number(variant.stock) || 0},
-                ${variantImages}::text[]
+                ${variantImages}::text[],
+                ${position}
               )
               RETURNING id
             `;
@@ -156,7 +200,8 @@ export async function PUT(
                 sale_price = ${Number(variant.sale_price) || Number(variant.price) || 0},
                 on_sale = ${Boolean(variant.on_sale)},
                 stock = ${Number(variant.stock) || 0},
-                images = ${variantImages}::text[]
+                images = ${variantImages}::text[],
+                position = ${position}
               WHERE id = ${variant.id} AND product_id = ${id}
             `;
             console.log('✓ Variant updated');

@@ -38,7 +38,7 @@ export default async function Home() {
           {productsWithVariants.map((product, index) => (
             <ProductCard
               key={product.id}
-              id={product.id}
+              product_url={product.product_url}
               title={product.title}
               price={Number(product.variant?.price) || 0}
               salePrice={Number(product.variant?.sale_price) || 0}

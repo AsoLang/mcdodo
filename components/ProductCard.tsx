@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 interface ProductCardProps {
-  id: string;
+  product_url: string;
   title: string;
   price: number;
   salePrice: number;
@@ -17,11 +17,11 @@ interface ProductCardProps {
   index: number;
 }
 
-export default function ProductCard({ id, title, price, salePrice, onSale, image, index }: ProductCardProps) {
+export default function ProductCard({ product_url, title, price, salePrice, onSale, image, index }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <Link href={`/shop/p/${id}`}>
+    <Link href={`/shop/p/${product_url}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

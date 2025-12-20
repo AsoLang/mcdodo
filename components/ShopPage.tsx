@@ -6,7 +6,9 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Search, ShoppingCart, SlidersHorizontal, X, ShoppingBasket, Truck, Shield, DollarSign, Headphones, ChevronDown } from 'lucide-react';
+import { useCart } from '@/contexts/CartContext';
 
 interface ProductVariant {
   id: string;
@@ -69,7 +71,9 @@ const FAQ_ITEMS = [
 ];
 
 export default function ShopPage({ products }: { products: Product[] }) {
-  const [search, setSearch] = useState('');
+  const { addItem } = useCart();
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
@@ -78,6 +82,14 @@ export default function ShopPage({ products }: { products: Product[] }) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
+
+  // Update search when URL params change
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    if (urlSearch) {
+      setSearch(urlSearch);
+    }
+  }, [searchParams]);
 
   // Extract unique categories
   const categories = useMemo(() => {
@@ -113,6 +125,10 @@ export default function ShopPage({ products }: { products: Product[] }) {
 
   // Filter and sort
   const filteredProducts = useMemo(() => {
+    console.log('[ShopPage] Filtering products...');
+    console.log('[ShopPage] Total products:', products.length);
+    console.log('[ShopPage] Search query:', search);
+    
     let filtered = products.filter(p => {
       const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase());
       const matchesCategory = selectedCategory === 'all' || 
@@ -125,6 +141,8 @@ export default function ShopPage({ products }: { products: Product[] }) {
       
       return matchesSearch && matchesCategory && matchesPrice && matchesSale;
     });
+
+    console.log('[ShopPage] Filtered count:', filtered.length);
 
     switch (sortBy) {
       case 'price-low':
@@ -306,33 +324,66 @@ export default function ShopPage({ products }: { products: Product[] }) {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
-      {/* Hero */}
-      <div className="bg-gradient-to-br from-orange-100 via-orange-200 to-orange-300 py-16">
+      {/* Hero Header - Two Column Layout */}
+      <div className="bg-gradient-to-br from-orange-50 via-orange-100 to-orange-200 py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center"
-          >
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-              Premium Charging Accessories
-            </h1>
-            <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-              High-quality cables, chargers, and accessories for all your devices
-            </p>
-            
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Search for cables, chargers, accessories..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 rounded-full text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-400 shadow-lg"
-              />
-            </div>
-          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            {/* Left: Text Content */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+                Shop Mcdodo's Best Products
+              </h1>
+              <p className="text-base md:text-lg text-gray-700 mb-6">
+                Discover premium charging cables, fast chargers, and innovative accessories designed for your lifestyle. Quality you can trust, performance you can feel.
+              </p>
+              <div className="flex gap-2 text-sm text-gray-600">
+                <span className="bg-white px-3 py-1 rounded-full font-medium">✓ Fast Shipping</span>
+                <span className="bg-white px-3 py-1 rounded-full font-medium">✓ UK Warehouse</span>
+                <span className="bg-white px-3 py-1 rounded-full font-medium">✓ Quality Guaranteed</span>
+              </div>
+            </motion.div>
+
+            {/* Right: Search Bar */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="flex justify-end"
+            >
+              <div className="w-full max-w-md">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Search Your Desired Product
+                </h3>
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10" size={20} />
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-12 pr-12 py-3.5 rounded-xl bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 shadow-lg border border-gray-200 transition"
+                  />
+                  {search && (
+                    <button
+                      onClick={() => setSearch('')}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
+                </div>
+                {search && (
+                  <p className="text-sm text-gray-600 mt-2 ml-1">
+                    Found {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
 
@@ -451,86 +502,102 @@ export default function ShopPage({ products }: { products: Product[] }) {
             </div>
 
             {/* Products Grid - 2 columns on mobile */}
-            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
-              {filteredProducts.map((product, index) => {
-                const price = Number(product.variant?.price || 0);
-                const salePrice = Number(product.variant?.sale_price || 0);
-                const onSale = product.variant?.on_sale || false;
-                
-                return (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.02 }}
-                  >
-                    <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group relative">
-                      <Link href={`/shop/p/${product.product_url}`}>
-                        <div className="relative aspect-square bg-gray-50">
-                          {product.variant?.images?.[0] ? (
-                            <Image
-                              src={product.variant.images[0]}
-                              alt={product.title}
-                              fill
-                              className="object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              No Image
-                            </div>
-                          )}
-                          {onSale && (
-                            <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                              SALE
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="p-3 sm:p-4">
-                          <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[2.5rem] text-sm">
-                            {product.title}
-                          </h3>
-                          
-                          <div className="flex items-baseline gap-2 mb-3">
-                            {onSale ? (
-                              <>
-                                <span className="text-base sm:text-lg font-bold text-orange-600">
-                                  £{salePrice.toFixed(2)}
-                                </span>
-                                <span className="text-xs sm:text-sm text-gray-400 line-through">
-                                  £{price.toFixed(2)}
-                                </span>
-                              </>
+            {filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6">
+                {filteredProducts.map((product, index) => {
+                  const price = Number(product.variant?.price || 0);
+                  const salePrice = Number(product.variant?.sale_price || 0);
+                  const onSale = product.variant?.on_sale || false;
+                  
+                  return (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: index * 0.02 }}
+                    >
+                      <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group relative">
+                        <Link href={`/shop/p/${product.product_url}`}>
+                          <div className="relative aspect-square bg-gray-50">
+                            {product.variant?.images?.[0] ? (
+                              <Image
+                                src={product.variant.images[0]}
+                                alt={product.title}
+                                fill
+                                sizes="(max-width: 768px) 50vw, 33vw"
+                                className="object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-300"
+                              />
                             ) : (
-                              <span className="text-base sm:text-lg font-bold text-gray-900">
-                                £{price.toFixed(2)}
-                              </span>
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                No Image
+                              </div>
+                            )}
+                            {onSale && (
+                              <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                                SALE
+                              </div>
                             )}
                           </div>
+
+                          <div className="p-3 sm:p-4">
+                            <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[2.5rem] text-sm">
+                              {product.title}
+                            </h3>
+                            
+                            <div className="flex items-baseline gap-2 mb-3">
+                              {onSale ? (
+                                <>
+                                  <span className="text-base sm:text-lg font-bold text-orange-600">
+                                    £{salePrice.toFixed(2)}
+                                  </span>
+                                  <span className="text-xs sm:text-sm text-gray-400 line-through">
+                                    £{price.toFixed(2)}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="text-base sm:text-lg font-bold text-gray-900">
+                                  £{price.toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </Link>
+
+                        {/* Add to Basket Button */}
+                        <div className="px-3 sm:px-4 pb-3 sm:pb-4 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+                          <button 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              
+                              if (product.variant && product.variant.stock > 0) {
+                                addItem({
+                                  id: product.variant.id,
+                                  productId: product.id,
+                                  productUrl: product.product_url,
+                                  title: product.title,
+                                  price: price,
+                                  salePrice: salePrice,
+                                  onSale: onSale,
+                                  image: product.variant.images?.[0] || '/placeholder.jpg',
+                                  stock: product.variant.stock
+                                });
+                              }
+                            }}
+                            disabled={!product.variant || product.variant.stock === 0}
+                            className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2"
+                          >
+                            <ShoppingBasket size={14} />
+                            <span className="hidden sm:inline">Add to Basket</span>
+                            <span className="sm:hidden">Add</span>
+                          </button>
                         </div>
-                      </Link>
-
-                      {/* Add to Basket Button */}
-                      <div className="px-3 sm:px-4 pb-3 sm:pb-4 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
-                        <button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            console.log('Add to cart:', product.id);
-                          }}
-                          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2"
-                        >
-                          <ShoppingBasket size={14} />
-                          <span className="hidden sm:inline">Add to Basket</span>
-                          <span className="sm:hidden">Add</span>
-                        </button>
                       </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-
-            {filteredProducts.length === 0 && (
+                    </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
               <div className="text-center py-16">
                 <p className="text-gray-500 text-lg mb-4">No products found</p>
                 <button

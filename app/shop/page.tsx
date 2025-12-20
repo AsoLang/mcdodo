@@ -9,6 +9,14 @@ export const revalidate = 0;
 
 const sql = neon(process.env.DATABASE_URL!);
 
+// Generate URL slug from title
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 async function getProducts() {
   try {
     console.log('[Shop Page] Fetching products directly from database...');
@@ -43,7 +51,13 @@ async function getProducts() {
 
     console.log(`[Shop Page] Found ${products.length} products`);
     
-    return products as any[];
+    // Generate URLs for products that don't have them
+    const productsWithUrls = products.map(p => ({
+      ...p,
+      product_url: p.product_url || generateSlug(p.title)
+    }));
+    
+    return productsWithUrls as any[];
   } catch (error) {
     console.error('[Shop Page] Error fetching products:', error);
     return [];

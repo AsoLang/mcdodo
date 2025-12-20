@@ -27,6 +27,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Fetch products with their first variant only (ordered by position)
     const productsData = await sql`
       SELECT 
         p.id,
@@ -34,6 +35,7 @@ export async function GET() {
         p.categories,
         p.visible,
         p.featured,
+        p.created_at,
         v.id as variant_id,
         v.price,
         v.sale_price,
@@ -41,7 +43,12 @@ export async function GET() {
         v.stock,
         v.images
       FROM products p
-      LEFT JOIN product_variants v ON p.id = v.product_id
+      LEFT JOIN LATERAL (
+        SELECT * FROM product_variants 
+        WHERE product_id = p.id 
+        ORDER BY position ASC 
+        LIMIT 1
+      ) v ON true
       ORDER BY p.created_at DESC
     `;
 

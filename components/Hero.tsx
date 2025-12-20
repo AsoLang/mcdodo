@@ -4,6 +4,7 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
+import Link from 'next/link';
 
 export default function Hero() {
   const ref = useRef(null);
@@ -57,23 +58,27 @@ export default function Hero() {
           transition={{ duration: 0.6, delay: 0.3 }} 
           className="flex gap-4 md:gap-6 justify-center flex-wrap px-4"
         >
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="px-8 md:px-10 py-3 md:py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full font-bold text-base md:text-lg shadow-xl"
-          >
-            Shop Now
-          </motion.button>
+          <Link href="/shop">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="px-8 md:px-10 py-3 md:py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full font-bold text-base md:text-lg shadow-xl"
+            >
+              Shop Now
+            </motion.button>
+          </Link>
           
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="px-8 md:px-10 py-3 md:py-4 bg-white text-orange-600 rounded-full font-bold text-base md:text-lg border-2 border-orange-300 shadow-lg"
-          >
-            Learn More
-          </motion.button>
+          <Link href="/shop">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="px-8 md:px-10 py-3 md:py-4 bg-white text-orange-600 rounded-full font-bold text-base md:text-lg border-2 border-orange-300 shadow-lg"
+            >
+              Learn More
+            </motion.button>
+          </Link>
         </motion.div>
       </motion.div>
       
