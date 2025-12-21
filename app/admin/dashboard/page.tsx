@@ -102,16 +102,24 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Link href="/admin/products">
-            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition cursor-pointer">
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition cursor-pointer border-2 border-transparent hover:border-orange-500">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                <Package className="text-orange-600" size={24} />
+              </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Manage Products</h3>
               <p className="text-gray-600">Edit products, prices, variants, and images</p>
             </div>
           </Link>
 
-          <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition cursor-pointer opacity-50">
-            <h3 className="text-xl font-bold text-gray-900 mb-2">View Orders</h3>
-            <p className="text-gray-600">View and manage customer orders</p>
-          </div>
+          <Link href="/admin/orders">
+            <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-xl transition cursor-pointer border-2 border-transparent hover:border-orange-500">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                <ShoppingCart className="text-orange-600" size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">View Orders</h3>
+              <p className="text-gray-600">View and manage customer orders</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>

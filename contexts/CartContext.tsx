@@ -1,8 +1,14 @@
-// Path: contexts/CartContext.tsx
-
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+  useCallback,
+  useMemo,
+} from 'react';
 
 export interface CartItem {
   id: string; // variant ID
@@ -55,76 +61,93 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('mcdodo_cart', JSON.stringify(items));
   }, [items]);
 
-  const addItem = (newItem: Omit<CartItem, 'quantity'>) => {
+  const openCart = useCallback(() => setIsOpen(true), []);
+  const closeCart = useCallback(() => setIsOpen(false), []);
+
+  const addItem = useCallback((newItem: Omit<CartItem, 'quantity'>) => {
     setItems((currentItems) => {
-      const existingItem = currentItems.find(item => item.id === newItem.id);
-      
+      const existingItem = currentItems.find((item) => item.id === newItem.id);
+
       if (existingItem) {
-        // Increase quantity if item exists
-        return currentItems.map(item =>
+        return currentItems.map((item) =>
           item.id === newItem.id
             ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }
             : item
         );
       }
-      
-      // Add new item
+
       return [...currentItems, { ...newItem, quantity: 1 }];
     });
-    
-    setIsOpen(true); // Open cart when item added
-  };
 
-  const removeItem = (variantId: string) => {
-    setItems((currentItems) => currentItems.filter(item => item.id !== variantId));
-  };
+    setIsOpen(true);
+  }, []);
 
-  const updateQuantity = (variantId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(variantId);
-      return;
-    }
-    
-    setItems((currentItems) =>
-      currentItems.map(item =>
-        item.id === variantId
-          ? { ...item, quantity: Math.min(quantity, item.stock) }
-          : item
-      )
-    );
-  };
+  const removeItem = useCallback((variantId: string) => {
+    setItems((currentItems) => currentItems.filter((item) => item.id !== variantId));
+  }, []);
 
-  const clearCart = () => {
-    setItems([]);
-  };
+  const updateQuantity = useCallback(
+    (variantId: string, quantity: number) => {
+      if (quantity <= 0) {
+        removeItem(variantId);
+        return;
+      }
 
-  const openCart = () => setIsOpen(true);
-  const closeCart = () => setIsOpen(false);
-
-  const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-  const total = items.reduce((sum, item) => {
-    const itemPrice = item.onSale ? item.salePrice : item.price;
-    return sum + (itemPrice * item.quantity);
-  }, 0);
-
-  return (
-    <CartContext.Provider
-      value={{
-        items,
-        itemCount,
-        total,
-        isOpen,
-        addItem,
-        removeItem,
-        updateQuantity,
-        clearCart,
-        openCart,
-        closeCart,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+      setItems((currentItems) =>
+        currentItems.map((item) =>
+          item.id === variantId
+            ? { ...item, quantity: Math.min(quantity, item.stock) }
+            : item
+        )
+      );
+    },
+    [removeItem]
   );
+
+  const clearCart = useCallback(() => {
+    setItems([]);
+  }, []);
+
+  const itemCount = useMemo(
+    () => items.reduce((total, item) => total + item.quantity, 0),
+    [items]
+  );
+
+  const total = useMemo(() => {
+    return items.reduce((sum, item) => {
+      const itemPrice = item.onSale ? item.salePrice : item.price;
+      return sum + itemPrice * item.quantity;
+    }, 0);
+  }, [items]);
+
+  const value = useMemo<CartContextType>(
+    () => ({
+      items,
+      itemCount,
+      total,
+      isOpen,
+      addItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+      openCart,
+      closeCart,
+    }),
+    [
+      items,
+      itemCount,
+      total,
+      isOpen,
+      addItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+      openCart,
+      closeCart,
+    ]
+  );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {

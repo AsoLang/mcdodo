@@ -23,8 +23,8 @@ export async function GET() {
         p.title,
         p.product_url,
         p.categories,
-        pv.price::numeric as price,
-        pv.sale_price::numeric as sale_price,
+        pv.price as price,
+        pv.sale_price as sale_price,
         pv.on_sale,
         pv.images[1] as image
       FROM products p

@@ -2,6 +2,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
@@ -10,6 +11,32 @@ import { useCart } from '@/contexts/CartContext';
 
 export default function CartSidebar() {
   const { items, itemCount, total, isOpen, closeCart, updateQuantity, removeItem } = useCart();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  const handleCheckout = async () => {
+    setIsCheckingOut(true);
+    
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      });
+
+      const data = await res.json();
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Failed to create checkout session');
+        setIsCheckingOut(false);
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to proceed to checkout');
+      setIsCheckingOut(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -181,8 +208,12 @@ export default function CartSidebar() {
                 </div>
 
                 {/* Checkout Button */}
-                <button className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-xl font-bold text-lg hover:from-orange-600 hover:to-orange-700 transition shadow-lg mb-3">
-                  Proceed to Checkout
+                <button 
+                  onClick={handleCheckout}
+                  disabled={isCheckingOut}
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 rounded-xl font-bold text-lg hover:from-orange-600 hover:to-orange-700 transition shadow-lg mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isCheckingOut ? 'Processing...' : 'Proceed to Checkout'}
                 </button>
 
                 {/* Continue Shopping */}

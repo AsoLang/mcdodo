@@ -1,4 +1,4 @@
-// Path: app/api/admin/products/route.ts
+// app/api/admin/products/route.ts
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -6,75 +6,109 @@ import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
-// Auth check helper
 async function isAuthenticated() {
-  try {
-    const cookieStore = await cookies();
-    const session = cookieStore.get('admin_session');
-    return session?.value === 'authenticated';
-  } catch (error) {
-    console.error('Auth check error:', error);
-    return false;
-  }
+  const cookieStore = await cookies();
+  const session = cookieStore.get('admin_session');
+  return session?.value === 'authenticated';
 }
 
 export async function GET() {
   try {
-    // Check authentication
-    const authenticated = await isAuthenticated();
-    
-    if (!authenticated) {
+    if (!(await isAuthenticated())) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch products with their first variant only (ordered by position)
-    const productsData = await sql`
-      SELECT 
+    // Ensure position column exists so admin list can order by it
+    await sql`
+      ALTER TABLE products
+      ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 999999
+    `;
+
+    const rows = await sql`
+      SELECT
+        p.id,
+        p.title,
+        COALESCE(p.categories, '') AS categories,
+        COALESCE(p.visible, true) AS visible,
+        COALESCE(p.featured, false) AS featured,
+        COALESCE(p.position, 999999)::int AS position,
+
+        COALESCE(SUM(pv.stock), 0)::int AS total_stock,
+        COUNT(pv.id)::int AS variant_count,
+        COALESCE(BOOL_OR(pv.stock > 0), false) AS any_in_stock,
+        COALESCE(BOOL_OR(pv.on_sale = true), false) AS any_on_sale,
+
+        dv.id AS display_variant_id,
+        dv.price AS display_price,
+        dv.sale_price AS display_sale_price,
+        dv.on_sale AS display_on_sale,
+        dv.stock AS display_stock,
+        dv.images AS display_images
+
+      FROM products p
+      LEFT JOIN product_variants pv ON pv.product_id = p.id
+      LEFT JOIN LATERAL (
+        SELECT
+          id,
+          price,
+          sale_price,
+          on_sale,
+          stock,
+          images
+        FROM product_variants
+        WHERE product_id = p.id
+        ORDER BY
+          (stock > 0) DESC,
+          position ASC NULLS LAST,
+          id ASC
+        LIMIT 1
+      ) dv ON true
+      GROUP BY
         p.id,
         p.title,
         p.categories,
         p.visible,
         p.featured,
-        p.created_at,
-        v.id as variant_id,
-        v.price,
-        v.sale_price,
-        v.on_sale,
-        v.stock,
-        v.images
-      FROM products p
-      LEFT JOIN LATERAL (
-        SELECT * FROM product_variants 
-        WHERE product_id = p.id 
-        ORDER BY position ASC 
-        LIMIT 1
-      ) v ON true
-      ORDER BY p.created_at DESC
+        p.position,
+        dv.id,
+        dv.price,
+        dv.sale_price,
+        dv.on_sale,
+        dv.stock,
+        dv.images
+      ORDER BY
+        p.position ASC NULLS LAST,
+        p.created_at DESC NULLS LAST
     `;
 
-    // Transform the data
-    const products = productsData.map(row => ({
-      id: row.id,
-      title: row.title,
-      categories: row.categories || '',
-      visible: row.visible || false,
-      featured: row.featured || false,
-      variant: row.variant_id ? {
-        id: row.variant_id,
-        price: Number(row.price) || 0,
-        sale_price: Number(row.sale_price) || 0,
-        on_sale: row.on_sale || false,
-        stock: Number(row.stock) || 0,
-        images: row.images || []
-      } : undefined
+    const products = rows.map((r: any) => ({
+      id: r.id,
+      title: r.title,
+      categories: r.categories || '',
+      visible: Boolean(r.visible),
+      featured: Boolean(r.featured),
+      position: Number(r.position || 999999),
+
+      total_stock: Number(r.total_stock || 0),
+      variant_count: Number(r.variant_count || 0),
+      any_in_stock: Boolean(r.any_in_stock),
+      any_on_sale: Boolean(r.any_on_sale),
+
+      variant: r.display_variant_id
+        ? {
+            id: r.display_variant_id,
+            price: r.display_price ? Number(r.display_price) : 0,
+            sale_price: r.display_sale_price ? Number(r.display_sale_price) : 0,
+            on_sale: Boolean(r.display_on_sale),
+            stock: r.display_stock ? Number(r.display_stock) : 0,
+            images: Array.isArray(r.display_images) ? r.display_images : [],
+          }
+        : null,
     }));
 
     return NextResponse.json(products);
   } catch (error) {
-    console.error('Error fetching products:', error);
-    return NextResponse.json({ 
-      error: 'Failed to fetch products', 
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 });
+    console.error('Error fetching admin products:', error);
+    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
   }
 }
