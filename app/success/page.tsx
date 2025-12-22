@@ -1,13 +1,14 @@
+// Path: app/success/page.tsx
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Package, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useCart } from '@/contexts/CartContext';
 
-export default function CheckoutSuccess() {
+function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const { clearCart } = useCart();
@@ -131,5 +132,18 @@ export default function CheckoutSuccess() {
         {orderLabel && <p className="text-xs text-gray-400 mt-6">{orderLabel}</p>}
       </motion.div>
     </div>
+  );
+}
+
+// Wrap the content in a Suspense boundary
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+      </div>
+    }>
+      <SuccessContent />
+    </Suspense>
   );
 }
