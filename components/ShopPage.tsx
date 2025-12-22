@@ -52,7 +52,7 @@ const GRADIENT_BACKGROUNDS = [
 ];
 
 const FEATURES = [
-  { icon: Truck, title: 'Fast, Free Shipping', description: 'Quick delivery on all orders' },
+  { icon: Truck, title: 'Free Shipping', description: 'On orders over £20' },
   { icon: Shield, title: 'Hassle-Free Warranty', description: 'Quality guarantee' },
   { icon: DollarSign, title: '30-Day Money-Back Guarantee', description: 'Risk-free purchase' },
   { icon: Headphones, title: 'Lifetime Customer Support', description: 'Always here to help' },

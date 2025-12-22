@@ -1,6 +1,6 @@
 // Path: app/shop/p/[slug]/page.tsx
 
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { neon } from '@neondatabase/serverless';
 import ProductDetail from '@/components/ProductDetail';
 import type { Metadata } from 'next';
@@ -47,6 +47,7 @@ interface Product {
   seo_description: string | null;
   seo_keywords: string | null;
   product_url: string;
+  visible: boolean;
   variants: ProductVariant[];
   accordions?: Accordion[];
   product_images?: string[];
@@ -65,7 +66,6 @@ async function getProduct(slug: string): Promise<Product | null> {
     const products = await sql`
       SELECT * FROM products 
       WHERE product_url = ${slug} 
-      AND visible = true
     `;
 
     if (products.length === 0) return null;
@@ -105,7 +105,6 @@ async function getProduct(slug: string): Promise<Product | null> {
       `;
       
       relatedProducts = relatedData.map((r: any) => {
-        // Prioritize product_images, then variant images
         let image = '';
         if (r.product_images && r.product_images.length > 0) {
           image = r.product_images[0];
@@ -154,10 +153,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  // Prevent indexing if hidden
+  if (!product.visible) {
+    return {
+      title: `Archived: ${product.title} | Mcdodo UK`,
+      description: product.description,
+      robots: 'noindex', 
+    };
+  }
+
   const title = product.seo_title || `${product.title} | Mcdodo UK`;
   const description = product.seo_description || product.description || 'Premium charging accessories from Mcdodo UK';
   
-  // Use product_images first, then variant images
   const images = product.product_images?.[0] 
     ? [product.product_images[0]] 
     : product.variants[0]?.images?.[0] 
@@ -186,8 +193,11 @@ export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
   const product = await getProduct(slug);
 
+  // REDIRECT LOGIC:
+  // 1. If product is NULL (broken link/invalid slug) -> Redirect to /archive
+  // 2. If product exists (even if hidden) -> Show it (So you can view it from the Archive page)
   if (!product) {
-    notFound();
+    redirect('/archive');
   }
 
   return <ProductDetail product={product} />;

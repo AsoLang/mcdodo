@@ -4,7 +4,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { CheckCircle } from 'lucide-react';
+import Link from 'next/link'; // Added Link
+import { CheckCircle, ExternalLink } from 'lucide-react'; // Added ExternalLink icon
 import VariantEditor from './VariantEditor';
 import ProductSections from './ProductSections';
 
@@ -139,6 +140,18 @@ export default function EditProductPage() {
                   <span>Saved!</span>
                 </div>
               )}
+              
+              {/* --- NEW VIEW AS BUTTON --- */}
+              <Link 
+                href={`/shop/p/${product.product_url}`}
+                target="_blank"
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition text-gray-900 font-medium"
+              >
+                <ExternalLink size={18} />
+                View as
+              </Link>
+              {/* ------------------------- */}
+
               <button
                 onClick={() => router.push('/admin/products')}
                 className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition text-gray-900 font-medium"

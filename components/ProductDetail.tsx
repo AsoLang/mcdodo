@@ -57,12 +57,19 @@ interface Product {
 
 export default function ProductDetail({ product }: { product: Product }) {
   const { addItem } = useCart();
-  const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
+
+  // UPDATED INITIALIZATION:
+  // 1. Try to find the first variant with stock > 0
+  // 2. If all are out of stock, fallback to the very first variant
+  const initialVariant = product.variants.find(v => Number(v.stock) > 0) || product.variants[0];
+
+  const [selectedVariant, setSelectedVariant] = useState(initialVariant);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(Number(product.variants[0].stock) > 0 ? 1 : 0);
+  const [quantity, setQuantity] = useState(Number(initialVariant.stock) > 0 ? 1 : 0);
   const [expandedAccordions, setExpandedAccordions] = useState<{ [key: string]: boolean }>({});
   const [galleryModalOpen, setGalleryModalOpen] = useState(false);
   const [galleryModalIndex, setGalleryModalIndex] = useState(0);
+  const [isBuyingNow, setIsBuyingNow] = useState(false);
 
   const price = Number(selectedVariant.price);
   const salePrice = Number(selectedVariant.sale_price);
@@ -70,12 +77,11 @@ export default function ProductDetail({ product }: { product: Product }) {
   const onSale = selectedVariant.on_sale;
   const reviewRating = Number(product.review_rating || 0);
 
-  // ALWAYS prioritize product_images, only fall back to variant images if product_images is empty
-  const displayImages = (product.product_images && product.product_images.length > 0)
-    ? product.product_images 
-    : (selectedVariant.images && selectedVariant.images.length > 0)
-    ? selectedVariant.images 
-    : [];
+  // Combine Variant Images (first) + Product Images (after)
+  const displayImages = Array.from(new Set([
+    ...(selectedVariant.images || []),
+    ...(product.product_images || [])
+  ]));
 
   const toggleAccordion = (id: string) => {
     setExpandedAccordions(prev => ({ ...prev, [id]: !prev[id] }));
@@ -138,6 +144,98 @@ export default function ProductDetail({ product }: { product: Product }) {
     });
   };
 
+  const handleBuyNow = async () => {
+    if (stock === 0) return;
+    setIsBuyingNow(true);
+
+    try {
+      const imagePath = displayImages[0] || '/placeholder.jpg';
+      
+      // Ensure image URL is absolute (Stripe requirement)
+      const imageUrl = imagePath.startsWith('http') 
+        ? imagePath 
+        : `${window.location.origin}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+      
+      const finalPrice = onSale ? salePrice : price;
+
+      // --- NEW SHIPPING LOGIC START ---
+      // Calculate total to determine shipping cost
+      const totalAmount = finalPrice * quantity;
+      const shippingCost = totalAmount >= 20 ? 0 : 3.99;
+      // --- NEW SHIPPING LOGIC END ---
+
+      // 1. Prepare payload for Stripe API
+      const stripePayload = {
+        items: [{
+          title: product.title,
+          image: imageUrl,
+          price: price,
+          salePrice: salePrice,
+          onSale: onSale,
+          color: selectedVariant.color,
+          size: selectedVariant.size,
+          quantity: quantity
+        }],
+        shippingCost // Send calculated shipping cost to backend
+      };
+
+      // 2. Prepare Cart Item for restoration if user cancels
+      // This matches exactly what addItem expects
+      const cartItemBackup = {
+        id: selectedVariant.id,
+        productId: product.id,
+        productUrl: product.product_url,
+        title: product.title,
+        color: selectedVariant.color || undefined,
+        size: selectedVariant.size || undefined,
+        price: price,
+        salePrice: salePrice,
+        onSale: onSale,
+        image: imagePath, // Use original path for internal cart
+        stock: stock,
+        quantity: quantity // Current quantity
+      };
+
+      // Save to storage
+      localStorage.setItem('buynow_restore_item', JSON.stringify(cartItemBackup));
+
+      const response = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(stripePayload),
+      });
+
+      const responseText = await response.text();
+      let data;
+      
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Server returned non-JSON response:', responseText);
+        setIsBuyingNow(false);
+        return;
+      }
+
+      if (!response.ok) {
+        console.error('Checkout API Error:', data);
+        setIsBuyingNow(false);
+        return;
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        console.error('Missing URL in checkout response:', data);
+        setIsBuyingNow(false);
+      }
+    } catch (error) {
+      console.error('Error during checkout request:', error);
+      setIsBuyingNow(false);
+    }
+  };
+
   const openGalleryModal = (index: number) => {
     setGalleryModalIndex(index);
     setGalleryModalOpen(true);
@@ -155,7 +253,6 @@ export default function ProductDetail({ product }: { product: Product }) {
     }
   };
 
-  // Star rendering helper
   const renderStars = (rating: number, size: number = 18) => {
     const fullStars = Math.floor(rating);
     const hasHalfStar = rating % 1 >= 0.5;
@@ -401,10 +498,11 @@ export default function ProductDetail({ product }: { product: Product }) {
                 Add to Cart
               </button>
               <button 
-                disabled={stock === 0}
+                onClick={handleBuyNow}
+                disabled={stock === 0 || isBuyingNow}
                 className="bg-cyan-500 hover:bg-cyan-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               >
-                Buy Now
+                {isBuyingNow ? 'Processing...' : 'Buy Now'}
               </button>
             </div>
 

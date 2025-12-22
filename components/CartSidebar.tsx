@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
+import { X, Minus, Plus, Trash2, ShoppingBag, Truck } from 'lucide-react'; // Added Truck icon
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
@@ -13,14 +13,30 @@ export default function CartSidebar() {
   const { items, itemCount, total, isOpen, closeCart, updateQuantity, removeItem } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
+  // --- CONFIGURATION ---
+  const FREE_SHIPPING_THRESHOLD = 20.00;
+  const SHIPPING_COST = 3.99;
+  
+  // --- CALCULATIONS ---
+  const isFreeShipping = total >= FREE_SHIPPING_THRESHOLD;
+  const shippingCost = isFreeShipping ? 0 : SHIPPING_COST;
+  const finalTotal = total + shippingCost;
+  
+  const remainingForFree = FREE_SHIPPING_THRESHOLD - total;
+  const progress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
+
   const handleCheckout = async () => {
     setIsCheckingOut(true);
     
     try {
+      // Pass the shipping cost or total to your checkout API if needed
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ 
+          items,
+          shippingCost, // Ensure your backend handles this if you want to charge it
+        }),
       });
 
       const data = await res.json();
@@ -73,6 +89,34 @@ export default function CartSidebar() {
               >
                 <X size={24} className="text-gray-600" />
               </button>
+            </div>
+
+            {/* --- FREE SHIPPING PROGRESS BAR --- */}
+            <div className="px-6 py-4 bg-white border-b border-gray-100">
+              <div className="mb-2 text-sm font-medium">
+                {isFreeShipping ? (
+                  <div className="flex items-center gap-2 text-green-600">
+                    <Truck size={18} />
+                    <span>You've got <strong>Free Shipping!</strong></span>
+                  </div>
+                ) : (
+                  <div className="text-gray-700">
+                    Add <span className="text-orange-600 font-bold">£{remainingForFree.toFixed(2)}</span> for Free Shipping
+                  </div>
+                )}
+              </div>
+              
+              {/* Progress Track */}
+              <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ duration: 0.5 }}
+                  className={`h-full rounded-full ${
+                    isFreeShipping ? 'bg-green-500' : 'bg-orange-500'
+                  }`}
+                />
+              </div>
             </div>
 
             {/* Cart Items */}
@@ -199,11 +243,33 @@ export default function CartSidebar() {
             {/* Footer - Checkout */}
             {items.length > 0 && (
               <div className="border-t border-gray-200 p-6 bg-gray-50">
+                
                 {/* Subtotal */}
-                <div className="flex justify-between items-center mb-4 text-lg">
-                  <span className="font-semibold text-gray-700">Subtotal:</span>
-                  <span className="font-bold text-2xl text-gray-900">
+                <div className="flex justify-between items-center mb-2 text-gray-600">
+                  <span className="font-medium">Subtotal</span>
+                  <span className="font-bold text-gray-900">
                     £{total.toFixed(2)}
+                  </span>
+                </div>
+
+                {/* Shipping Cost Display */}
+                <div className="flex justify-between items-center mb-4 text-gray-600">
+                  <span className="font-medium">Shipping</span>
+                  {isFreeShipping ? (
+                    <span className="font-bold text-green-600">Free</span>
+                  ) : (
+                    <span className="font-bold text-gray-900">£{SHIPPING_COST}</span>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div className="h-px bg-gray-200 w-full mb-4"></div>
+
+                {/* Total */}
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-xl font-bold text-gray-900">Total</span>
+                  <span className="text-2xl font-black text-orange-600">
+                    £{finalTotal.toFixed(2)}
                   </span>
                 </div>
 
@@ -225,7 +291,7 @@ export default function CartSidebar() {
                 </button>
 
                 <p className="text-xs text-gray-500 text-center mt-3">
-                  Shipping & taxes calculated at checkout
+                  Taxes calculated at checkout
                 </p>
               </div>
             )}

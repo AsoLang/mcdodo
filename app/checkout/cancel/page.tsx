@@ -2,11 +2,39 @@
 
 'use client';
 
+import { useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { XCircle, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useCart } from '@/contexts/CartContext';
 
-export default function CheckoutCancel() {
+function CancelContent() {
+  const searchParams = useSearchParams();
+  const { addItem } = useCart();
+
+  useEffect(() => {
+    // Check if we were sent back with the restore flag
+    if (searchParams.get('restore_cart') === 'true') {
+      // Retrieve the item we saved before leaving for Stripe
+      const savedItem = localStorage.getItem('buynow_restore_item');
+      
+      if (savedItem) {
+        try {
+          const item = JSON.parse(savedItem);
+          
+          // Add the item back to the cart
+          addItem(item);
+          
+          // Clear the backup so it doesn't duplicate if they refresh
+          localStorage.removeItem('buynow_restore_item');
+        } catch (e) {
+          console.error('Failed to restore cart item:', e);
+        }
+      }
+    }
+  }, [searchParams, addItem]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-20">
       <motion.div
@@ -27,6 +55,8 @@ export default function CheckoutCancel() {
         </p>
 
         <div className="space-y-3">
+          {/* Note: Ensure '/shop' is where you want "Back to Cart" to go. 
+              If you have a dedicated cart page, change this to href="/cart" */}
           <Link href="/shop" className="block">
             <button className="w-full px-6 py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2">
               <ShoppingCart size={20} />
@@ -47,5 +77,15 @@ export default function CheckoutCancel() {
         </p>
       </motion.div>
     </div>
+  );
+}
+
+// We wrap the content in Suspense because useSearchParams() causes 
+// Next.js to opt-out of static rendering for the whole page.
+export default function CheckoutCancel() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <CancelContent />
+    </Suspense>
   );
 }
