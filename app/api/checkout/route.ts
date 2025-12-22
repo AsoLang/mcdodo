@@ -4,7 +4,6 @@ import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  // Added "as any" to fix the red line in VS Code
   apiVersion: '2024-06-20' as any,
 });
 
@@ -12,16 +11,18 @@ export async function POST(req: Request) {
   try {
     const { items, shippingCost } = await req.json();
 
+    // --- DYNAMIC ORIGIN DETECTION ---
+    // This automatically grabs "https://mcdodo.co.uk" in prod
+    // or "http://localhost:3000" in dev.
+    const origin = req.headers.get('origin') || 'http://localhost:3000';
+
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'No items provided' }, { status: 400 });
     }
 
     const line_items = items.map((item: any) => {
-      // 1. Generate the description string first
-      // .filter(Boolean) removes null, undefined, or empty strings
       const descriptionText = [item.color, item.size].filter(Boolean).join(', ');
 
-      // 2. Build the product_data object
       const productData: any = {
         name: item.title,
         images: item.image ? [item.image] : [],
@@ -30,7 +31,6 @@ export async function POST(req: Request) {
         }
       };
 
-      // 3. THE FIX: ONLY add description if it actually contains text
       if (descriptionText && descriptionText.length > 0) {
         productData.description = descriptionText;
       }
@@ -45,7 +45,6 @@ export async function POST(req: Request) {
       };
     });
 
-    // Add Shipping Line Item (if applicable)
     if (shippingCost && shippingCost > 0) {
       line_items.push({
         price_data: {
@@ -64,8 +63,9 @@ export async function POST(req: Request) {
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/`, 
+      // NOW USES THE DYNAMIC ORIGIN:
+      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/`, 
     });
 
     return NextResponse.json({ url: session.url });

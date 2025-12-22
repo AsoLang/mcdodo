@@ -1,166 +1,153 @@
 // Path: app/api/webhooks/stripe/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { neon } from '@neondatabase/serverless';
-// Import from the file we just updated
 import { sendOrderConfirmationEmail } from '@/lib/email';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is missing');
-}
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20' as any,
-  typescript: true,
 });
 
 const sql = neon(process.env.DATABASE_URL!);
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-export async function POST(req: Request) {
-  const body = await req.text();
-  const headerList = await headers();
-  const signature = headerList.get('stripe-signature');
-
-  if (!signature) {
-    return NextResponse.json({ error: 'No signature' }, { status: 400 });
+// --- HELPER TO SUBTRACT STOCK ---
+async function decrementStock(items: any[]) {
+  try {
+    for (const item of items) {
+      if (item.id) {
+        await sql`
+          UPDATE products 
+          SET stock = GREATEST(0, stock - ${item.quantity})
+          WHERE id = ${item.id}
+        `;
+      }
+    }
+  } catch (error) {
+    console.error('Failed to decrement stock:', error);
   }
+}
+
+export async function POST(req: NextRequest) {
+  const body = await req.text();
+  const signature = (await headers()).get('stripe-signature') as string;
 
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, endpointSecret);
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET!
+    );
   } catch (err: any) {
     console.error(`Webhook signature verification failed: ${err.message}`);
-    return NextResponse.json({ error: 'Webhook Error' }, { status: 400 });
+    return NextResponse.json({ error: err.message }, { status: 400 });
   }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
-    const sessionId = session.id;
+
+    // 1. Retrieve full details (including line items)
+    const fullSession = await stripe.checkout.sessions.retrieve(session.id, {
+      expand: ['line_items', 'line_items.data.price.product'],
+    });
+
+    const customerEmail = session.customer_details?.email || '';
+    const customerName = session.customer_details?.name || 'Customer';
+    const amountTotal = (session.amount_total || 0) / 100;
+    
+    // --- FIX: Cast to 'any' to suppress the "shipping_details" error ---
+    const shippingDetails = (session as any).shipping_details;
+    const shipping = shippingDetails?.address;
+    
+    const address = {
+      line1: shipping?.line1 || null,
+      line2: shipping?.line2 || null,
+      city: shipping?.city || null,
+      postal_code: shipping?.postal_code || null,
+      country: shipping?.country || null,
+    };
+
+    // Extract Items
+    const items = fullSession.line_items?.data.map((item) => {
+      const product = item.price?.product as Stripe.Product;
+      return {
+        id: product.metadata?.variantId || null, 
+        name: product.name,
+        quantity: item.quantity || 1,
+        price: (item.amount_total || 0) / 100 / (item.quantity || 1),
+      };
+    }) || [];
+
+    // Calculate Shipping Cost
+    const shippingCost = fullSession.total_details?.amount_shipping 
+      ? fullSession.total_details.amount_shipping / 100 
+      : 0;
 
     try {
-      console.log(`[Webhook] Processing session: ${sessionId}`);
-
-      const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
-        expand: ['line_items', 'customer_details', 'line_items.data.price.product'],
-      });
-
-      const customerEmail = fullSession.customer_details?.email || '';
-      const customerName = fullSession.customer_details?.name || 'Guest';
-      
-      const rawAddress = fullSession.customer_details?.address;
-      const address = {
-        line1: rawAddress?.line1 ?? null,
-        line2: rawAddress?.line2 ?? null,
-        city: rawAddress?.city ?? null,
-        postal_code: rawAddress?.postal_code ?? null,
-        country: rawAddress?.country ?? null,
-      };
-
-      const amountTotal = (fullSession.amount_total || 0) / 100;
-      
-      let shippingCost = 0;
-      const itemsArray: any[] = [];
-      const lineItems = fullSession.line_items?.data || [];
-
-      for (const item of lineItems) {
-        const description = item.description || '';
-        if (description.toLowerCase().includes('delivery') || description.toLowerCase().includes('shipping')) {
-          shippingCost = (item.amount_total || 0) / 100;
-          continue;
-        }
-
-        const product = item.price?.product as Stripe.Product | undefined;
-        const productName = product?.name || description || 'Unknown Item';
-        const productImage = product?.images?.[0] || '';
-        const variantId = product?.metadata?.variantId || null;
-        const itemQuantity = item.quantity || 1;
-        const itemPrice = (item.amount_total || 0) / 100 / itemQuantity;
-
-        itemsArray.push({
-          name: productName,
-          quantity: itemQuantity,
-          price: itemPrice,
-          variant_id: variantId,
-          image: productImage
-        });
-      }
-
-      const subtotal = amountTotal - shippingCost;
-
-      // DB OPERATION
-      let orderRecord = await sql`
-        SELECT id, order_number, confirmation_email_sent_at 
-        FROM orders 
-        WHERE stripe_session_id = ${sessionId}
+      // 2. Insert Order into Database
+      const result = await sql`
+        INSERT INTO orders (
+          stripe_session_id,
+          customer_email,
+          customer_name,
+          total_amount,
+          status,
+          items,
+          shipping_address_line1,
+          shipping_address_line2,
+          shipping_city,
+          shipping_postal_code,
+          shipping_country
+        )
+        VALUES (
+          ${session.id},
+          ${customerEmail},
+          ${customerName},
+          ${amountTotal},
+          'paid',
+          ${JSON.stringify(items)},
+          ${address.line1},
+          ${address.line2},
+          ${address.city},
+          ${address.postal_code},
+          ${address.country}
+        )
+        RETURNING order_number, created_at
       `;
 
-      if (orderRecord.length === 0) {
-        orderRecord = await sql`
-          INSERT INTO orders (
-            email, financial_status, fulfillment_status, currency,
-            subtotal, shipping, total, shipping_method, payment_method,
-            created_at, paid_at, stripe_session_id, customer_email,
-            customer_name, shipping_address_line1, shipping_address_line2,
-            shipping_city, shipping_postal_code, shipping_country,
-            items, status, payment_status
-          ) VALUES (
-            ${customerEmail}, 'PAID', 'UNFULFILLED', 'GBP',
-            ${subtotal}, ${shippingCost}, ${amountTotal}, 'Standard Delivery', 'Stripe',
-            NOW(), NOW(), ${sessionId}, ${customerEmail},
-            ${customerName}, ${address.line1}, ${address.line2},
-            ${address.city}, ${address.postal_code}, ${address.country},
-            ${JSON.stringify(itemsArray)}, 'confirmed', 'paid'
-          )
-          RETURNING id, order_number, confirmation_email_sent_at
-        `;
-        console.log(`[Webhook] Created new order #${orderRecord[0].order_number}`);
-      }
-
-      const order = orderRecord[0];
-
-      if (order.confirmation_email_sent_at) {
-        console.log(`[Webhook] Email already sent for #${order.order_number}. Skipping.`);
-        return NextResponse.json({ received: true, status: 'already_sent' });
-      }
-
-      console.log(`[Webhook] Sending confirmation email for #${order.order_number}...`);
-      
-      // --- UPDATED CALL ---
-      const emailResult = await sendOrderConfirmationEmail({
-        email: customerEmail,
-        name: customerName,
-        orderId: order.order_number.toString(),
-        items: itemsArray,
-        total: amountTotal,
-        shippingTotal: shippingCost, // Passing Shipping
-        shippingAddress: address,    // Passing Address
-        date: new Date().toLocaleString('en-GB', { 
-          day: 'numeric', 
-          month: 'long', 
-          year: 'numeric', 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        }) // Passing Formatted Date
+      const orderNumber = result[0].order_number;
+      const orderDate = new Date(result[0].created_at).toLocaleDateString('en-GB', {
+        day: 'numeric', month: 'long', year: 'numeric'
       });
 
-      if (emailResult.success) {
-        await sql`
-          UPDATE orders 
-          SET confirmation_email_sent_at = NOW() 
-          WHERE id = ${order.id}
-        `;
-        console.log(`[Webhook] Email sent & logged for #${order.order_number}`);
-      } else {
-        console.error(`[Webhook] Failed to send email for #${order.order_number}:`, emailResult.error);
-      }
+      console.log(`✅ Order #${orderNumber} saved.`);
 
-    } catch (err) {
-      console.error('[Webhook] Processing Failed:', err);
-      return NextResponse.json({ error: 'Processing Failed' }, { status: 500 });
+      // 3. SUBTRACT STOCK
+      await decrementStock(items);
+      console.log(`📉 Stock updated for Order #${orderNumber}`);
+
+      // 4. Send Confirmation Email
+      await sendOrderConfirmationEmail({
+        email: customerEmail,
+        name: customerName,
+        orderId: orderNumber.toString(),
+        date: orderDate,
+        shippingAddress: address,
+        items: items,
+        shippingTotal: shippingCost,
+        total: amountTotal,
+      });
+
+    } catch (error: any) {
+      if (error.code === '23505') { 
+        console.log('Order already processed (duplicate event).');
+        return NextResponse.json({ received: true });
+      }
+      console.error('Error processing order:', error);
+      return NextResponse.json({ error: 'Error processing order' }, { status: 500 });
     }
   }
 
