@@ -167,6 +167,8 @@ export default function ProductDetail({ product }: { product: Product }) {
       // 1. Prepare payload for Stripe API
       const stripePayload = {
         items: [{
+          // FIX: Added 'id' so the backend knows which product this is!
+          id: selectedVariant.id, 
           title: product.title,
           image: imageUrl,
           price: price,
