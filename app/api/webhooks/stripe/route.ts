@@ -18,10 +18,10 @@ async function decrementStock(items: any[]) {
   
   try {
     for (const item of items) {
-      // Convert string productId to number
-      const productId = item.id ? parseInt(String(item.id)) : null;
+      // Handle both UUID and integer product IDs
+      const productId = item.id || null;
       
-      if (productId && !isNaN(productId)) {
+      if (productId) {
         console.log(`[Stock Update] Decrementing stock for Product ID ${productId} by ${item.quantity}`);
         
         const result = await sql`
@@ -37,7 +37,7 @@ async function decrementStock(items: any[]) {
           console.warn(`⚠️ [Stock Update] Product ID ${productId} not found in database`);
         }
       } else {
-        console.warn(`⚠️ [Stock Update] Invalid product ID for item:`, item);
+        console.warn(`⚠️ [Stock Update] Missing product ID for item:`, item);
       }
     }
     console.log('[Stock Update] ✅ Stock decrement completed');
@@ -120,17 +120,7 @@ export async function POST(req: NextRequest) {
       : 0;
 
     try {
-      // 2. Check for duplicate orders
-      const existingOrder = await sql`
-        SELECT order_number FROM orders WHERE stripe_session_id = ${session.id}
-      `;
-
-      if (existingOrder.length > 0) {
-        console.log(`⚠️ [Webhook] Order already exists (session: ${session.id})`);
-        return NextResponse.json({ received: true, duplicate: true });
-      }
-
-      // 3. Insert Order into Database
+      // Insert Order into Database
       const result = await sql`
         INSERT INTO orders (
           stripe_session_id,
@@ -162,43 +152,50 @@ export async function POST(req: NextRequest) {
           ${address.postal_code},
           ${address.country}
         )
-        RETURNING order_number, created_at
+        ON CONFLICT (stripe_session_id) DO UPDATE
+        SET stripe_session_id = EXCLUDED.stripe_session_id
+        RETURNING order_number, created_at, confirmation_email_sent_at
       `;
 
       const orderNumber = result[0].order_number;
       const orderDate = new Date(result[0].created_at).toLocaleDateString('en-GB', {
         day: 'numeric', month: 'long', year: 'numeric'
       });
+      const emailAlreadySent = result[0].confirmation_email_sent_at;
 
-      console.log(`✅ [Webhook] Order #${orderNumber} saved to database`);
+      console.log(`✅ [Webhook] Order #${orderNumber} processed`);
 
-      // 4. SUBTRACT STOCK - This is the critical part
+      // Always decrement stock (idempotent - won't go below 0)
       await decrementStock(items);
 
-      // 5. Send Confirmation Email
-      try {
-        await sendOrderConfirmationEmail({
-          email: customerEmail,
-          name: customerName,
-          orderId: orderNumber.toString(),
-          date: orderDate,
-          shippingAddress: address,
-          items: items,
-          shippingTotal: shippingCost,
-          total: amountTotal,
-        });
-        
-        console.log(`📧 [Webhook] Confirmation email sent to ${customerEmail}`);
+      // Only send email if not already sent
+      if (!emailAlreadySent) {
+        try {
+          await sendOrderConfirmationEmail({
+            email: customerEmail,
+            name: customerName,
+            orderId: orderNumber.toString(),
+            date: orderDate,
+            shippingAddress: address,
+            items: items,
+            shippingTotal: shippingCost,
+            total: amountTotal,
+          });
+          
+          console.log(`📧 [Webhook] Confirmation email sent to ${customerEmail}`);
 
-        // 6. Mark Email as Sent
-        await sql`
-          UPDATE orders 
-          SET confirmation_email_sent_at = NOW() 
-          WHERE stripe_session_id = ${session.id}
-        `;
-      } catch (emailError) {
-        console.error('❌ [Webhook] Email failed (non-critical):', emailError);
-        // Don't fail the webhook if email fails
+          // Mark Email as Sent
+          await sql`
+            UPDATE orders 
+            SET confirmation_email_sent_at = NOW() 
+            WHERE stripe_session_id = ${session.id}
+          `;
+        } catch (emailError) {
+          console.error('❌ [Webhook] Email failed (non-critical):', emailError);
+          // Don't fail the webhook if email fails
+        }
+      } else {
+        console.log(`ℹ️ [Webhook] Email already sent for order #${orderNumber}`);
       }
 
       console.log(`✅ [Webhook] Order #${orderNumber} fully processed`);

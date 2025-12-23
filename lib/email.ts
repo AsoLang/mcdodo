@@ -46,7 +46,7 @@ export async function sendOrderConfirmationEmail({
     const addressLines = [shippingAddress.line1, shippingAddress.line2, shippingAddress.city, shippingAddress.postal_code, shippingAddress.country].filter(Boolean).join(', ');
 
     await resend.emails.send({
-      from: 'Mcdodo UK <onboarding@resend.dev>',
+      from: 'Mcdodo UK <orders@mcdodo.co.uk>',
       to: email,
       subject: `Order Confirmed - #${orderId}`,
       html: `
@@ -162,7 +162,7 @@ export async function sendDispatchEmail({
     const addressLines = [shippingAddress.line1, shippingAddress.line2, shippingAddress.city, shippingAddress.postal_code, shippingAddress.country].filter(Boolean).join(', ');
 
     await resend.emails.send({
-      from: 'Mcdodo UK <onboarding@resend.dev>',
+      from: 'Mcdodo UK <orders@mcdodo.co.uk>',
       to: email,
       subject: `Order Dispatched - #${orderId}`,
       html: `
