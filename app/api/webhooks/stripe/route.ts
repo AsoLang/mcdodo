@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     const customerName = session.customer_details?.name || 'Customer';
     const amountTotal = (session.amount_total || 0) / 100;
     
-    // --- FIX: Cast to 'any' to suppress the "shipping_details" error ---
+    // Cast to 'any' to suppress the "shipping_details" error
     const shippingDetails = (session as any).shipping_details;
     const shipping = shippingDetails?.address;
     
@@ -74,7 +74,8 @@ export async function POST(req: NextRequest) {
     const items = fullSession.line_items?.data.map((item) => {
       const product = item.price?.product as Stripe.Product;
       return {
-        id: product.metadata?.variantId || null, 
+        // FIX #1: Match the key we send in Checkout (productId)
+        id: product.metadata?.productId || null, 
         name: product.name,
         quantity: item.quantity || 1,
         price: (item.amount_total || 0) / 100 / (item.quantity || 1),
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
           stripe_session_id,
           customer_email,
           customer_name,
-          total_amount,
+          total,             -- FIX #2: Changed from total_amount to total
           status,
           items,
           shipping_address_line1,
@@ -140,6 +141,13 @@ export async function POST(req: NextRequest) {
         shippingTotal: shippingCost,
         total: amountTotal,
       });
+
+      // 5. Mark Email as Sent (Optional, but good for tracking)
+      await sql`
+        UPDATE orders 
+        SET confirmation_email_sent_at = NOW() 
+        WHERE stripe_session_id = ${session.id}
+      `;
 
     } catch (error: any) {
       if (error.code === '23505') { 

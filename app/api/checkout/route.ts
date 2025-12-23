@@ -25,7 +25,8 @@ export async function POST(req: Request) {
         name: item.title,
         images: item.image ? [item.image] : [],
         metadata: {
-          variantId: item.id,
+          // FIX: Changed 'variantId' to 'productId' so the Webhook can find it!
+          productId: item.id, 
         }
       };
 
@@ -63,11 +64,9 @@ export async function POST(req: Request) {
       line_items,
       mode: 'payment',
       
-      // --- THE FIX: ENABLE SHIPPING ADDRESS COLLECTION ---
       shipping_address_collection: {
-        allowed_countries: ['GB'], // Restricts shipping to UK (add others if needed)
+        allowed_countries: ['GB'], 
       },
-      // -------------------------------------------------
 
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/`, 
