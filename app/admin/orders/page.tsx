@@ -11,10 +11,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface Order {
   id: string;
   order_number: string | number;
-  stripe_session_id: string | null; // Allow null
-  customer_email: string | null;    // Allow null
-  customer_name: string | null;     // Allow null
+  stripe_session_id: string | null;
+  customer_email: string | null;
+  customer_name: string | null;
+  shipping_address_line1: string | null;
+  shipping_address_line2: string | null;
   shipping_city: string | null;
+  shipping_postal_code: string | null;
+  shipping_country: string | null;
   items: any;
   total: number;
   fulfillment_status: string;
@@ -80,7 +84,6 @@ export default function OrdersPage() {
 
       if (res.ok) {
         setOrders(prev => prev.filter(o => o.id !== orderId));
-        // Refresh from server to be sure
         fetchOrders();
       } else {
         alert('Failed to delete order. Check console for details.');
@@ -167,7 +170,6 @@ export default function OrdersPage() {
     const sorted = [...orders];
     
     if (sortBy === 'newest') {
-      // UPDATED: Sort by Order Number (High to Low)
       sorted.sort((a, b) => {
         const numA = Number(a.order_number) || 0;
         const numB = Number(b.order_number) || 0;
@@ -175,7 +177,6 @@ export default function OrdersPage() {
       });
     }
     else if (sortBy === 'oldest') {
-      // UPDATED: Sort by Order Number (Low to High)
       sorted.sort((a, b) => {
         const numA = Number(a.order_number) || 0;
         const numB = Number(b.order_number) || 0;
@@ -190,57 +191,97 @@ export default function OrdersPage() {
 
   const filteredOrders = sortOrders(filterBySearch(filterByDate(filterByTab(orders))));
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
-  useEffect(() => { setCurrentPage(1); }, [search, activeTab, dateFilter, sortBy]);
-
-  const parseItems = (items: any) => {
-    if (typeof items === 'string') {
-      try { return JSON.parse(items); } catch { return []; }
-    }
-    return Array.isArray(items) ? items : [];
+  const stats = {
+    total: orders.length,
+    unfulfilled: orders.filter(o => getNormalizedStatus(o.fulfillment_status) === 'unfulfilled').length,
+    shipped: orders.filter(o => getNormalizedStatus(o.fulfillment_status) === 'shipped').length,
+    revenue: orders.reduce((sum, o) => sum + Number(o.total), 0),
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-black font-medium">Loading...</div>;
+  const formatAddress = (order: Order) => {
+    const parts = [
+      order.shipping_address_line1,
+      order.shipping_address_line2,
+      order.shipping_city,
+      order.shipping_postal_code,
+      order.shipping_country
+    ].filter(Boolean);
+    
+    return parts.length > 0 ? parts.join(', ') : 'N/A';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-500 font-bold">Loading orders...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100 pt-24 pb-12 font-sans">
-      <div className="max-w-[1600px] mx-auto px-4 sm:px-6">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div className="flex items-center gap-4">
-            {/* Added "Admin" Button as requested */}
-            <Link href="/admin/dashboard" className="px-4 py-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 border border-gray-200 transition font-bold text-black flex items-center gap-2">
-              <ArrowLeft size={18} />
-              Admin
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-black tracking-tight">Orders</h1>
-              <p className="text-gray-600 font-medium mt-1">
-                {filteredOrders.length} orders found
-              </p>
+    <div className="min-h-screen bg-gray-50 pb-20 pt-16 md:pt-20">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200  shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <Link href="/admin/products" className="flex items-center gap-2 text-gray-600 hover:text-black font-bold transition">
+                <ArrowLeft size={20} />
+                <span>Back to Products</span>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-black text-black">Orders</h1>
+                <p className="text-sm text-gray-500 font-medium">{stats.total} orders found</p>
+              </div>
             </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition font-bold"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
           </div>
-          <button onClick={handleLogout} className="flex items-center gap-2 px-5 py-2.5 bg-black text-white font-bold rounded-xl hover:bg-gray-800 transition shadow-lg">
-            <LogOut size={18} /> Logout
-          </button>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Stats Bar */}
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Orders</div>
+            <div className="text-3xl font-black text-black mt-1">{stats.total}</div>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Unfulfilled</div>
+            <div className="text-3xl font-black text-orange-600 mt-1">{stats.unfulfilled}</div>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Shipped</div>
+            <div className="text-3xl font-black text-green-600 mt-1">{stats.shipped}</div>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Revenue</div>
+            <div className="text-3xl font-black text-black mt-1">£{stats.revenue.toFixed(2)}</div>
+          </div>
         </div>
 
-        {/* Controls */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 mb-6">
-          <div className="flex flex-col xl:flex-row gap-4 justify-between">
+        {/* Tabs + Search + Filters */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+          <div className="flex flex-wrap items-center gap-4">
             {/* Tabs */}
-            <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-fit">
-              {['all', 'unfulfilled', 'shipped'].map((tab) => (
+            <div className="flex gap-2">
+              {(['all', 'unfulfilled', 'shipped'] as TabType[]).map(tab => (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab as TabType)}
-                  className={`px-4 py-2 rounded-lg text-sm font-bold transition capitalize ${
-                    activeTab === tab 
-                      ? 'bg-white text-black shadow-sm' 
-                      : 'text-gray-500 hover:text-black'
+                  onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
+                  className={`px-4 py-2 rounded-lg font-bold text-sm transition capitalize ${
+                    activeTab === tab ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   {tab}
@@ -248,106 +289,83 @@ export default function OrdersPage() {
               ))}
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-wrap gap-3">
-              <div className="relative flex-1 min-w-[240px]">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search order #, email..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-black focus:border-transparent outline-none text-black font-medium"
-                />
-              </div>
-              
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortType)}
-                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl font-medium text-black focus:ring-2 focus:ring-black outline-none cursor-pointer"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="highest">Highest £</option>
-                <option value="lowest">Lowest £</option>
-              </select>
+            {/* Search */}
+            <div className="flex-1 min-w-[200px] relative">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                placeholder="Search order #, email..."
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-black outline-none"
+              />
             </div>
+
+            {/* Sort */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortType)}
+              className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-black outline-none"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="highest">Highest Total</option>
+              <option value="lowest">Lowest Total</option>
+            </select>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        {/* Orders Table */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Order</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Customer</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Total</th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Order</th>
+                  <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Customer</th>
+                  <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="text-right px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Total</th>
+                  <th className="text-right px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {paginatedOrders.map((order) => {
-                  const status = getNormalizedStatus(order.fulfillment_status);
-                  const isUnfulfilled = status === 'unfulfilled';
-                  const items = parseItems(order.items);
-                  
-                  // Use order_number or fallback to a safe ID slice
-                  const displayId = order.order_number 
-                    ? `#${order.order_number}` 
-                    : `#${order.id?.slice(0, 6) || '???'}`;
+              <tbody className="divide-y divide-gray-200">
+                {paginatedOrders.map(order => {
+                  const items = Array.isArray(order.items) ? order.items : [];
+                  const isExpanded = expandedOrder === order.id;
+                  const statusNorm = getNormalizedStatus(order.fulfillment_status);
 
                   return (
                     <React.Fragment key={order.id}>
-                      <tr className="hover:bg-gray-50 transition-colors group">
-                        {/* Order ID & Expand */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                            className="flex items-center gap-2 font-bold text-black hover:text-orange-600 transition"
-                          >
-                            {expandedOrder === order.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            {displayId}
-                          </button>
+                      <tr className="hover:bg-gray-50 transition cursor-pointer group">
+                        <td className="px-6 py-4" onClick={() => setExpandedOrder(isExpanded ? null : order.id)}>
+                          <div className="flex items-center gap-3">
+                            {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                            <span className="font-black text-black">#{order.order_number || String(order.id).slice(0, 6)}</span>
+                          </div>
                         </td>
-
-                        {/* Customer */}
                         <td className="px-6 py-4">
                           <div className="font-bold text-black">{order.customer_name || 'Guest'}</div>
-                          <div className="text-sm text-gray-500">{order.customer_email || 'No email'}</div>
+                          <div className="text-xs text-gray-500">{order.customer_email || 'N/A'}</div>
                         </td>
-
-                        {/* Status */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
-                            status === 'shipped' || status === 'fulfilled' ? 'bg-green-100 text-green-700' :
-                            status === 'unfulfilled' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-gray-100 text-gray-700'
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                            statusNorm === 'shipped' ? 'bg-green-100 text-green-700' :
+                            statusNorm === 'delivered' ? 'bg-blue-100 text-blue-700' :
+                            'bg-yellow-100 text-yellow-700'
                           }`}>
-                            {status}
+                            {order.fulfillment_status || 'Unfulfilled'}
                           </span>
                         </td>
-
-                        {/* Date */}
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-600">
-                          {order.created_at 
-                            ? new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                            : 'N/A'
-                          }
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </td>
-
-                        {/* Total */}
-                        <td className="px-6 py-4 whitespace-nowrap text-right font-bold text-black">
+                        <td className="px-6 py-4 text-right font-black text-black">
                           £{Number(order.total).toFixed(2)}
                         </td>
-
-                        {/* Actions */}
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
-                            {isUnfulfilled && (
+                            {statusNorm === 'unfulfilled' && (
                               <button
                                 onClick={() => setSelectedOrder(order)}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-black text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition"
@@ -403,20 +421,45 @@ export default function OrdersPage() {
                                   {/* Shipping Info */}
                                   <div>
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Delivery Details</h4>
-                                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-sm space-y-2">
-                                      <div className="flex justify-between">
-                                        <span className="text-gray-500">Address:</span>
-                                        <span className="font-medium text-black text-right">{order.shipping_city || 'N/A'}</span>
+                                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-sm space-y-2.5">
+                                      <div className="pb-2 border-b border-gray-100">
+                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Customer</div>
+                                        <div className="font-bold text-black">{order.customer_name || 'Guest'}</div>
+                                        <div className="text-gray-600">{order.customer_email || 'N/A'}</div>
                                       </div>
-                                      <div className="flex justify-between">
-                                        <span className="text-gray-500">Method:</span>
-                                        <span className="font-medium text-black">Standard Delivery</span>
+                                      
+                                      <div className="pb-2 border-b border-gray-100">
+                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Shipping Address</div>
+                                        {order.shipping_address_line1 ? (
+                                          <div className="text-gray-900 leading-relaxed">
+                                            <div>{order.shipping_address_line1}</div>
+                                            {order.shipping_address_line2 && <div>{order.shipping_address_line2}</div>}
+                                            <div>{order.shipping_city}</div>
+                                            <div>{order.shipping_postal_code}</div>
+                                            <div className="font-semibold">{order.shipping_country}</div>
+                                          </div>
+                                        ) : (
+                                          <div className="text-gray-500 italic">Address not available</div>
+                                        )}
                                       </div>
-                                      <div className="flex justify-between border-t border-gray-100 pt-2 mt-2">
-                                        <span className="text-gray-500">Session ID:</span>
-                                        <span className="font-mono text-xs text-gray-400" title={order.stripe_session_id || ''}>
-                                          {order.stripe_session_id ? `${order.stripe_session_id.slice(0, 16)}...` : 'N/A'}
-                                        </span>
+                                      
+                                      <div>
+                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Delivery Method</div>
+                                        <div className="font-medium text-black">Standard Delivery</div>
+                                      </div>
+                                      
+                                      {order.tracking_number && (
+                                        <div className="pt-2 border-t border-gray-100">
+                                          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tracking</div>
+                                          <div className="font-mono text-sm text-black">{order.tracking_number}</div>
+                                        </div>
+                                      )}
+                                      
+                                      <div className="pt-2 border-t border-gray-100">
+                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Session ID</div>
+                                        <div className="font-mono text-xs text-gray-400 break-all" title={order.stripe_session_id || ''}>
+                                          {order.stripe_session_id || 'N/A'}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>

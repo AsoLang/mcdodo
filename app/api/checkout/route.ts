@@ -25,14 +25,16 @@ export async function POST(req: Request) {
         name: item.title,
         images: item.image ? [item.image] : [],
         metadata: {
-          // FIX: Changed 'variantId' to 'productId' so the Webhook can find it!
-          productId: item.id, 
+          // CRITICAL: Convert to string for Stripe metadata
+          productId: String(item.id),
         }
       };
 
       if (descriptionText && descriptionText.length > 0) {
         productData.description = descriptionText;
       }
+
+      console.log(`[Checkout] Product: ${item.title}, ID: ${item.id}, Qty: ${item.quantity}`);
 
       return {
         price_data: {
@@ -52,6 +54,9 @@ export async function POST(req: Request) {
           product_data: {
             name: 'Shipping',
             description: 'Standard Delivery (Royal Mail / Evri)',
+            metadata: {
+              isShipping: 'true', // Mark shipping items
+            }
           },
           unit_amount: Math.round(shippingCost * 100),
         },

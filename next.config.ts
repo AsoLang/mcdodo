@@ -4,7 +4,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    // Replaced 'domains' with 'remotePatterns' (The modern Next.js standard)
     remotePatterns: [
       {
         protocol: 'https',
@@ -13,6 +12,21 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+      },
+      // Vercel Blob Storage - Specific hostname
+      {
+        protocol: 'https',
+        hostname: '8hgugo9qdwj5aya6.public.blob.vercel-storage.com',
+      },
+      // Vercel Blob Storage - Wildcard (future-proof for any Vercel Blob subdomain)
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+      },
+      // Squarespace CDN (legacy images from old site)
+      {
+        protocol: 'https',
+        hostname: 'images.squarespace-cdn.com',
       },
     ],
   },
