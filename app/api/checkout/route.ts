@@ -11,9 +11,7 @@ export async function POST(req: Request) {
   try {
     const { items, shippingCost } = await req.json();
 
-    // --- DYNAMIC ORIGIN DETECTION ---
-    // This automatically grabs "https://mcdodo.co.uk" in prod
-    // or "http://localhost:3000" in dev.
+    // Dynamic origin for localhost vs production
     const origin = req.headers.get('origin') || 'http://localhost:3000';
 
     if (!items || items.length === 0) {
@@ -45,6 +43,7 @@ export async function POST(req: Request) {
       };
     });
 
+    // Add Shipping Cost as a line item
     if (shippingCost && shippingCost > 0) {
       line_items.push({
         price_data: {
@@ -63,7 +62,13 @@ export async function POST(req: Request) {
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
-      // NOW USES THE DYNAMIC ORIGIN:
+      
+      // --- THE FIX: ENABLE SHIPPING ADDRESS COLLECTION ---
+      shipping_address_collection: {
+        allowed_countries: ['GB'], // Restricts shipping to UK (add others if needed)
+      },
+      // -------------------------------------------------
+
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/`, 
     });
