@@ -124,6 +124,7 @@ export async function POST(req: NextRequest) {
       const result = await sql`
         INSERT INTO orders (
           stripe_session_id,
+          email,
           customer_email,
           customer_name,
           total,
@@ -139,6 +140,7 @@ export async function POST(req: NextRequest) {
         )
         VALUES (
           ${session.id},
+          ${customerEmail},
           ${customerEmail},
           ${customerName},
           ${amountTotal},
