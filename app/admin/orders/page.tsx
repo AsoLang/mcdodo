@@ -211,8 +211,10 @@ export default function OrdersPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/admin/dashboard" className="p-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 border border-gray-200 transition">
-              <ArrowLeft size={20} className="text-black" />
+            {/* Added "Admin" Button as requested */}
+            <Link href="/admin" className="px-4 py-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 border border-gray-200 transition font-bold text-black flex items-center gap-2">
+              <ArrowLeft size={18} />
+              Admin
             </Link>
             <div>
               <h1 className="text-3xl font-bold text-black tracking-tight">Orders</h1>
