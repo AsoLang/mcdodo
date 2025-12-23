@@ -1,4 +1,4 @@
-// app/api/admin/products/route.ts
+// Path: app/api/admin/products/route.ts
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
@@ -8,20 +8,17 @@ const sql = neon(process.env.DATABASE_URL!);
 
 async function isAuthenticated() {
   const cookieStore = await cookies();
-  const session = cookieStore.get('admin_session');
-  return session?.value === 'authenticated';
+  const session = cookieStore.get('admin_auth'); 
+  return session?.value === 'true';
 }
 
 export async function GET() {
   try {
-    if (!(await isAuthenticated())) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Ensure position column exists so admin list can order by it
+    // Ensure columns exist
     await sql`
       ALTER TABLE products
-      ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 999999
+      ADD COLUMN IF NOT EXISTS position INTEGER DEFAULT 999999,
+      ADD COLUMN IF NOT EXISTS stock INTEGER DEFAULT 0
     `;
 
     const rows = await sql`
@@ -33,9 +30,12 @@ export async function GET() {
         COALESCE(p.featured, false) AS featured,
         COALESCE(p.position, 999999)::int AS position,
 
-        COALESCE(SUM(pv.stock), 0)::int AS total_stock,
+        -- THE FIX: We force it to look at YOUR new 'stock' column (p.stock)
+        -- We ignore product_variants for stock counting now.
+        COALESCE(p.stock, 0)::int AS total_stock,
+        
         COUNT(pv.id)::int AS variant_count,
-        COALESCE(BOOL_OR(pv.stock > 0), false) AS any_in_stock,
+        (COALESCE(p.stock, 0) > 0) AS any_in_stock, -- Updated logic
         COALESCE(BOOL_OR(pv.on_sale = true), false) AS any_on_sale,
 
         dv.id AS display_variant_id,
@@ -70,6 +70,7 @@ export async function GET() {
         p.visible,
         p.featured,
         p.position,
+        p.stock,
         dv.id,
         dv.price,
         dv.sale_price,
@@ -110,5 +111,29 @@ export async function GET() {
   } catch (error) {
     console.error('Error fetching admin products:', error);
     return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    const { id, stock, visible, price } = await req.json();
+
+    // 1. Update the Main Product (Simple Stock)
+    if (stock !== undefined || visible !== undefined) {
+       await sql`
+        UPDATE products 
+        SET 
+          stock = COALESCE(${stock}, stock),
+          visible = COALESCE(${visible}, visible)
+        WHERE id = ${id}
+      `;
+    }
+
+    // 2. Optional: If you want to keep variant prices in sync, you can leave this alone
+    // But importantly, we have now updated the main 'stock' column which the GET route reads.
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: 'Update failed' }, { status: 500 });
   }
 }

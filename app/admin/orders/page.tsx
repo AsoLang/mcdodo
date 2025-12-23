@@ -212,7 +212,7 @@ export default function OrdersPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
             {/* Added "Admin" Button as requested */}
-            <Link href="/admin" className="px-4 py-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 border border-gray-200 transition font-bold text-black flex items-center gap-2">
+            <Link href="/admin/dashboard" className="px-4 py-2 bg-white rounded-lg shadow-sm hover:bg-gray-50 border border-gray-200 transition font-bold text-black flex items-center gap-2">
               <ArrowLeft size={18} />
               Admin
             </Link>
