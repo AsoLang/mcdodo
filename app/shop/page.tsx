@@ -8,7 +8,6 @@ export const revalidate = 0;
 
 const sql = neon(process.env.DATABASE_URL!);
 
-// Generate URL slug from title
 function generateSlug(title: string): string {
   return title
     .toLowerCase()
@@ -40,10 +39,7 @@ async function queryProductsOrderByPosition() {
     LEFT JOIN LATERAL (
       SELECT * FROM product_variants 
       WHERE product_id = p.id 
-      ORDER BY
-        (stock > 0) DESC,
-        position ASC NULLS LAST,
-        id ASC
+      ORDER BY position ASC
       LIMIT 1
     ) pv ON true
     WHERE p.visible = true
@@ -77,10 +73,7 @@ async function queryProductsFallback() {
     LEFT JOIN LATERAL (
       SELECT * FROM product_variants 
       WHERE product_id = p.id 
-      ORDER BY
-        (stock > 0) DESC,
-        position ASC NULLS LAST,
-        id ASC
+      ORDER BY position ASC
       LIMIT 1
     ) pv ON true
     WHERE p.visible = true

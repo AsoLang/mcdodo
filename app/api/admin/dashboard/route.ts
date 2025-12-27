@@ -5,60 +5,108 @@ import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
-export async function GET() {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const range = searchParams.get('range') || '7d';
+
   try {
-    // 1. Get Summary Stats
-    // FIX: Using 'total' (from your CSV) instead of 'total_amount'
-    const revenueResult = await sql`
-      SELECT SUM(total) as total 
+    let intervalSQL = "7 days";
+    let truncInterval = "day";
+
+    switch (range) {
+      case '1d':  intervalSQL = '1 day';   truncInterval = 'hour'; break;
+      case '14d': intervalSQL = '14 days'; truncInterval = 'day';  break;
+      case '1m':  intervalSQL = '30 days'; truncInterval = 'day';  break;
+      case '3m':  intervalSQL = '90 days'; truncInterval = 'week'; break;
+      case '6m':  intervalSQL = '180 days'; truncInterval = 'month'; break;
+      case '1y':  intervalSQL = '1 year';  truncInterval = 'month'; break;
+      case 'all': intervalSQL = '100 years'; truncInterval = 'month'; break;
+    }
+
+    const totals = await sql`
+      SELECT COALESCE(SUM(total), 0) as revenue, COUNT(*) as orders 
       FROM orders 
-      WHERE status = 'paid' OR status = 'shipped' OR status = 'delivered' OR status = 'confirmed'
-    `;
-    
-    const ordersResult = await sql`SELECT COUNT(*) as count FROM orders`;
-    const productsResult = await sql`SELECT COUNT(*) as count FROM products WHERE visible = true`;
-    
-    // 2. Get Low Stock Items (Threshold: 5)
-    const lowStockItems = await sql`
-      SELECT id, title, stock 
-      FROM products 
-      WHERE stock <= 5 
-      ORDER BY stock ASC 
-      LIMIT 5
+      WHERE created_at >= NOW() - ${intervalSQL}::interval
+      AND status IN ('paid', 'shipped', 'delivered', 'confirmed')
     `;
 
-    // 3. Get Recent Orders
-    // FIX: Using 'total' aliased as 'total_amount' so the frontend works without changes
+    const chartData = await sql`
+      SELECT 
+        date_trunc(${truncInterval}, created_at) as date,
+        COALESCE(SUM(total), 0) as revenue,
+        COUNT(id) as orders
+      FROM orders 
+      WHERE created_at >= NOW() - ${intervalSQL}::interval
+      AND status IN ('paid', 'shipped', 'delivered', 'confirmed')
+      GROUP BY date
+      ORDER BY date ASC
+    `;
+
+    const visitors = await sql`
+      SELECT COALESCE(SUM(visitors), 0) as count 
+      FROM daily_stats 
+      WHERE date >= CURRENT_DATE - ${intervalSQL}::interval
+    `;
+
+    const customers = await sql`
+      SELECT COUNT(DISTINCT customer_email) as count 
+      FROM orders
+    `;
+
+    const topProducts = await sql`
+      WITH sales_data AS (
+        SELECT item->>'id' as variant_id, SUM((item->>'quantity')::int) as sold_qty
+        FROM orders o CROSS JOIN LATERAL jsonb_array_elements(o.items) as item
+        WHERE o.created_at >= NOW() - ${intervalSQL}::interval
+        AND o.status IN ('paid', 'shipped', 'delivered', 'confirmed')
+        GROUP BY variant_id
+      )
+      SELECT p.title, p.stock, COALESCE(SUM(sd.sold_qty), 0) as sold
+      FROM products p
+      LEFT JOIN product_variants pv ON pv.product_id = p.id
+      LEFT JOIN sales_data sd ON sd.variant_id = pv.id::text
+      GROUP BY p.id, p.title, p.stock
+      ORDER BY sold DESC LIMIT 5
+    `;
+
     const recentOrders = await sql`
-      SELECT id, order_number, customer_email, total as total_amount, created_at, status 
+      SELECT 
+        id, 
+        order_number, 
+        customer_name, 
+        customer_email,
+        shipping_address_line1,
+        shipping_address_line2,
+        shipping_city,
+        shipping_postal_code,
+        shipping_country,
+        status, 
+        total, 
+        items,
+        created_at 
       FROM orders 
       ORDER BY created_at DESC 
       LIMIT 5
     `;
 
-    // 4. Get Sales Data for Chart (Last 7 Days)
-    // FIX: Using 'total' here as well
-    const salesData = await sql`
-      SELECT 
-        TO_CHAR(created_at, 'Dy') as name, 
-        SUM(total) as total 
-      FROM orders 
-      WHERE created_at > NOW() - INTERVAL '7 days'
-      GROUP BY TO_CHAR(created_at, 'Dy'), DATE(created_at)
-      ORDER BY DATE(created_at) ASC
-    `;
-
     return NextResponse.json({
-      revenue: revenueResult[0].total || 0,
-      totalOrders: Number(ordersResult[0].count),
-      activeProducts: Number(productsResult[0].count),
-      lowStockItems,
-      recentOrders,
-      salesData: salesData.map(d => ({ name: d.name, total: Number(d.total) }))
+      revenue: totals[0].revenue,
+      totalOrders: totals[0].orders,
+      visitors: Number(visitors[0].count),
+      totalCustomers: Number(customers[0].count),
+      salesData: chartData.map((row: any) => ({
+        name: new Date(row.date).toLocaleDateString('en-GB', {
+          month: 'short', day: 'numeric', hour: truncInterval === 'hour' ? '2-digit' : undefined
+        }),
+        revenue: Number(row.revenue),
+        orders: Number(row.orders)
+      })),
+      topProducts,
+      recentOrders
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Dashboard API Error:', error);
-    return NextResponse.json({ error: 'Failed to load dashboard data' }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

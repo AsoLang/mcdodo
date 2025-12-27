@@ -58,6 +58,18 @@ interface Product {
 export default function ProductDetail({ product }: { product: Product }) {
   const { addItem } = useCart();
 
+  // Safety check: Product must have at least one variant
+  if (!product.variants || product.variants.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center bg-white p-8 rounded-xl border border-gray-200 shadow-sm max-w-md">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Product Configuration Needed</h1>
+          <p className="text-gray-600 mb-4">This product needs to have at least one variant configured before it can be displayed.</p>
+          <p className="text-sm text-gray-500">Please add variants in the admin panel.</p>
+        </div>
+      </div>
+    );
+  }
   // UPDATED INITIALIZATION:
   // 1. Try to find the first variant with stock > 0
   // 2. If all are out of stock, fallback to the very first variant

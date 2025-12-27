@@ -4,7 +4,6 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// --- SHARED TYPES ---
 interface Address {
   line1: string | null;
   line2: string | null;
@@ -19,12 +18,11 @@ interface OrderItem {
   price: number;
 }
 
-// --- ORDER CONFIRMATION EMAIL ---
 interface OrderConfirmationEmailProps {
   email: string;
   name: string;
   orderId: string;
-  date: string;
+  date: string | Date; // Allow both
   shippingAddress: Address;
   items: OrderItem[];
   shippingTotal: number;
@@ -42,8 +40,29 @@ export async function sendOrderConfirmationEmail({
   total,
 }: OrderConfirmationEmailProps) {
   try {
+    // --- 1970 DATE FIX ---
+    let displayDate = '';
+    const dateObj = new Date(date);
+    
+    // If invalid, null, or year is 1970, use TODAY
+    if (!date || isNaN(dateObj.getTime()) || dateObj.getFullYear() <= 1970) {
+      displayDate = new Date().toLocaleDateString('en-GB', { 
+        day: 'numeric', month: 'long', year: 'numeric' 
+      });
+    } else {
+      displayDate = dateObj.toLocaleDateString('en-GB', { 
+        day: 'numeric', month: 'long', year: 'numeric' 
+      });
+    }
+
     const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-    const addressLines = [shippingAddress.line1, shippingAddress.line2, shippingAddress.city, shippingAddress.postal_code, shippingAddress.country].filter(Boolean).join(', ');
+    const addressLines = [
+      shippingAddress.line1, 
+      shippingAddress.line2, 
+      shippingAddress.city, 
+      shippingAddress.postal_code, 
+      shippingAddress.country
+    ].filter(Boolean).join(', ');
 
     await resend.emails.send({
       from: 'Mcdodo UK <orders@mcdodo.co.uk>',
@@ -52,71 +71,78 @@ export async function sendOrderConfirmationEmail({
       html: `
         <!DOCTYPE html>
         <html>
-          <head>
-            <meta charset="utf-8">
-            <style>
-              body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: #ff6b35; color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-              .content { background: #ffffff; padding: 30px; border: 1px solid #eee; border-top: none; }
-              .info-grid { width: 100%; margin-bottom: 20px; }
-              .order-details { background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }
-              .item { padding: 12px 0; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
-              .totals-table { width: 100%; margin-top: 20px; border-top: 2px solid #ff6b35; padding-top: 10px; border-collapse: collapse; }
-              .totals-table td { padding: 5px 0; font-size: 14px; }
-              .totals-table .grand-total { font-size: 18px; font-weight: bold; color: #ff6b35; padding-top: 10px; }
-              .footer { text-align: center; padding: 20px; color: #9ca3af; font-size: 12px; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1 style="margin:0;">Order Confirmed!</h1>
-                <p style="margin:10px 0 0 0;">Thanks for your purchase, ${name}</p>
-              </div>
-              <div class="content">
-                <table class="info-grid">
-                  <tr>
-                    <td style="vertical-align: top; width: 50%;">
-                      <p style="margin:0; color:#666; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Order Date</p>
-                      <p style="margin:5px 0 0 0; font-weight:bold;">${date}</p>
-                    </td>
-                    <td style="vertical-align: top; width: 50%; text-align:right;">
-                      <p style="margin:0; color:#666; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Order ID</p>
-                      <p style="margin:5px 0 0 0; font-weight:bold;">#${orderId}</p>
-                    </td>
-                  </tr>
-                </table>
-                <div style="margin-bottom: 30px;">
-                  <p style="margin:0; color:#666; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Shipping To</p>
-                  <p style="margin:5px 0 0 0; font-weight:bold;">${addressLines}</p>
-                </div>
-                <div class="order-details">
-                  <h3 style="margin-top:0; border-bottom:1px solid #e5e7eb; padding-bottom:10px;">Order Summary</h3>
-                  ${items.map(item => `
-                    <div class="item">
-                      <div style="font-weight:bold; margin-bottom: 4px;">${item.name}</div>
-                      <div style="color: #555;">Quantity: ${item.quantity} &nbsp;&times;&nbsp; £${item.price.toFixed(2)}</div>
-                    </div>
-                  `).join('')}
-                  <table class="totals-table">
-                    <tr><td>Subtotal</td><td style="text-align: right;">£${subtotal.toFixed(2)}</td></tr>
-                    <tr><td>Shipping</td><td style="text-align: right;">£${shippingTotal.toFixed(2)}</td></tr>
-                    <tr><td class="grand-total">Total</td><td class="grand-total" style="text-align: right;">£${total.toFixed(2)}</td></tr>
-                  </table>
-                </div>
-                <div style="margin-top: 30px;">
-                  <h4 style="margin-bottom: 10px;">What's Next?</h4>
-                  <p style="margin: 0 0 10px 0;">We'll process your order and ship it within 1-2 business days. You'll receive another email with tracking information once your order ships.</p>
-                  <p style="margin: 0;">If you have any questions, feel free to contact us.</p>
-                </div>
-              </div>
-              <div class="footer">
-                <p>Mcdodo UK - Premium Charging Accessories</p>
-                <p>This is an automated message, please do not reply.</p>
-              </div>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #ea580c; }
+            .logo { font-size: 24px; font-weight: 900; color: #000; letter-spacing: -1px; text-decoration: none; }
+            .logo span { color: #ea580c; }
+            .order-info { margin: 30px 0; text-align: center; background-color: #f9fafb; padding: 20px; border-radius: 12px; }
+            .order-id { font-size: 20px; font-weight: bold; color: #000; }
+            .date { color: #666; font-size: 14px; margin-top: 5px; }
+            .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            .items-table th { text-align: left; border-bottom: 1px solid #eee; padding: 10px; color: #666; font-size: 12px; text-transform: uppercase; }
+            .items-table td { border-bottom: 1px solid #eee; padding: 15px 10px; vertical-align: middle; }
+            .item-name { font-weight: 600; color: #000; }
+            .totals { margin-top: 20px; text-align: right; }
+            .total-row { padding: 5px 0; }
+            .grand-total { font-size: 18px; font-weight: bold; color: #ea580c; border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px; }
+            .address-section { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 14px; color: #666; }
+            .footer { text-align: center; font-size: 12px; color: #999; margin-top: 40px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="logo">Mc<span>dodo</span> UK</div>
             </div>
-          </body>
+
+            <p>Hi <strong>${name}</strong>,</p>
+            <p>Thank you for your order! We've received it and are getting it ready.</p>
+
+            <div class="order-info">
+              <div class="order-id">Order #${orderId}</div>
+              <div class="date">${displayDate}</div>
+            </div>
+
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th width="60%">Item</th>
+                  <th width="20%" style="text-align:center">Qty</th>
+                  <th width="20%" style="text-align:right">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.map(item => `
+                  <tr>
+                    <td><div class="item-name">${item.name}</div></td>
+                    <td style="text-align:center">${item.quantity}</td>
+                    <td style="text-align:right">£${Number(item.price).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+
+            <div class="totals">
+              <div class="total-row">Subtotal: £${subtotal.toFixed(2)}</div>
+              <div class="total-row">Shipping: £${Number(shippingTotal).toFixed(2)}</div>
+              <div class="total-row grand-total">Total: £${Number(total).toFixed(2)}</div>
+            </div>
+
+            <div class="address-section">
+              <strong>Shipping to:</strong><br/>
+              ${addressLines}
+            </div>
+
+            <div class="footer">
+              <p>Questions? Reply to this email or contact support@mcdodo.co.uk</p>
+              <p>© ${new Date().getFullYear()} Mcdodo UK. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
         </html>
       `,
     });
@@ -127,16 +153,15 @@ export async function sendOrderConfirmationEmail({
   }
 }
 
-// --- DISPATCH EMAIL ---
-
+// --- DISPATCH EMAIL (Keep existing) ---
 interface DispatchEmailProps {
   email: string;
   name: string;
   orderId: string;
   trackingNumber: string;
   carrier: string;
-  shippingAddress: Address; // Added
-  items: OrderItem[];      // Added
+  shippingAddress: Address;
+  items: OrderItem[];
 }
 
 export async function sendDispatchEmail({
@@ -149,17 +174,22 @@ export async function sendDispatchEmail({
   items,
 }: DispatchEmailProps) {
   try {
-    // Generate Tracking Link Logic
     let trackingUrl = '#';
     const c = carrier.toLowerCase();
     
     if (c.includes('royal')) trackingUrl = `https://www.royalmail.com/track-your-item#/tracking-results/${trackingNumber}`;
     else if (c.includes('dpd')) trackingUrl = `https://track.dpd.co.uk/parcels/${trackingNumber}`;
-    else if (c.includes('evri') || c.includes('hermes')) trackingUrl = `https://www.evri.com/track/parcel/${trackingNumber}`;
+    else if (c.includes('evri')) trackingUrl = `https://www.evri.com/track/parcel/${trackingNumber}`;
     else if (c.includes('dhl')) trackingUrl = `https://www.dhl.com/gb-en/home/tracking.html?tracking-id=${trackingNumber}`;
     else trackingUrl = `https://www.google.com/search?q=${carrier}+tracking+${trackingNumber}`;
 
-    const addressLines = [shippingAddress.line1, shippingAddress.line2, shippingAddress.city, shippingAddress.postal_code, shippingAddress.country].filter(Boolean).join(', ');
+    const addressLines = [
+      shippingAddress.line1, 
+      shippingAddress.line2, 
+      shippingAddress.city, 
+      shippingAddress.postal_code, 
+      shippingAddress.country
+    ].filter(Boolean).join(', ');
 
     await resend.emails.send({
       from: 'Mcdodo UK <orders@mcdodo.co.uk>',

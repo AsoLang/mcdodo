@@ -1,54 +1,44 @@
 // Path: app/admin/dashboard/page.tsx
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
-  ShoppingBag, 
-  DollarSign, 
-  Package, 
-  AlertTriangle, 
-  TrendingUp, 
-  ArrowRight,
-  Truck,
-  LogOut
+  ShoppingBag, DollarSign, Users, BarChart3, ArrowRight, LogOut, ChevronDown, ChevronUp, ExternalLink
 } from 'lucide-react';
 import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
-import { useRouter } from 'next/navigation';
+
+const FILTERS = [
+  { label: '24H', value: '1d' }, { label: '7D', value: '7d' }, 
+  { label: '30D', value: '1m' }, { label: '3M', value: '3m' }, 
+  { label: 'YTD', value: '1y' }, { label: 'All', value: 'all' },
+];
 
 export default function Dashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [range, setRange] = useState('7d');
+  const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData(range);
+  }, [range]);
 
-  const fetchData = async () => {
+  const fetchData = async (selectedRange: string) => {
+    setLoading(true);
     try {
-      const res = await fetch('/api/admin/dashboard');
-      if (res.status === 401) {
-        router.push('/admin');
-        return;
-      }
+      const res = await fetch(`/api/admin/dashboard?range=${selectedRange}`);
+      if (res.status === 401) { router.push('/admin'); return; }
       if (res.ok) {
         const json = await res.json();
         setData(json);
       }
-    } catch (error) {
-      console.error('Failed to load dashboard');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const handleLogout = async () => {
@@ -56,202 +46,169 @@ export default function Dashboard() {
     router.push('/admin');
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Loading Dashboard...</div>;
-  if (!data) return <div className="min-h-screen flex items-center justify-center bg-gray-50">Error loading data.</div>;
+  if (loading && !data) return <div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 font-sans text-gray-900">
-      
-      {/* HEADER */}
-      <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Welcome back, Admin.</p>
-        </div>
-        <div className="flex gap-3">
-          <Link href="/">
-             <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 transition">
-               View Live Store
-             </button>
-          </Link>
-          <button 
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 bg-black text-white font-bold rounded-lg hover:bg-gray-800 transition"
-          >
-            <LogOut size={16} /> Logout
-          </button>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        
-        {/* STAT CARD 1: REVENUE */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4 md:px-8 font-sans text-gray-900">
+      <div className="max-w-7xl mx-auto mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Total Revenue</p>
-            <h2 className="text-3xl font-black mt-1">£{Number(data.revenue).toFixed(2)}</h2>
+            <h1 className="text-3xl font-black text-gray-900">Admin Dashboard</h1>
+            <p className="text-sm text-gray-500">Welcome back, Admin</p>
           </div>
-          <div className="bg-green-100 p-3 rounded-xl">
-            <DollarSign className="w-8 h-8 text-green-600" />
-          </div>
-        </div>
-
-        {/* STAT CARD 2: ORDERS */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Total Orders</p>
-            <h2 className="text-3xl font-black mt-1">{data.totalOrders}</h2>
-          </div>
-          <div className="bg-blue-100 p-3 rounded-xl">
-            <ShoppingBag className="w-8 h-8 text-blue-600" />
+          <div className="flex gap-3">
+             <Link href="/" className="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 text-sm">View Store</Link>
+             <button onClick={handleLogout} className="px-4 py-2 bg-black text-white font-bold rounded-lg hover:bg-gray-800 text-sm flex items-center gap-2"><LogOut size={16} /> Logout</button>
           </div>
         </div>
 
-        {/* STAT CARD 3: PRODUCTS */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-wider">Active Products</p>
-            <h2 className="text-3xl font-black mt-1">{data.activeProducts}</h2>
-          </div>
-          <div className="bg-orange-100 p-3 rounded-xl">
-            <Package className="w-8 h-8 text-orange-600" />
-          </div>
+        <div className="flex gap-4 border-b border-gray-200 pb-1 mb-8 overflow-x-auto">
+          <button className="px-4 py-2 text-orange-600 border-b-2 border-orange-600 font-bold text-sm">Overview</button>
+          <Link href="/admin/orders" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Orders</Link>
+          <Link href="/admin/products" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Products</Link>
+          <Link href="/admin/customers" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Customers</Link>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* MAIN COLUMN (Chart & Recent Orders) */}
-        <div className="lg:col-span-2 space-y-8">
-          
-          {/* CHART SECTION */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-              <TrendingUp size={20} className="text-gray-400" />
-              Sales Overview (Last 7 Days)
-            </h3>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data.salesData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} tickFormatter={(value) => `£${value}`} />
-                  <Tooltip 
-                    cursor={{fill: '#f9fafb'}}
-                    contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)'}}
-                  />
-                  <Bar dataKey="total" fill="#ea580c" radius={[4, 4, 0, 0]} barSize={40} />
-                </BarChart>
-              </ResponsiveContainer>
+        <div className="flex gap-2 mb-8 overflow-x-auto">
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => setRange(f.value)}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap ${
+                range === f.value ? 'bg-black text-white' : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-400'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <KpiCard title="Total Revenue" value={`£${Number(data.revenue).toFixed(2)}`} icon={<DollarSign size={20} />} color="orange" />
+          <KpiCard title="Orders" value={data.totalOrders} icon={<ShoppingBag size={20} />} color="blue" />
+          <KpiCard title="Visitors" value={data.visitors} icon={<BarChart3 size={20} />} color="purple" />
+          <KpiCard title="Customers" value={data.totalCustomers} icon={<Users size={20} />} color="green" />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-[400px]">
+            <h3 className="font-bold text-gray-900 mb-6">Revenue Trend</h3>
+            <ResponsiveContainer width="100%" height="90%">
+              <AreaChart data={data.salesData}>
+                <defs>
+                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ea580c" stopOpacity={0.1}/>
+                    <stop offset="95%" stopColor="#ea580c" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill:'#9ca3af', fontSize:11}} minTickGap={30}/>
+                <YAxis axisLine={false} tickLine={false} tick={{fill:'#9ca3af', fontSize:11}} tickFormatter={(v)=>`£${v}`}/>
+                <Tooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 4px 20px rgba(0,0,0,0.08)'}} itemStyle={{fontSize:'12px', fontWeight:'bold'}} />
+                <Area type="monotone" dataKey="revenue" stroke="#ea580c" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden h-[400px]">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="font-bold text-gray-900">Recent Orders</h3>
+              <Link href="/admin/orders" className="text-xs font-bold text-orange-600 flex items-center gap-1">View All <ArrowRight size={12}/></Link>
             </div>
-          </div>
-
-          {/* RECENT ORDERS TABLE */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 flex justify-between items-center border-b border-gray-100">
-              <h3 className="text-lg font-bold">Recent Orders</h3>
-              <Link href="/admin/orders" className="text-sm font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1">
-                View All <ArrowRight size={14} />
-              </Link>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-gray-50 text-gray-500 font-bold uppercase text-xs">
-                  <tr>
-                    <th className="px-6 py-4">Order ID</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4 text-right">Amount</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {data.recentOrders.length > 0 ? (
-                    data.recentOrders.map((order: any) => (
-                      <tr key={order.id} className="hover:bg-gray-50 transition">
-                        <td className="px-6 py-4 font-bold text-gray-900">
-                          #{order.order_number || order.id.slice(0,6)}
-                        </td>
-                        <td className="px-6 py-4">
-                           <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
-                             order.status === 'paid' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                           }`}>
-                             {order.status}
-                           </span>
-                        </td>
-                        <td className="px-6 py-4 text-right font-bold">£{Number(order.total_amount).toFixed(2)}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={3} className="px-6 py-8 text-center text-gray-400 italic">No orders yet</td>
-                    </tr>
+            <div className="overflow-y-auto flex-1">
+              {data.recentOrders.length > 0 ? data.recentOrders.map((o: any) => (
+                <div key={o.id} className="border-b border-gray-50">
+                  <button
+                    onClick={() => setExpandedOrder(expandedOrder === o.id ? null : o.id)}
+                    className="w-full p-4 hover:bg-gray-50 flex justify-between items-center text-left transition"
+                  >
+                    <div>
+                      <div className="font-bold text-sm">#{o.order_number}</div>
+                      <div className="text-xs text-gray-500">{o.customer_name}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="font-bold text-sm">£{Number(o.total).toFixed(2)}</div>
+                        <span className="text-[10px] uppercase bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">{o.status}</span>
+                      </div>
+                      {expandedOrder === o.id ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                    </div>
+                  </button>
+                  
+                  {expandedOrder === o.id && (
+                    <div className="px-4 pb-4 bg-gray-50 text-xs space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Email:</span>
+                        <span className="font-medium">{o.customer_email}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Date:</span>
+                        <span className="font-medium">
+                          {new Date(o.created_at).toLocaleDateString('en-GB', { 
+                            day: 'numeric', 
+                            month: 'short', 
+                            year: 'numeric' 
+                          })}
+                        </span>
+                      </div>
+                      {(o.shipping_address_line1 || o.shipping_city) && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <div className="text-gray-500 mb-1">Shipping:</div>
+                          <div className="font-medium">
+                            {o.shipping_address_line1 && <div>{o.shipping_address_line1}</div>}
+                            {o.shipping_address_line2 && <div>{o.shipping_address_line2}</div>}
+                            {o.shipping_city && o.shipping_postal_code && (
+                              <div>{o.shipping_city}, {o.shipping_postal_code}</div>
+                            )}
+                            {o.shipping_country && <div>{o.shipping_country}</div>}
+                          </div>
+                        </div>
+                      )}
+                      {o.items && Array.isArray(o.items) && o.items.length > 0 && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <div className="text-gray-500 mb-1">Items:</div>
+                          {o.items.map((item: any, idx: number) => (
+                            <div key={idx} className="flex justify-between py-1">
+                              <span>{item.name} x{item.quantity}</span>
+                              <span className="font-medium">£{item.price}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <Link 
+                        href={`/admin/orders`}
+                        className="mt-3 flex items-center justify-center gap-1 text-orange-600 hover:text-orange-700 font-bold"
+                      >
+                        View Full Order <ExternalLink size={12} />
+                      </Link>
+                    </div>
                   )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-
-        {/* SIDEBAR COLUMN (Quick Actions & Low Stock) */}
-        <div className="space-y-8">
-          
-          {/* QUICK ACTIONS */}
-          <div className="grid grid-cols-2 gap-4">
-            <Link href="/admin/orders" className="block">
-              <div className="bg-black text-white p-4 rounded-xl shadow-lg hover:bg-gray-800 transition cursor-pointer text-center">
-                <Truck className="mx-auto mb-2" size={24} />
-                <span className="font-bold text-sm">Manage Orders</span>
-              </div>
-            </Link>
-            <Link href="/admin/products" className="block">
-              <div className="bg-white border border-gray-200 text-black p-4 rounded-xl shadow-sm hover:bg-gray-50 transition cursor-pointer text-center">
-                <Package className="mx-auto mb-2" size={24} />
-                <span className="font-bold text-sm">Manage Stock</span>
-              </div>
-            </Link>
-          </div>
-
-          {/* LOW STOCK ALERTS */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-5 border-b border-gray-100 bg-red-50">
-              <h3 className="text-red-800 font-bold flex items-center gap-2">
-                <AlertTriangle size={18} />
-                Low Stock Alerts
-              </h3>
-            </div>
-            <div className="divide-y divide-gray-100">
-              {data.lowStockItems.length > 0 ? (
-                data.lowStockItems.map((item: any) => (
-                  <div key={item.id} className="p-4 flex justify-between items-center hover:bg-gray-50">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
-                      <p className="text-xs text-gray-500">ID: {item.id.slice(0,6)}</p>
-                    </div>
-                    <div className={`px-2 py-1 rounded text-xs font-bold ${
-                      item.stock === 0 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {item.stock} left
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-8 text-center text-gray-400 text-sm">
-                  All stock levels are healthy! 
                 </div>
-              )}
+              )) : <div className="p-8 text-center text-gray-400 text-sm">No recent orders</div>}
             </div>
-            {data.lowStockItems.length > 0 && (
-              <div className="p-3 bg-gray-50 text-center">
-                <Link href="/admin/products" className="text-xs font-bold text-gray-500 hover:text-black">
-                  Fix in Products Page →
-                </Link>
-              </div>
-            )}
           </div>
-
         </div>
       </div>
+    </div>
+  );
+}
 
+function KpiCard({ title, value, icon, color }: any) {
+  const colors: any = {
+    orange: 'bg-orange-50 text-orange-600',
+    blue: 'bg-blue-50 text-blue-600',
+    purple: 'bg-purple-50 text-purple-600',
+    green: 'bg-green-50 text-green-600',
+  };
+  return (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{title}</p>
+          <h3 className="text-2xl font-black text-gray-900 mt-1">{value}</h3>
+        </div>
+        <div className={`p-3 rounded-xl ${colors[color]}`}>{icon}</div>
+      </div>
     </div>
   );
 }

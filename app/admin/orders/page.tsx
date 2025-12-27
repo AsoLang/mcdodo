@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { ArrowLeft, Search, LogOut, ChevronDown, ChevronUp, Truck, Trash2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// --- TYPE DEFINITIONS ---
 interface Order {
   id: string;
   order_number: string | number;
@@ -27,42 +28,40 @@ interface Order {
 }
 
 type TabType = 'all' | 'unfulfilled' | 'shipped' | 'delivered';
-type DateFilter = 'all' | 'today' | 'week' | 'month' | 'custom';
+type DateFilter = 'all' | 'today' | 'week' | 'month';
 type SortType = 'newest' | 'oldest' | 'highest' | 'lowest';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Filtering & Sorting State
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [sortBy, setSortBy] = useState<SortType>('newest');
+  
+  // UI State
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
+
+  // Dispatch Modal State
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [carrier, setCarrier] = useState('Royal Mail');
+  const [isDispatching, setIsDispatching] = useState(false);
   
-  const itemsPerPage = 20;
   const router = useRouter();
 
   useEffect(() => {
-    checkAuth();
     fetchOrders();
   }, []);
-
-  const checkAuth = async () => {
-    try {
-      const res = await fetch('/api/admin/auth');
-      if (!res.ok) router.push('/admin');
-    } catch {
-      router.push('/admin');
-    }
-  };
 
   const fetchOrders = async () => {
     try {
       const res = await fetch('/api/admin/orders', { cache: 'no-store' });
+      if (res.status === 401) { router.push('/admin'); return; }
       if (res.ok) {
         const data = await res.json();
         setOrders(data);
@@ -74,19 +73,22 @@ export default function OrdersPage() {
     }
   };
 
+  const handleLogout = async () => {
+    await fetch('/api/admin/logout', { method: 'POST' });
+    router.push('/admin');
+  };
+
+  // --- ACTIONS (Delete & Dispatch) ---
+
   const handleDelete = async (orderId: string) => {
     if (!confirm('Are you sure you want to delete this order? This cannot be undone.')) return;
 
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
-        method: 'DELETE',
-      });
-
+      const res = await fetch(`/api/admin/orders/${orderId}`, { method: 'DELETE' });
       if (res.ok) {
         setOrders(prev => prev.filter(o => o.id !== orderId));
-        fetchOrders();
       } else {
-        alert('Failed to delete order. Check console for details.');
+        alert('Failed to delete order.');
       }
     } catch (error) {
       console.error('Delete error:', error);
@@ -94,13 +96,11 @@ export default function OrdersPage() {
     }
   };
 
+  // --- FIXED DISPATCH FUNCTION ---
   const handleDispatch = async (orderId: string) => {
-    if (!trackingNumber) {
-      alert('Please enter tracking number');
-      return;
-    }
-
+    setIsDispatching(true);
     try {
+      // FIX: Matches your backend route: /api/admin/orders/[id]/dispatch
       const res = await fetch(`/api/admin/orders/${orderId}/dispatch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -108,36 +108,41 @@ export default function OrdersPage() {
       });
 
       if (res.ok) {
-        alert('Order dispatched & email sent!');
+        // Update local state instantly
+        const updatedOrders = orders.map(o => 
+          o.id === orderId 
+            ? { ...o, fulfillment_status: 'shipped', tracking_number: trackingNumber } 
+            : o
+        );
+        setOrders(updatedOrders);
         setSelectedOrder(null);
         setTrackingNumber('');
-        fetchOrders();
+      } else {
+        alert('Failed to update order');
       }
     } catch (error) {
+      console.error(error);
       alert('Error dispatching order');
+    } finally {
+      setIsDispatching(false);
     }
   };
 
-  const handleLogout = async () => {
-    await fetch('/api/admin/logout', { method: 'POST' });
-    router.push('/admin');
-  };
+  // --- FILTERING LOGIC ---
 
-  // --- SAFE FILTERING LOGIC ---
   const getNormalizedStatus = (status: string) => status?.toLowerCase() || 'unfulfilled';
 
-  const filterByTab = (orders: Order[]) => {
-    if (activeTab === 'all') return orders;
-    return orders.filter(o => getNormalizedStatus(o.fulfillment_status) === activeTab);
+  const filterByTab = (list: Order[]) => {
+    if (activeTab === 'all') return list;
+    return list.filter(o => getNormalizedStatus(o.fulfillment_status) === activeTab);
   };
 
-  const filterByDate = (orders: Order[]) => {
-    if (dateFilter === 'all') return orders;
+  const filterByDate = (list: Order[]) => {
+    if (dateFilter === 'all') return list;
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
-    return orders.filter(o => {
-      if (!o.created_at) return false;
+    return list.filter(o => {
       const orderDate = new Date(o.created_at);
       if (dateFilter === 'today') return orderDate >= today;
       if (dateFilter === 'week') {
@@ -154,41 +159,27 @@ export default function OrdersPage() {
     });
   };
 
-  const filterBySearch = (orders: Order[]) => {
-    if (!search) return orders;
+  const filterBySearch = (list: Order[]) => {
+    if (!search) return list;
     const query = search.toLowerCase();
-    return orders.filter(o =>
+    return list.filter(o =>
       (o.customer_email || '').toLowerCase().includes(query) ||
       (o.customer_name || '').toLowerCase().includes(query) ||
       String(o.order_number || '').includes(query) ||
-      (o.id || '').toLowerCase().includes(query) ||
-      (o.stripe_session_id || '').toLowerCase().includes(query)
+      (o.id || '').toLowerCase().includes(query)
     );
   };
 
-  const sortOrders = (orders: Order[]) => {
-    const sorted = [...orders];
-    
-    if (sortBy === 'newest') {
-      sorted.sort((a, b) => {
-        const numA = Number(a.order_number) || 0;
-        const numB = Number(b.order_number) || 0;
-        return numB - numA;
-      });
-    }
-    else if (sortBy === 'oldest') {
-      sorted.sort((a, b) => {
-        const numA = Number(a.order_number) || 0;
-        const numB = Number(b.order_number) || 0;
-        return numA - numB;
-      });
-    }
+  const sortOrders = (list: Order[]) => {
+    const sorted = [...list];
+    if (sortBy === 'newest') sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    else if (sortBy === 'oldest') sorted.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
     else if (sortBy === 'highest') sorted.sort((a, b) => Number(b.total) - Number(a.total));
     else if (sortBy === 'lowest') sorted.sort((a, b) => Number(a.total) - Number(b.total));
-    
     return sorted;
   };
 
+  // --- PAGINATION CALCS ---
   const filteredOrders = sortOrders(filterBySearch(filterByDate(filterByTab(orders))));
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const paginatedOrders = filteredOrders.slice(
@@ -196,6 +187,7 @@ export default function OrdersPage() {
     currentPage * itemsPerPage
   );
 
+  // --- STATS ---
   const stats = {
     total: orders.length,
     unfulfilled: orders.filter(o => getNormalizedStatus(o.fulfillment_status) === 'unfulfilled').length,
@@ -203,6 +195,7 @@ export default function OrdersPage() {
     revenue: orders.reduce((sum, o) => sum + Number(o.total), 0),
   };
 
+  // --- ADDRESS FORMATTER ---
   const formatAddress = (order: Order) => {
     const parts = [
       order.shipping_address_line1,
@@ -211,76 +204,68 @@ export default function OrdersPage() {
       order.shipping_postal_code,
       order.shipping_country
     ].filter(Boolean);
-    
-    return parts.length > 0 ? parts.join(', ') : 'N/A';
+    return parts.length > 0 ? parts.join(', ') : 'Address not available';
   };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500 font-bold">Loading orders...</div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 pt-16 md:pt-20">
+    <div className="min-h-screen bg-gray-50 pb-20 pt-24 px-4 md:px-8">
+      
       {/* Header */}
-      <div className="bg-white border-b border-gray-200  shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <Link href="/admin/products" className="flex items-center gap-2 text-gray-600 hover:text-black font-bold transition">
-                <ArrowLeft size={20} />
-                <span>Back to Products</span>
-              </Link>
-              <div>
-                <h1 className="text-2xl font-black text-black">Orders</h1>
-                <p className="text-sm text-gray-500 font-medium">{stats.total} orders found</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition font-bold"
-            >
-              <LogOut size={16} />
-              Logout
-            </button>
+      <div className="max-w-7xl mx-auto mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+             <Link href="/admin/dashboard" className="p-2 bg-white rounded-lg border border-gray-200 hover:bg-gray-50">
+               <ArrowLeft size={20} className="text-gray-600" />
+             </Link>
+             <div>
+               <h1 className="text-3xl font-black text-gray-900">Orders</h1>
+               <p className="text-sm text-gray-500">{stats.total} total orders found</p>
+             </div>
           </div>
+          <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-black text-white font-bold rounded-lg text-sm hover:bg-gray-800">
+            <LogOut size={16} /> Logout
+          </button>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Stats Bar */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Orders</div>
-            <div className="text-3xl font-black text-black mt-1">{stats.total}</div>
+            <div className="text-xs font-bold text-gray-500 uppercase">Total Orders</div>
+            <div className="text-2xl font-black text-black mt-1">{stats.total}</div>
           </div>
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Unfulfilled</div>
-            <div className="text-3xl font-black text-orange-600 mt-1">{stats.unfulfilled}</div>
+            <div className="text-xs font-bold text-gray-500 uppercase">Unfulfilled</div>
+            <div className="text-2xl font-black text-orange-600 mt-1">{stats.unfulfilled}</div>
           </div>
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Shipped</div>
-            <div className="text-3xl font-black text-green-600 mt-1">{stats.shipped}</div>
+            <div className="text-xs font-bold text-gray-500 uppercase">Shipped</div>
+            <div className="text-2xl font-black text-green-600 mt-1">{stats.shipped}</div>
           </div>
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Revenue</div>
-            <div className="text-3xl font-black text-black mt-1">£{stats.revenue.toFixed(2)}</div>
+            <div className="text-xs font-bold text-gray-500 uppercase">Revenue</div>
+            <div className="text-2xl font-black text-black mt-1">£{stats.revenue.toFixed(2)}</div>
           </div>
         </div>
 
-        {/* Tabs + Search + Filters */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
-          <div className="flex flex-wrap items-center gap-4">
+        {/* Controls Bar */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+            
             {/* Tabs */}
-            <div className="flex gap-2">
-              {(['all', 'unfulfilled', 'shipped'] as TabType[]).map(tab => (
+            <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+              {(['all', 'unfulfilled', 'shipped', 'delivered'] as TabType[]).map(tab => (
                 <button
                   key={tab}
                   onClick={() => { setActiveTab(tab); setCurrentPage(1); }}
-                  className={`px-4 py-2 rounded-lg font-bold text-sm transition capitalize ${
+                  className={`px-4 py-2 rounded-lg font-bold text-sm transition capitalize whitespace-nowrap ${
                     activeTab === tab ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
@@ -289,29 +274,31 @@ export default function OrdersPage() {
               ))}
             </div>
 
-            {/* Search */}
-            <div className="flex-1 min-w-[200px] relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
-                placeholder="Search order #, email..."
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-black outline-none"
-              />
-            </div>
+            <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+              {/* Search */}
+              <div className="relative flex-1 md:min-w-[250px]">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                  placeholder="Search order #, email..."
+                  className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-black outline-none"
+                />
+              </div>
 
-            {/* Sort */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortType)}
-              className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-black outline-none"
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="highest">Highest Total</option>
-              <option value="lowest">Lowest Total</option>
-            </select>
+              {/* Sort */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortType)}
+                className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-bold focus:ring-2 focus:ring-black outline-none"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="highest">Highest Total</option>
+                <option value="lowest">Lowest Total</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -341,7 +328,7 @@ export default function OrdersPage() {
                         <td className="px-6 py-4" onClick={() => setExpandedOrder(isExpanded ? null : order.id)}>
                           <div className="flex items-center gap-3">
                             {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
-                            <span className="font-black text-black">#{order.order_number || String(order.id).slice(0, 6)}</span>
+                            <span className="font-black text-black">#{order.order_number}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
@@ -358,7 +345,7 @@ export default function OrdersPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
-                          {new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          {new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                         </td>
                         <td className="px-6 py-4 text-right font-black text-black">
                           £{Number(order.total).toFixed(2)}
@@ -400,52 +387,29 @@ export default function OrdersPage() {
                                   <div>
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Items Ordered</h4>
                                     <div className="space-y-3">
-                                      {items.length > 0 ? (
-                                        items.map((item: any, idx: number) => (
-                                          <div key={idx} className="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                            <div className="flex items-center gap-3">
-                                              <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center text-xs font-bold text-gray-500">
-                                                {item.quantity}x
-                                              </div>
-                                              <span className="text-sm font-bold text-black">{item.name || item.product_title || 'Unknown Item'}</span>
+                                      {items.map((item: any, idx: number) => (
+                                        <div key={idx} className="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center text-xs font-bold text-gray-500">
+                                              {item.quantity}x
                                             </div>
-                                            <span className="text-sm font-bold text-gray-900">£{(Number(item.price) * item.quantity).toFixed(2)}</span>
+                                            <span className="text-sm font-bold text-black">{item.name || item.product_title}</span>
                                           </div>
-                                        ))
-                                      ) : (
-                                        <p className="text-sm text-gray-500 italic">No item details available.</p>
-                                      )}
+                                          <span className="text-sm font-bold text-gray-900">£{(Number(item.price) * item.quantity).toFixed(2)}</span>
+                                        </div>
+                                      ))}
                                     </div>
                                   </div>
 
-                                  {/* Shipping Info */}
+                                  {/* Shipping Info - FIXED ADDRESS LOGIC */}
                                   <div>
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Delivery Details</h4>
-                                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-sm space-y-2.5">
-                                      <div className="pb-2 border-b border-gray-100">
-                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Customer</div>
-                                        <div className="font-bold text-black">{order.customer_name || 'Guest'}</div>
-                                        <div className="text-gray-600">{order.customer_email || 'N/A'}</div>
-                                      </div>
-                                      
-                                      <div className="pb-2 border-b border-gray-100">
-                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Shipping Address</div>
-                                        {order.shipping_address_line1 ? (
-                                          <div className="text-gray-900 leading-relaxed">
-                                            <div>{order.shipping_address_line1}</div>
-                                            {order.shipping_address_line2 && <div>{order.shipping_address_line2}</div>}
-                                            <div>{order.shipping_city}</div>
-                                            <div>{order.shipping_postal_code}</div>
-                                            <div className="font-semibold">{order.shipping_country}</div>
-                                          </div>
-                                        ) : (
-                                          <div className="text-gray-500 italic">Address not available</div>
-                                        )}
-                                      </div>
-                                      
+                                    <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-sm space-y-4">
                                       <div>
-                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Delivery Method</div>
-                                        <div className="font-medium text-black">Standard Delivery</div>
+                                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Shipping Address</div>
+                                        <div className="text-gray-900 leading-relaxed font-medium">
+                                          {formatAddress(order)}
+                                        </div>
                                       </div>
                                       
                                       {order.tracking_number && (
@@ -457,9 +421,7 @@ export default function OrdersPage() {
                                       
                                       <div className="pt-2 border-t border-gray-100">
                                         <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Session ID</div>
-                                        <div className="font-mono text-xs text-gray-400 break-all" title={order.stripe_session_id || ''}>
-                                          {order.stripe_session_id || 'N/A'}
-                                        </div>
+                                        <div className="font-mono text-xs text-gray-400 break-all">{order.stripe_session_id || 'N/A'}</div>
                                       </div>
                                     </div>
                                   </div>
@@ -528,9 +490,7 @@ export default function OrdersPage() {
             <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200">
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-500">Order:</span>
-                <span className="text-sm font-bold text-black">
-                  #{selectedOrder.order_number || selectedOrder.id.slice(0, 6)}
-                </span>
+                <span className="text-sm font-bold text-black">#{selectedOrder.order_number}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">Customer:</span>
@@ -566,9 +526,10 @@ export default function OrdersPage() {
 
               <button
                 onClick={() => handleDispatch(selectedOrder.id)}
-                className="w-full bg-black text-white py-3.5 rounded-xl font-bold hover:bg-gray-800 transition shadow-lg mt-2"
+                disabled={isDispatching}
+                className="w-full bg-black text-white py-3.5 rounded-xl font-bold hover:bg-gray-800 transition shadow-lg mt-2 disabled:opacity-50"
               >
-                Confirm Dispatch
+                {isDispatching ? 'Processing...' : 'Confirm Dispatch'}
               </button>
             </div>
           </motion.div>
