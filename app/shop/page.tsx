@@ -39,7 +39,9 @@ async function queryProductsOrderByPosition() {
     LEFT JOIN LATERAL (
       SELECT * FROM product_variants 
       WHERE product_id = p.id 
-      ORDER BY position ASC
+      ORDER BY
+        (stock > 0) DESC,
+        position ASC
       LIMIT 1
     ) pv ON true
     WHERE p.visible = true
@@ -73,7 +75,9 @@ async function queryProductsFallback() {
     LEFT JOIN LATERAL (
       SELECT * FROM product_variants 
       WHERE product_id = p.id 
-      ORDER BY position ASC
+      ORDER BY
+        (stock > 0) DESC,
+        position ASC
       LIMIT 1
     ) pv ON true
     WHERE p.visible = true
