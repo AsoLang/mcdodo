@@ -8,7 +8,9 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Minus, Plus, Star, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, Truck, ShieldCheck, Headphones, CreditCard, Package, Tag } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import ApplePayButton from '@/components/ApplePayButton';
 
+// ... rest of interfaces stay the same ...
 interface ProductVariant {
   id: string;
   sku: string;
@@ -70,9 +72,7 @@ export default function ProductDetail({ product }: { product: Product }) {
       </div>
     );
   }
-  // UPDATED INITIALIZATION:
-  // 1. Try to find the first variant with stock > 0
-  // 2. If all are out of stock, fallback to the very first variant
+
   const initialVariant = product.variants.find(v => Number(v.stock) > 0) || product.variants[0];
 
   const [selectedVariant, setSelectedVariant] = useState(initialVariant);
@@ -89,7 +89,6 @@ export default function ProductDetail({ product }: { product: Product }) {
   const onSale = selectedVariant.on_sale;
   const reviewRating = Number(product.review_rating || 0);
 
-  // Combine Variant Images (first) + Product Images (after)
   const displayImages = Array.from(new Set([
     ...(selectedVariant.images || []),
     ...(product.product_images || [])
@@ -99,7 +98,6 @@ export default function ProductDetail({ product }: { product: Product }) {
     setExpandedAccordions(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Get unique colors and sizes
   const uniqueColors = Array.from(new Set(
     product.variants.map(v => v.color).filter(Boolean)
   )) as string[];
@@ -163,23 +161,17 @@ export default function ProductDetail({ product }: { product: Product }) {
     try {
       const imagePath = displayImages[0] || '/placeholder.jpg';
       
-      // Ensure image URL is absolute (Stripe requirement)
       const imageUrl = imagePath.startsWith('http') 
         ? imagePath 
         : `${window.location.origin}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
       
       const finalPrice = onSale ? salePrice : price;
 
-      // --- NEW SHIPPING LOGIC START ---
-      // Calculate total to determine shipping cost
       const totalAmount = finalPrice * quantity;
       const shippingCost = totalAmount >= 20 ? 0 : 3.99;
-      // --- NEW SHIPPING LOGIC END ---
 
-      // 1. Prepare payload for Stripe API
       const stripePayload = {
         items: [{
-          // FIX: Added 'id' so the backend knows which product this is!
           id: selectedVariant.id, 
           title: product.title,
           image: imageUrl,
@@ -190,11 +182,9 @@ export default function ProductDetail({ product }: { product: Product }) {
           size: selectedVariant.size,
           quantity: quantity
         }],
-        shippingCost // Send calculated shipping cost to backend
+        shippingCost
       };
 
-      // 2. Prepare Cart Item for restoration if user cancels
-      // This matches exactly what addItem expects
       const cartItemBackup = {
         id: selectedVariant.id,
         productId: product.id,
@@ -205,49 +195,57 @@ export default function ProductDetail({ product }: { product: Product }) {
         price: price,
         salePrice: salePrice,
         onSale: onSale,
-        image: imagePath, // Use original path for internal cart
+        image: displayImages[0] || '/placeholder.jpg',
         stock: stock,
-        quantity: quantity // Current quantity
+        quantity: quantity
       };
 
-      // Save to storage
-      localStorage.setItem('buynow_restore_item', JSON.stringify(cartItemBackup));
+      sessionStorage.setItem('pendingCartItem', JSON.stringify(cartItemBackup));
 
-      const response = await fetch('/api/checkout', {
+      const res = await fetch('/api/checkout', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(stripePayload),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(stripePayload)
       });
 
-      const responseText = await response.text();
-      let data;
+      const data = await res.json();
       
-      try {
-        data = JSON.parse(responseText);
-      } catch (e) {
-        console.error('Server returned non-JSON response:', responseText);
-        setIsBuyingNow(false);
-        return;
-      }
-
-      if (!response.ok) {
-        console.error('Checkout API Error:', data);
-        setIsBuyingNow(false);
-        return;
-      }
-
       if (data.url) {
         window.location.href = data.url;
       } else {
-        console.error('Missing URL in checkout response:', data);
+        alert('Failed to create checkout session');
         setIsBuyingNow(false);
       }
     } catch (error) {
-      console.error('Error during checkout request:', error);
+      console.error('Checkout error:', error);
+      alert('Failed to proceed to checkout');
       setIsBuyingNow(false);
     }
+  };
+
+  const renderStars = (rating: number, size: number = 16) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    return (
+      <>
+        {[...Array(fullStars)].map((_, i) => (
+          <Star key={`full-${i}`} size={size} className="fill-cyan-500 text-cyan-500" />
+        ))}
+        {hasHalfStar && (
+          <div className="relative" key="half">
+            <Star size={size} className="text-cyan-500" />
+            <div className="absolute top-0 left-0 w-1/2 overflow-hidden">
+              <Star size={size} className="fill-cyan-500 text-cyan-500" />
+            </div>
+          </div>
+        )}
+        {[...Array(emptyStars)].map((_, i) => (
+          <Star key={`empty-${i}`} size={size} className="text-cyan-500" />
+        ))}
+      </>
+    );
   };
 
   const openGalleryModal = (index: number) => {
@@ -263,39 +261,15 @@ export default function ProductDetail({ product }: { product: Product }) {
 
   const prevGalleryImage = () => {
     if (product.gallery_images) {
-      setGalleryModalIndex((prev) => (prev - 1 + product.gallery_images!.length) % product.gallery_images!.length);
+      setGalleryModalIndex((prev) => 
+        prev === 0 ? product.gallery_images!.length - 1 : prev - 1
+      );
     }
   };
 
-  const renderStars = (rating: number, size: number = 18) => {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-    return (
-      <>
-        {[...Array(fullStars)].map((_, i) => (
-          <Star key={`full-${i}`} size={size} className="fill-orange-500 text-orange-500" />
-        ))}
-        {hasHalfStar && (
-          <div key="half" className="relative" style={{ width: size, height: size }}>
-            <Star size={size} className="text-gray-300 absolute" />
-            <div className="absolute overflow-hidden" style={{ width: size / 2 }}>
-              <Star size={size} className="fill-orange-500 text-orange-500" />
-            </div>
-          </div>
-        )}
-        {[...Array(emptyStars)].map((_, i) => (
-          <Star key={`empty-${i}`} size={size} className="text-gray-300" />
-        ))}
-      </>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-white pt-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
+    <div className="min-h-screen bg-gray-50 pt-24 pb-12">
+      <div className="max-w-7xl mx-auto px-4 md:px-8">
         <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
           <Link href="/" className="hover:text-orange-600">Home</Link>
           <span>/</span>
@@ -471,7 +445,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               </div>
             )}
 
-            {/* Quantity Selector - SMALLER */}
+            {/* Quantity Selector */}
             <div className="mb-6">
               <h3 className="font-bold text-gray-900 mb-3">Quantity</h3>
               <div className="flex items-center gap-3">
@@ -501,23 +475,38 @@ export default function ProductDetail({ product }: { product: Product }) {
               )}
             </div>
 
-            {/* Add to Cart Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={handleAddToCart}
-                disabled={stock === 0}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-md"
-              >
-                <ShoppingCart size={22} />
-                Add to Cart
-              </button>
-              <button 
-                onClick={handleBuyNow}
-                disabled={stock === 0 || isBuyingNow}
-                className="bg-cyan-500 hover:bg-cyan-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
-              >
-                {isBuyingNow ? 'Processing...' : 'Buy Now'}
-              </button>
+            {/* Add to Cart + Buy Now Buttons */}
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={stock === 0}
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-md"
+                >
+                  <ShoppingCart size={22} />
+                  Add to Cart
+                </button>
+                <button 
+                  onClick={handleBuyNow}
+                  disabled={stock === 0 || isBuyingNow}
+                  className="bg-cyan-500 hover:bg-cyan-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                >
+                  {isBuyingNow ? 'Processing...' : 'Buy Now'}
+                </button>
+              </div>
+
+              {/* Apple Pay Button - Mobile Only, Full Width */}
+              <ApplePayButton
+                productId={product.id}
+                productTitle={product.title}
+                price={price}
+                salePrice={salePrice}
+                onSale={onSale}
+                image={displayImages[0] || '/placeholder.jpg'}
+                productUrl={product.product_url}
+                selectedColor={selectedVariant.color || undefined}
+                selectedSize={selectedVariant.size || undefined}
+              />
             </div>
 
             {/* Description */}
@@ -529,7 +518,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               />
             </div>
 
-            {/* Product Details - Same Width as Description */}
+            {/* Product Details */}
             {product.accordions && product.accordions.length > 0 && (
               <div className="pt-6 border-t border-gray-200">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Product Details</h2>
@@ -550,15 +539,16 @@ export default function ProductDetail({ product }: { product: Product }) {
                       <AnimatePresence>
                         {expandedAccordions[accordion.id] && (
                           <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
+                            initial={{ height: 0 }}
+                            animate={{ height: 'auto' }}
+                            exit={{ height: 0 }}
                             transition={{ duration: 0.2 }}
                             className="overflow-hidden"
                           >
-                            <div className="p-4 bg-white border-t border-gray-200">
-                              <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-sm">{accordion.content}</p>
-                            </div>
+                            <div 
+                              className="p-4 text-gray-700 border-t border-gray-200"
+                              dangerouslySetInnerHTML={{ __html: accordion.content }}
+                            />
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -568,7 +558,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               </div>
             )}
 
-            {/* Services and Benefits - Same Width as Description */}
+            {/* Services and Benefits */}
             <div className="pt-6 border-t border-gray-200">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Services and Benefits</h2>
               <div className="space-y-3">
