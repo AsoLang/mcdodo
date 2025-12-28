@@ -179,7 +179,7 @@ export default function CartSidebar() {
 
             {/* Free Shipping Bar */}
             <div className="px-4 py-3 sm:px-6 sm:py-4 bg-white border-b border-gray-100">
-              <div className="mb-2 text-sm font-medium">
+              <div className="mb-2 text-base font-medium">
                 {isFreeShipping ? (
                   <div className="flex items-center gap-2 text-green-600">
                     <Truck size={16} className="sm:w-[18px] sm:h-[18px]" />
@@ -382,7 +382,7 @@ export default function CartSidebar() {
                                   }}
                                   onKeyPress={(e) => e.key === 'Enter' && validateDiscount()}
                                   placeholder="ENTER CODE"
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm font-mono uppercase text-gray-900 placeholder:text-gray-400"
+                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-base font-mono uppercase text-gray-900 placeholder:text-gray-400"
                                 />
                                 <button
                                   onClick={validateDiscount}
