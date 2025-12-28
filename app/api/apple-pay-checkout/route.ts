@@ -47,6 +47,7 @@ export async function POST(req: Request) {
           currency: 'gbp',
           product_data: {
             name: 'Shipping',
+            images: [], // FIX: Added empty images array
             metadata: { isShipping: 'true' }
           },
           unit_amount: Math.round(shippingCost * 100),
