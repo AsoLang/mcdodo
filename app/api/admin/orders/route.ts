@@ -26,7 +26,12 @@ export async function GET() {
         fulfillment_status,
         tracking_number,
         created_at,
-        email
+        email,
+
+        -- ✅ FIX: include discount fields
+        discount_code,
+        discount_amount
+
       FROM public.orders
       ORDER BY created_at DESC NULLS LAST
       LIMIT 5000
@@ -48,6 +53,10 @@ export async function GET() {
       fulfillment_status: r.fulfillment_status ?? "unfulfilled",
       tracking_number: r.tracking_number ?? null,
       created_at: r.created_at ?? new Date().toISOString(),
+
+      // ✅ FIX: expose to admin UI
+      discount_code: r.discount_code ?? null,
+      discount_amount: r.discount_amount ? Number(r.discount_amount) : null,
     }));
 
     return NextResponse.json(data);

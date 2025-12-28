@@ -31,7 +31,7 @@ export default function Footer() {
             {/* Social Links */}
             <div className="flex gap-4">
               <a 
-                href="mailto:info@mcdodo.co.uk" 
+                href="mailto:support@mcdodo.co.uk" 
                 className="w-10 h-10 bg-orange-100 hover:bg-orange-500 text-orange-600 hover:text-white rounded-full flex items-center justify-center transition-all duration-300"
                 aria-label="Email"
               >
