@@ -3,7 +3,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Apple } from 'lucide-react';
 
 interface ApplePayButtonProps {
   productId: string;
@@ -86,10 +85,17 @@ export default function ApplePayButton({
     <button
       onClick={handleApplePay}
       disabled={isProcessing}
-      className="w-full bg-black text-white py-3.5 rounded-xl font-semibold hover:bg-gray-800 transition shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="apple-pay-button apple-pay-button-black w-full h-12 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+      // @ts-ignore - Apple Pay button styling not recognized by TypeScript
+      style={{
+        WebkitAppearance: '-apple-pay-button',
+      }}
+      aria-label="Buy with Apple Pay"
     >
-      <Apple size={20} className="fill-current" />
-      {isProcessing ? 'Processing...' : 'Buy with Apple Pay'}
+      {/* Fallback for browsers that don't support Apple Pay button */}
+      <span className="apple-pay-fallback">
+        {isProcessing ? 'Processing...' : 'Buy with Apple Pay'}
+      </span>
     </button>
   );
 }

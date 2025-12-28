@@ -21,6 +21,11 @@ export async function POST(req: Request) {
       fullTitle = `${title} (${variants})`;
     }
 
+    // FIX: Ensure base URL has https://
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.mcdodo.co.uk';
+    const successUrl = `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${baseUrl}/shop/p/${productUrl}`;
+
     const line_items = [
       {
         price_data: {
@@ -47,7 +52,7 @@ export async function POST(req: Request) {
           currency: 'gbp',
           product_data: {
             name: 'Shipping',
-            images: [], // FIX: Added empty images array
+            images: [],
             metadata: { isShipping: 'true' }
           },
           unit_amount: Math.round(shippingCost * 100),
@@ -60,8 +65,8 @@ export async function POST(req: Request) {
       payment_method_types: ['card', 'apple_pay'],
       line_items,
       mode: 'payment',
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/shop/p/${productUrl}`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       shipping_address_collection: {
         allowed_countries: ['GB'],
       },
