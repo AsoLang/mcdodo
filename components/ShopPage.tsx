@@ -28,6 +28,9 @@ interface ProductVariant {
   on_sale: boolean;
   stock: number;
   images: string[];
+  color?: string | null;
+  size?: string | null;
+  option_value_1?: string | null;
 }
 
 interface Product {
@@ -559,11 +562,15 @@ export default function ShopPage({ products }: { products: Product[] }) {
                               e.stopPropagation();
 
                               if (product.variant && product.variant.stock > 0) {
+                                const variantLabel = product.variant.color || product.variant.size || product.variant.option_value_1 || null;
+                                
                                 addItem({
                                   id: product.variant.id,
                                   productId: product.id,
                                   productUrl: product.product_url,
                                   title: product.title,
+                                  color: product.variant.color || undefined,
+                                  size: product.variant.size || variantLabel || undefined,
                                   price: price,
                                   salePrice: salePrice,
                                   onSale: onSale,

@@ -7,8 +7,7 @@ const sql = neon(process.env.DATABASE_URL!);
 
 export async function GET() {
   try {
-    // We select from 'customers' (The master list)
-    // And JOIN 'orders' to calculate totals dynamically
+    // FIX: Join on BOTH customer_email and email columns (old orders use 'email')
     const customers = await sql`
       SELECT 
         c.email,
@@ -20,7 +19,7 @@ export async function GET() {
         COALESCE(SUM(o.total), 0) as total_spent,
         MAX(o.created_at) as last_order
       FROM customers c
-      LEFT JOIN orders o ON o.customer_email = c.email
+      LEFT JOIN orders o ON (o.customer_email = c.email OR o.email = c.email)
       GROUP BY c.email, c.billing_name, c.billing_phone, c.billing_city, c.billing_country
       ORDER BY total_spent DESC
     `;

@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Minus, Plus, Trash2, ShoppingBag, Truck } from 'lucide-react'; // Added Truck icon
+import { X, Minus, Plus, Trash2, ShoppingBag, Truck, Tag, Check, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
@@ -12,30 +12,77 @@ import { useCart } from '@/contexts/CartContext';
 export default function CartSidebar() {
   const { items, itemCount, total, isOpen, closeCart, updateQuantity, removeItem } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  
+  // Discount state
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState<{code: string, amount: number} | null>(null);
+  const [discountError, setDiscountError] = useState('');
+  const [isValidating, setIsValidating] = useState(false);
 
-  // --- CONFIGURATION ---
   const FREE_SHIPPING_THRESHOLD = 20.00;
   const SHIPPING_COST = 3.99;
   
-  // --- CALCULATIONS ---
   const isFreeShipping = total >= FREE_SHIPPING_THRESHOLD;
   const shippingCost = isFreeShipping ? 0 : SHIPPING_COST;
-  const finalTotal = total + shippingCost;
+  
+  // Calculate discount
+  const discountAmount = appliedDiscount ? appliedDiscount.amount : 0;
+  const subtotalAfterDiscount = Math.max(0, total - discountAmount);
+  const finalTotal = subtotalAfterDiscount + shippingCost;
   
   const remainingForFree = FREE_SHIPPING_THRESHOLD - total;
   const progress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
+
+  const validateDiscount = async () => {
+    if (!discountCode.trim()) return;
+    
+    setIsValidating(true);
+    setDiscountError('');
+    
+    try {
+      const res = await fetch('/api/validate-discount', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: discountCode, subtotal: total })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.valid) {
+        setAppliedDiscount({ 
+          code: discountCode.toUpperCase(), 
+          amount: data.discountAmount 
+        });
+        setDiscountError('');
+      } else {
+        setDiscountError(data.error || 'Invalid code');
+        setAppliedDiscount(null);
+      }
+    } catch (error) {
+      setDiscountError('Failed to validate code');
+      setAppliedDiscount(null);
+    } finally {
+      setIsValidating(false);
+    }
+  };
+
+  const removeDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountCode('');
+    setDiscountError('');
+  };
 
   const handleCheckout = async () => {
     setIsCheckingOut(true);
     
     try {
-      // Pass the shipping cost or total to your checkout API if needed
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           items,
-          shippingCost, // Ensure your backend handles this if you want to charge it
+          shippingCost,
+          discountCode: appliedDiscount?.code || null,
         }),
       });
 
@@ -58,7 +105,6 @@ export default function CartSidebar() {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -67,7 +113,6 @@ export default function CartSidebar() {
             className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
           />
 
-          {/* Sidebar */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -75,7 +120,6 @@ export default function CartSidebar() {
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-white shadow-2xl z-50 flex flex-col"
           >
-            {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-orange-100">
               <div className="flex items-center gap-3">
                 <ShoppingBag className="text-orange-600" size={24} />
@@ -91,7 +135,6 @@ export default function CartSidebar() {
               </button>
             </div>
 
-            {/* --- FREE SHIPPING PROGRESS BAR --- */}
             <div className="px-6 py-4 bg-white border-b border-gray-100">
               <div className="mb-2 text-sm font-medium">
                 {isFreeShipping ? (
@@ -106,12 +149,11 @@ export default function CartSidebar() {
                 )}
               </div>
               
-              {/* Progress Track */}
               <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
                 <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.5 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
                   className={`h-full rounded-full ${
                     isFreeShipping ? 'bg-green-500' : 'bg-orange-500'
                   }`}
@@ -119,7 +161,6 @@ export default function CartSidebar() {
               </div>
             </div>
 
-            {/* Cart Items */}
             <div className="flex-1 overflow-y-auto p-6">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center">
@@ -145,7 +186,6 @@ export default function CartSidebar() {
                       className="bg-gray-50 rounded-lg p-4 border border-gray-200"
                     >
                       <div className="flex gap-4">
-                        {/* Product Image */}
                         <Link href={`/shop/p/${item.productUrl}`} onClick={closeCart}>
                           <div className="relative w-24 h-24 bg-white rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 cursor-pointer hover:opacity-80 transition">
                             <Image
@@ -157,7 +197,6 @@ export default function CartSidebar() {
                           </div>
                         </Link>
 
-                        {/* Product Info */}
                         <div className="flex-1 min-w-0">
                           <Link href={`/shop/p/${item.productUrl}`} onClick={closeCart}>
                             <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2 hover:text-orange-600 transition cursor-pointer">
@@ -165,7 +204,6 @@ export default function CartSidebar() {
                             </h3>
                           </Link>
                           
-                          {/* Variant Info */}
                           <div className="flex gap-2 mb-2 text-sm text-gray-600">
                             {item.color && (
                               <span className="bg-white px-2 py-1 rounded border border-gray-200">
@@ -179,7 +217,6 @@ export default function CartSidebar() {
                             )}
                           </div>
 
-                          {/* Price */}
                           <div className="flex items-center gap-2 mb-3">
                             {item.onSale ? (
                               <>
@@ -197,7 +234,6 @@ export default function CartSidebar() {
                             )}
                           </div>
 
-                          {/* Quantity Controls */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-lg">
                               <button
@@ -226,7 +262,6 @@ export default function CartSidebar() {
                             </button>
                           </div>
 
-                          {/* Stock Warning */}
                           {item.quantity >= item.stock && item.stock > 0 && (
                             <p className="text-xs text-orange-600 mt-2">
                               Maximum stock reached
@@ -240,11 +275,61 @@ export default function CartSidebar() {
               )}
             </div>
 
-            {/* Footer - Checkout */}
             {items.length > 0 && (
               <div className="border-t border-gray-200 p-6 bg-gray-50">
                 
-                {/* Subtotal */}
+                {/* Discount Code Section */}
+                <div className="mb-4">
+                  {appliedDiscount ? (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Check size={18} className="text-green-600" />
+                        <span className="text-sm font-semibold text-green-900">
+                          Code <span className="font-mono">{appliedDiscount.code}</span> applied!
+                        </span>
+                      </div>
+                      <button
+                        onClick={removeDiscount}
+                        className="text-green-700 hover:text-green-900 text-sm font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                        <Tag size={16} /> Have a discount code?
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={discountCode}
+                          onChange={(e) => {
+                            setDiscountCode(e.target.value.toUpperCase());
+                            setDiscountError('');
+                          }}
+                          onKeyPress={(e) => e.key === 'Enter' && validateDiscount()}
+                          placeholder="ENTER CODE"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-sm font-mono uppercase text-gray-900 placeholder:text-gray-400"
+                        />
+                        <button
+                          onClick={validateDiscount}
+                          disabled={!discountCode.trim() || isValidating}
+                          className="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50 text-sm"
+                        >
+                          {isValidating ? '...' : 'Apply'}
+                        </button>
+                      </div>
+                      {discountError && (
+                        <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
+                          <AlertCircle size={14} />
+                          <span>{discountError}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-between items-center mb-2 text-gray-600">
                   <span className="font-medium">Subtotal</span>
                   <span className="font-bold text-gray-900">
@@ -252,7 +337,15 @@ export default function CartSidebar() {
                   </span>
                 </div>
 
-                {/* Shipping Cost Display */}
+                {appliedDiscount && (
+                  <div className="flex justify-between items-center mb-2 text-green-600">
+                    <span className="font-medium">Discount ({appliedDiscount.code})</span>
+                    <span className="font-bold">
+                      -£{discountAmount.toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center mb-4 text-gray-600">
                   <span className="font-medium">Shipping</span>
                   {isFreeShipping ? (
@@ -262,10 +355,8 @@ export default function CartSidebar() {
                   )}
                 </div>
 
-                {/* Divider */}
                 <div className="h-px bg-gray-200 w-full mb-4"></div>
 
-                {/* Total */}
                 <div className="flex justify-between items-center mb-6">
                   <span className="text-xl font-bold text-gray-900">Total</span>
                   <span className="text-2xl font-black text-orange-600">
@@ -273,7 +364,6 @@ export default function CartSidebar() {
                   </span>
                 </div>
 
-                {/* Checkout Button */}
                 <button 
                   onClick={handleCheckout}
                   disabled={isCheckingOut}
@@ -282,7 +372,6 @@ export default function CartSidebar() {
                   {isCheckingOut ? 'Processing...' : 'Proceed to Checkout'}
                 </button>
 
-                {/* Continue Shopping */}
                 <button
                   onClick={closeCart}
                   className="w-full bg-white text-orange-600 py-3 rounded-xl font-semibold border-2 border-orange-200 hover:bg-orange-50 transition"

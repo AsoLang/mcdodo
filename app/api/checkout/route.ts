@@ -9,11 +9,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: Request) {
   try {
-    const { items, shippingCost } = await req.json();
+    const { items, shippingCost, discountCode } = await req.json();
 
     console.log('========== CHECKOUT DEBUG START ==========');
     console.log('[Checkout DEBUG] Raw request body:');
-    console.log(JSON.stringify({ items, shippingCost }, null, 2));
+    console.log(JSON.stringify({ items, shippingCost, discountCode }, null, 2));
     console.log('[Checkout DEBUG] Number of items:', items?.length);
 
     const origin = req.headers.get('origin') || 'http://localhost:3000';
@@ -23,13 +23,57 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No items provided' }, { status: 400 });
     }
 
+    // Calculate subtotal for discount validation
+    const subtotal = items.reduce((sum: number, item: any) => {
+      const price = item.onSale ? item.salePrice : item.price;
+      return sum + (price * item.quantity);
+    }, 0);
+
+    // Validate discount code if provided
+    let discountAmount = 0;
+    if (discountCode) {
+      console.log('[Checkout DEBUG] Validating discount code:', discountCode);
+      try {
+        const discountRes = await fetch(`${origin}/api/validate-discount`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: discountCode, subtotal })
+        });
+
+        if (discountRes.ok) {
+          const discountData = await discountRes.json();
+          if (discountData.valid && discountData.discountAmount > 0) {
+            discountAmount = discountData.discountAmount;
+            console.log('[Checkout DEBUG] Discount valid, amount:', discountAmount);
+          }
+        }
+      } catch (error) {
+        console.error('[Checkout DEBUG] Discount validation failed:', error);
+      }
+    }
+
     const line_items = items.map((item: any, index: number) => {
       console.log(`\n[Checkout DEBUG] Processing item #${index + 1}:`);
       console.log('  - item object:', JSON.stringify(item, null, 2));
       console.log('  - item.id:', item.id);
       console.log('  - typeof item.id:', typeof item.id);
 
-      const descriptionText = [item.color, item.size].filter(Boolean).join(', ');
+      // Calculate item price with discount applied proportionally
+      const basePrice = item.onSale ? item.salePrice : item.price;
+      let finalPrice = basePrice;
+      
+      if (discountAmount > 0) {
+        const itemTotal = basePrice * item.quantity;
+        const itemDiscount = (itemTotal / subtotal) * discountAmount;
+        finalPrice = (itemTotal - itemDiscount) / item.quantity;
+        console.log('  - Base price:', basePrice, 'Final price after discount:', finalPrice.toFixed(2));
+      }
+
+      const descriptionParts = [item.color, item.size].filter(Boolean);
+      if (discountCode && discountAmount > 0) {
+        descriptionParts.push(`Code: ${discountCode}`);
+      }
+      const descriptionText = descriptionParts.join(', ');
 
       const productData: any = {
         name: item.title,
@@ -46,11 +90,13 @@ export async function POST(req: Request) {
         price_data: {
           currency: 'gbp',
           product_data: productData,
-          unit_amount: Math.round((item.onSale ? item.salePrice : item.price) * 100),
+          unit_amount: Math.round(finalPrice * 100),
         },
         quantity: item.quantity,
         metadata: {
           productId: String(item.id),
+          originalPrice: String(basePrice),
+          discountApplied: discountAmount > 0 ? 'true' : 'false'
         }
       };
     });

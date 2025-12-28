@@ -33,7 +33,10 @@ async function queryProductsOrderByPosition() {
         'sale_price', pv.sale_price,
         'on_sale', pv.on_sale,
         'stock', pv.stock,
-        'images', pv.images
+        'images', pv.images,
+        'color', pv.color,
+        'size', pv.size,
+        'option_value_1', pv.option_value_1
       ) as variant
     FROM products p
     LEFT JOIN LATERAL (
@@ -69,7 +72,10 @@ async function queryProductsFallback() {
         'sale_price', pv.sale_price,
         'on_sale', pv.on_sale,
         'stock', pv.stock,
-        'images', pv.images
+        'images', pv.images,
+        'color', pv.color,
+        'size', pv.size,
+        'option_value_1', pv.option_value_1
       ) as variant
     FROM products p
     LEFT JOIN LATERAL (

@@ -11,6 +11,7 @@ export async function GET() {
   try {
     const { rows } = await pool.query(`
       SELECT
+        id,
         order_number,
         stripe_session_id,
         customer_email,
@@ -24,21 +25,22 @@ export async function GET() {
         total,
         fulfillment_status,
         tracking_number,
-        created_at
+        created_at,
+        email
       FROM public.orders
-      ORDER BY created_at DESC
+      ORDER BY created_at DESC NULLS LAST
       LIMIT 5000
     `);
 
     const data = rows.map((r: any) => ({
-      id: String(r.order_number ?? r.stripe_session_id), // admin UI expects `id`
+      id: String(r.id ?? r.order_number),
       order_number: r.order_number ?? null,
       stripe_session_id: r.stripe_session_id ?? null,
-      customer_email: r.customer_email ?? "",
-      customer_name: r.customer_name ?? "",
+      customer_email: r.customer_email || r.email || null,
+      customer_name: r.customer_name || "Guest",
       shipping_address_line1: r.shipping_address_line1 ?? null,
       shipping_address_line2: r.shipping_address_line2 ?? null,
-      shipping_city: r.shipping_city ?? "",
+      shipping_city: r.shipping_city ?? null,
       shipping_postal_code: r.shipping_postal_code ?? null,
       shipping_country: r.shipping_country ?? null,
       items: Array.isArray(r.items) ? r.items : (r.items ?? []),

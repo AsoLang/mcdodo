@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { LogOut, User, Search, Mail, Phone, MapPin } from 'lucide-react';
+import { LogOut, User, Search, Mail, Phone, MapPin, ChevronLeft, ChevronRight, Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function CustomersPage() {
@@ -12,6 +12,9 @@ export default function CustomersPage() {
   const [filtered, setFiltered] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  const itemsPerPage = 10;
   const router = useRouter();
 
   useEffect(() => {
@@ -29,6 +32,7 @@ export default function CustomersPage() {
         c.city?.toLowerCase().includes(q)
       ));
     }
+    setCurrentPage(1);
   }, [search, customers]);
 
   const fetchCustomers = async () => {
@@ -48,6 +52,12 @@ export default function CustomersPage() {
     router.push('/admin');
   };
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedCustomers = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
@@ -57,7 +67,6 @@ export default function CustomersPage() {
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4 md:px-8 font-sans text-gray-900">
       
-      {/* HEADER */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
@@ -65,12 +74,21 @@ export default function CustomersPage() {
             <p className="text-sm text-gray-500">{customers.length} total contacts</p>
           </div>
           <div className="flex gap-3">
-             <Link href="/admin/dashboard" className="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 text-sm">Back to Dashboard</Link>
-             <button onClick={handleLogout} className="px-4 py-2 bg-black text-white font-bold rounded-lg hover:bg-gray-800 text-sm flex items-center gap-2"><LogOut size={16} /> Logout</button>
+             <Link
+               href="/admin/customers/generate"
+               className="px-4 py-2 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 text-sm flex items-center gap-2"
+             >
+               <Send size={16} /> Email Customers
+             </Link>
+             <Link href="/admin/dashboard" className="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 text-sm">
+               Back to Dashboard
+             </Link>
+             <button onClick={handleLogout} className="px-4 py-2 bg-black text-white font-bold rounded-lg hover:bg-gray-800 text-sm flex items-center gap-2">
+               <LogOut size={16} /> Logout
+             </button>
           </div>
         </div>
 
-        {/* SEARCH BAR */}
         <div className="relative max-w-md mb-8">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
           <input 
@@ -82,7 +100,6 @@ export default function CustomersPage() {
           />
         </div>
 
-        {/* CUSTOMERS TABLE */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -96,7 +113,7 @@ export default function CustomersPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filtered.map((customer, i) => (
+                {paginatedCustomers.map((customer, i) => (
                   <tr key={i} className="hover:bg-gray-50 transition group">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
@@ -142,17 +159,37 @@ export default function CustomersPage() {
                     </td>
                   </tr>
                 ))}
-                {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="p-12 text-center text-gray-400">
-                      No customers found matching "{search}"
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
         </div>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6">
+            <p className="text-sm text-gray-600">
+              Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length}
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-lg font-bold text-sm hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2"
+              >
+                <ChevronLeft size={16} /> Previous
+              </button>
+              <span className="px-4 py-2 font-medium text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-lg font-bold text-sm hover:bg-gray-50 disabled:opacity-50 flex items-center gap-2"
+              >
+                Next <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
