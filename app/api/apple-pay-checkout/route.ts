@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       fullTitle = `${title} (${variants})`;
     }
 
-    // FIX: Ensure base URL has https://
+    // Ensure base URL has https://
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.mcdodo.co.uk';
     const successUrl = `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${baseUrl}/shop/p/${productUrl}`;
@@ -62,7 +62,8 @@ export async function POST(req: Request) {
     }
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'apple_pay'],
+      // FIX: Only use 'card' - Apple Pay shows automatically on iOS Safari
+      payment_method_types: ['card'],
       line_items,
       mode: 'payment',
       success_url: successUrl,
