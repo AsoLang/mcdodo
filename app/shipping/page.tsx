@@ -78,7 +78,7 @@ export default function ShippingPage() {
                 🇬🇧 We currently ship to all UK addresses
               </p>
               <p className="text-blue-800 text-sm">
-                This includes England, Scotland, Wales, and Northern Ireland. We do not currently ship internationally.
+                This includes England, Scotland, Wales, and Northern Ireland.
               </p>
             </div>
           </section>
