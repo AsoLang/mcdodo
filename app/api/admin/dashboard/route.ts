@@ -48,9 +48,10 @@ export async function GET(req: Request) {
       WHERE date >= CURRENT_DATE - ${intervalSQL}::interval
     `;
 
+    // FIX: Count from customers table (same as customers page)
     const customers = await sql`
-      SELECT COUNT(DISTINCT customer_email) as count 
-      FROM orders
+      SELECT COUNT(*) as count 
+      FROM customers
     `;
 
     const topProducts = await sql`
