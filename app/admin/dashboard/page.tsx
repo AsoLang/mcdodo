@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
-  ShoppingBag, DollarSign, Users, BarChart3, ArrowRight, LogOut, ChevronDown, ChevronUp, ExternalLink
+  ShoppingBag, DollarSign, Users, BarChart3, ArrowRight, LogOut, ChevronDown, ChevronUp, ExternalLink, Globe
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
@@ -20,6 +20,7 @@ const FILTERS = [
 
 export default function Dashboard() {
   const [data, setData] = useState<any>(null);
+  const [countries, setCountries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState('7d');
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
@@ -27,6 +28,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData(range);
+    fetchCountries(range);
   }, [range]);
 
   const fetchData = async (selectedRange: string) => {
@@ -39,6 +41,18 @@ export default function Dashboard() {
         setData(json);
       }
     } finally { setLoading(false); }
+  };
+
+  const fetchCountries = async (selectedRange: string) => {
+    try {
+      const res = await fetch(`/api/admin/visitor-countries?range=${selectedRange}`);
+      if (res.ok) {
+        const json = await res.json();
+        setCountries(json);
+      }
+    } catch (err) {
+      console.error('Failed to fetch countries:', err);
+    }
   };
 
   const handleLogout = async () => {
@@ -188,6 +202,31 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Top Countries Widget */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <Globe size={20} className="text-orange-600" />
+            <h3 className="font-bold text-gray-900">Top Visitor Countries</h3>
+          </div>
+          {countries.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {countries.map((c: any, i: number) => (
+                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-2xl">{getCountryFlag(c.country)}</div>
+                  <div className="flex-1">
+                    <div className="font-bold text-sm text-gray-900">{c.country}</div>
+                    <div className="text-xs text-gray-500">{c.total_visits} visits</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-400 text-sm">
+              No country data yet. Visit tracking will populate this section.
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -211,4 +250,23 @@ function KpiCard({ title, value, icon, color }: any) {
       </div>
     </div>
   );
+}
+
+function getCountryFlag(country: string): string {
+  const flags: any = {
+    'United Kingdom': '🇬🇧',
+    'United States': '🇺🇸',
+    'Germany': '🇩🇪',
+    'France': '🇫🇷',
+    'Spain': '🇪🇸',
+    'Italy': '🇮🇹',
+    'Netherlands': '🇳🇱',
+    'Canada': '🇨🇦',
+    'Australia': '🇦🇺',
+    'India': '🇮🇳',
+    'China': '🇨🇳',
+    'Japan': '🇯🇵',
+    'Unknown': '🌍'
+  };
+  return flags[country] || '🌍';
 }
