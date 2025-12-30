@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
-  ShoppingBag, DollarSign, Users, BarChart3, ArrowRight, LogOut, ChevronDown, ChevronUp, ExternalLink, Globe
+  ShoppingBag, DollarSign, Users, BarChart3, ArrowRight, LogOut, ChevronDown, ChevronUp, ExternalLink, Globe, Eye
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
@@ -203,6 +203,37 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Visitor Trend Chart */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 h-[400px]">
+          <div className="flex items-center gap-2 mb-6">
+            <Eye size={20} className="text-purple-600" />
+            <h3 className="font-bold text-gray-900">Visitor Trend</h3>
+          </div>
+          <ResponsiveContainer width="100%" height="90%">
+            <AreaChart data={data.visitorData}>
+              <defs>
+                <linearGradient id="colorVisitors" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#9333ea" stopOpacity={0.1}/>
+                  <stop offset="95%" stopColor="#9333ea" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill:'#9ca3af', fontSize:11}} minTickGap={30}/>
+              <YAxis axisLine={false} tickLine={false} tick={{fill:'#9ca3af', fontSize:11}}/>
+              <Tooltip 
+                contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 4px 20px rgba(0,0,0,0.08)'}} 
+                itemStyle={{fontSize:'12px', fontWeight:'bold'}}
+                formatter={(value: any, name?: string) => {
+                  if (name === 'visitors') return [value, 'Visitors'];
+                  if (name === 'pageViews') return [value, 'Page Views'];
+                  return [value, name || ''];
+                }}
+              />
+              <Area type="monotone" dataKey="visitors" stroke="#9333ea" strokeWidth={3} fillOpacity={1} fill="url(#colorVisitors)" name="Visitors" />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+
         {/* Top Countries Widget */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
           <div className="flex items-center gap-2 mb-6">
@@ -266,6 +297,9 @@ function getCountryFlag(country: string): string {
     'India': '🇮🇳',
     'China': '🇨🇳',
     'Japan': '🇯🇵',
+    'Ireland': '🇮🇪',
+    'Singapore': '🇸🇬',
+    'Malaysia': '🇲🇾',
     'Unknown': '🌍'
   };
   return flags[country] || '🌍';

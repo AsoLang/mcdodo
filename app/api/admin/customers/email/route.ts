@@ -27,7 +27,8 @@ export async function POST(request: Request) {
       bodyText,
       testMode = false,
       testEmail,
-      filterSegment // optional: 'all', 'has_orders', 'no_orders'
+      filterSegment, // optional: 'all', 'has_orders', 'no_orders', 'selected'
+      selectedCustomers // optional: array of email strings
     } = await request.json();
 
     // Validation
@@ -41,6 +42,13 @@ export async function POST(request: Request) {
     if (testMode && testEmail) {
       // Test mode: send only to specified email
       recipients = [{ email: testEmail, name: 'Test User' }];
+    } else if (filterSegment === 'selected' && selectedCustomers?.length > 0) {
+      // Selected mode: use provided email list
+      recipients = await sql`
+        SELECT DISTINCT c.email, c.billing_name as name
+        FROM customers c
+        WHERE c.email = ANY(${selectedCustomers})
+      `;
     } else {
       // Production mode: get customers from DB
       let query = sql`

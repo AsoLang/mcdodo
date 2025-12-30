@@ -42,13 +42,23 @@ export async function GET(req: Request) {
       ORDER BY date ASC
     `;
 
+    // Visitor trend data
+    const visitorData = await sql`
+      SELECT 
+        date,
+        visitors,
+        page_views
+      FROM daily_stats 
+      WHERE date >= CURRENT_DATE - ${intervalSQL}::interval
+      ORDER BY date ASC
+    `;
+
     const visitors = await sql`
       SELECT COALESCE(SUM(visitors), 0) as count 
       FROM daily_stats 
       WHERE date >= CURRENT_DATE - ${intervalSQL}::interval
     `;
 
-    // FIX: Count from customers table (same as customers page)
     const customers = await sql`
       SELECT COUNT(*) as count 
       FROM customers
@@ -101,6 +111,13 @@ export async function GET(req: Request) {
         }),
         revenue: Number(row.revenue),
         orders: Number(row.orders)
+      })),
+      visitorData: visitorData.map((row: any) => ({
+        name: new Date(row.date).toLocaleDateString('en-GB', {
+          month: 'short', day: 'numeric'
+        }),
+        visitors: Number(row.visitors),
+        pageViews: Number(row.page_views)
       })),
       topProducts,
       recentOrders

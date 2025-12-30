@@ -4,7 +4,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, TestTube, Eye, Bold, Italic, Link as LinkIcon, Image as ImageIcon, Maximize2, Minimize2, Code, Edit } from 'lucide-react';
+import { ArrowLeft, TestTube, Eye, Bold, Italic, Link as LinkIcon, Image as ImageIcon, Maximize2, Minimize2, Code, Edit, Search, X, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function GenerateEmailPage() {
@@ -18,6 +18,10 @@ export default function GenerateEmailPage() {
   const [filterSegment, setFilterSegment] = useState('all');
   const [sendingEmail, setSendingEmail] = useState(false);
   const [testEmail, setTestEmail] = useState('');
+  
+  // Selected customers state
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const [customerSearch, setCustomerSearch] = useState('');
   
   // AI Generator state
   const [aiPrompt, setAiPrompt] = useState('');
@@ -216,10 +220,24 @@ export default function GenerateEmailPage() {
     }
   };
 
+  const toggleCustomer = (email: string) => {
+    setSelectedCustomers(prev => 
+      prev.includes(email) 
+        ? prev.filter(e => e !== email)
+        : [...prev, email]
+    );
+  };
+
+  const filteredCustomerSearch = customers.filter(c => 
+    c.name?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+    c.email?.toLowerCase().includes(customerSearch.toLowerCase())
+  );
+
   const getRecipientCount = () => {
     if (filterSegment === 'all') return customers.length;
     if (filterSegment === 'has_orders') return customers.filter(c => c.total_orders > 0).length;
     if (filterSegment === 'no_orders') return customers.filter(c => c.total_orders === 0).length;
+    if (filterSegment === 'selected') return selectedCustomers.length;
     return 0;
   };
 
@@ -252,7 +270,8 @@ export default function GenerateEmailPage() {
           bodyText: emailBody.replace(/<[^>]*>/g, ''),
           testMode: isTest,
           testEmail: isTest ? testEmail : undefined,
-          filterSegment
+          filterSegment,
+          selectedCustomers: filterSegment === 'selected' ? selectedCustomers : undefined
         })
       });
 
@@ -480,13 +499,106 @@ export default function GenerateEmailPage() {
               <h3 className="text-lg font-bold text-gray-900 mb-4">Audience</h3>
               <select
                 value={filterSegment}
-                onChange={(e) => setFilterSegment(e.target.value)}
+                onChange={(e) => {
+                  setFilterSegment(e.target.value);
+                  if (e.target.value !== 'selected') {
+                    setSelectedCustomers([]);
+                    setCustomerSearch('');
+                  }
+                }}
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none text-gray-900 font-medium"
               >
                 <option value="all">All Customers ({customers.length})</option>
                 <option value="has_orders">With Orders ({customers.filter(c => c.total_orders > 0).length})</option>
                 <option value="no_orders">No Orders Yet ({customers.filter(c => c.total_orders === 0).length})</option>
+                <option value="selected">Selected Users ({selectedCustomers.length})</option>
               </select>
+
+              {/* Selected Users Search Interface */}
+              {filterSegment === 'selected' && (
+                <div className="mt-4 border border-gray-200 rounded-xl p-4 bg-gray-50">
+                  <div className="relative mb-3">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input 
+                      type="text"
+                      placeholder="Search customers by name or email..."
+                      value={customerSearch}
+                      onChange={(e) => setCustomerSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
+                    />
+                  </div>
+
+                  <div className="max-h-64 overflow-y-auto space-y-1">
+                    {filteredCustomerSearch.length > 0 ? (
+                      filteredCustomerSearch.map((customer) => (
+                        <label 
+                          key={customer.email}
+                          className="flex items-center gap-3 p-2 hover:bg-white rounded-lg cursor-pointer transition group"
+                        >
+                          <div className="relative">
+                            <input
+                              type="checkbox"
+                              checked={selectedCustomers.includes(customer.email)}
+                              onChange={() => toggleCustomer(customer.email)}
+                              className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-gray-900 truncate">{customer.name || 'Unknown'}</div>
+                            <div className="text-xs text-gray-500 truncate">{customer.email}</div>
+                          </div>
+                          <div className="text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded font-medium">
+                            {customer.total_orders} orders
+                          </div>
+                        </label>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-400 text-sm">
+                        {customerSearch ? 'No customers found' : 'Start typing to search...'}
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedCustomers.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+                        <span className="font-medium">Selected: {selectedCustomers.length}</span>
+                        <button
+                          onClick={() => setSelectedCustomers([])}
+                          className="text-red-600 hover:text-red-700 font-bold flex items-center gap-1"
+                        >
+                          <X size={14} /> Clear All
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {selectedCustomers.slice(0, 5).map(email => {
+                          const customer = customers.find(c => c.email === email);
+                          return (
+                            <span 
+                              key={email}
+                              className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-medium"
+                            >
+                              {customer?.name || email.split('@')[0]}
+                              <button
+                                onClick={() => toggleCustomer(email)}
+                                className="hover:text-orange-900"
+                              >
+                                <X size={12} />
+                              </button>
+                            </span>
+                          );
+                        })}
+                        {selectedCustomers.length > 5 && (
+                          <span className="text-xs text-gray-500 px-2 py-1">
+                            +{selectedCustomers.length - 5} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="mt-4 p-4 bg-orange-50 rounded-xl border border-orange-200">
                 <div className="text-sm text-orange-900 font-medium">
                   Will send to: <span className="text-2xl font-black text-orange-600">{getRecipientCount()}</span> customers
