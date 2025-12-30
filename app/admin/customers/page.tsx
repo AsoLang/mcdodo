@@ -4,7 +4,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { LogOut, User, Search, Mail, Phone, MapPin, ChevronLeft, ChevronRight, Send } from 'lucide-react';
+import { LogOut, User, Search, Mail, Phone, MapPin, ChevronLeft, ChevronRight, Send, BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function CustomersPage() {
@@ -79,6 +79,12 @@ export default function CustomersPage() {
                className="px-4 py-2 bg-orange-500 text-white font-bold rounded-lg hover:bg-orange-600 text-sm flex items-center gap-2"
              >
                <Send size={16} /> Email Customers
+             </Link>
+             <Link
+               href="/admin/campaign"
+               className="px-4 py-2 bg-purple-500 text-white font-bold rounded-lg hover:bg-purple-600 text-sm flex items-center gap-2"
+             >
+               <BarChart3 size={16} /> Campaigns
              </Link>
              <Link href="/admin/dashboard" className="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 text-sm">
                Back to Dashboard

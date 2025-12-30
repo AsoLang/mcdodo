@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LogOut, Mail, TrendingUp, MousePointerClick, XCircle, Send } from 'lucide-react';
+import { LogOut, Mail, Send, XCircle } from 'lucide-react';
 
 export default function CampaignsPage() {
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -30,11 +30,6 @@ export default function CampaignsPage() {
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' });
     router.push('/admin');
-  };
-
-  const calculateRate = (count: number, total: number) => {
-    if (total === 0) return '0%';
-    return ((count / total) * 100).toFixed(1) + '%';
   };
 
   if (loading) return (
@@ -87,52 +82,38 @@ export default function CampaignsPage() {
                   <div className="flex-1">
                     <h3 className="text-lg font-bold text-gray-900 mb-1">{campaign.campaign_name}</h3>
                     <p className="text-sm text-gray-600 mb-3">{campaign.subject}</p>
-                    <p className="text-xs text-gray-400">
-                      Sent {new Date(campaign.created_at).toLocaleDateString('en-GB', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>
+                        Sent {new Date(campaign.created_at).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      <span className="text-gray-300">•</span>
+                      <span className="bg-gray-100 px-2 py-1 rounded font-medium text-gray-700">
+                        {campaign.filter_applied || 'all'} segment
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
+                  <div className="flex gap-4">
                     <StatCard
                       icon={<Send size={16} />}
                       label="Sent"
                       value={campaign.sent_count}
-                      color="blue"
-                    />
-                    <StatCard
-                      icon={<Mail size={16} />}
-                      label="Delivered"
-                      value={campaign.delivered_count}
-                      percentage={calculateRate(campaign.delivered_count, campaign.sent_count)}
                       color="green"
                     />
-                    <StatCard
-                      icon={<TrendingUp size={16} />}
-                      label="Opened"
-                      value={campaign.opened_count}
-                      percentage={calculateRate(campaign.opened_count, campaign.delivered_count)}
-                      color="orange"
-                    />
-                    <StatCard
-                      icon={<MousePointerClick size={16} />}
-                      label="Clicked"
-                      value={campaign.clicked_count}
-                      percentage={calculateRate(campaign.clicked_count, campaign.opened_count)}
-                      color="purple"
-                    />
-                    <StatCard
-                      icon={<XCircle size={16} />}
-                      label="Bounced"
-                      value={campaign.bounced_count}
-                      percentage={calculateRate(campaign.bounced_count, campaign.sent_count)}
-                      color="red"
-                    />
+                    {campaign.failed_count > 0 && (
+                      <StatCard
+                        icon={<XCircle size={16} />}
+                        label="Failed"
+                        value={campaign.failed_count}
+                        color="red"
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -144,23 +125,19 @@ export default function CampaignsPage() {
   );
 }
 
-function StatCard({ icon, label, value, percentage, color }: any) {
+function StatCard({ icon, label, value, color }: any) {
   const colors: any = {
-    blue: 'bg-blue-50 text-blue-600',
     green: 'bg-green-50 text-green-600',
-    orange: 'bg-orange-50 text-orange-600',
-    purple: 'bg-purple-50 text-purple-600',
     red: 'bg-red-50 text-red-600',
   };
 
   return (
-    <div className={`${colors[color]} rounded-xl p-3 text-center`}>
+    <div className={`${colors[color]} rounded-xl p-3 text-center min-w-[100px]`}>
       <div className="flex items-center justify-center gap-1 mb-1">
         {icon}
         <span className="text-xs font-bold uppercase tracking-wide">{label}</span>
       </div>
       <div className="text-2xl font-black">{value}</div>
-      {percentage && <div className="text-xs font-medium mt-1">{percentage}</div>}
     </div>
   );
 }

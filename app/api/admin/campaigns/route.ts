@@ -12,14 +12,14 @@ export async function GET() {
         id,
         campaign_name,
         subject,
-        recipients_count,
+        recipient_count,
         sent_count,
-        delivered_count,
-        opened_count,
-        clicked_count,
-        bounced_count,
-        created_at
-      FROM email_campaigns
+        failed_count,
+        filter_applied,
+        created_at,
+        completed_at,
+        status
+      FROM bulk_email_log
       ORDER BY created_at DESC
       LIMIT 50
     `;
