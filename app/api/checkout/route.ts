@@ -131,7 +131,7 @@ export async function POST(req: Request) {
         : undefined;
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      payment_method_types: ['card'],
+      payment_method_types: ['card', 'paypal'],
       line_items,
       mode: 'payment',
 
