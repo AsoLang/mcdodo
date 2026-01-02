@@ -1,3 +1,5 @@
+// Path: app/api/admin/products/[id]/route.ts
+
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
@@ -6,8 +8,8 @@ const sql = neon(process.env.DATABASE_URL!);
 
 async function isAuthenticated() {
   const cookieStore = await cookies();
-  const session = cookieStore.get('admin_session');
-  return session?.value === 'authenticated';
+  const adminAuth = cookieStore.get('admin_auth');
+  return adminAuth?.value === 'true';
 }
 
 export async function GET(

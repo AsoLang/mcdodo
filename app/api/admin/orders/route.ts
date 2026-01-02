@@ -27,10 +27,10 @@ export async function GET() {
         tracking_number,
         created_at,
         email,
-
-        -- ✅ FIX: include discount fields
         discount_code,
-        discount_amount
+        discount_amount,
+        weight_grams,
+        service_type
 
       FROM public.orders
       ORDER BY created_at DESC NULLS LAST
@@ -53,10 +53,10 @@ export async function GET() {
       fulfillment_status: r.fulfillment_status ?? "unfulfilled",
       tracking_number: r.tracking_number ?? null,
       created_at: r.created_at ?? new Date().toISOString(),
-
-      // ✅ FIX: expose to admin UI
       discount_code: r.discount_code ?? null,
       discount_amount: r.discount_amount ? Number(r.discount_amount) : null,
+      weight_grams: r.weight_grams ?? null,
+      service_type: r.service_type ?? 'small_parcel',
     }));
 
     return NextResponse.json(data);

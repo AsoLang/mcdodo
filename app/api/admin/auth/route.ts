@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       const cookieStore = await cookies();
       
       // Set a secure session cookie
-      cookieStore.set('admin_session', 'authenticated', {
+      cookieStore.set('admin_auth', 'true', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const session = cookieStore.get('admin_session');
+    const adminAuth = cookieStore.get('admin_auth');
 
-    if (session?.value === 'authenticated') {
+    if (adminAuth?.value === 'true') {
       return NextResponse.json({ authenticated: true });
     }
 

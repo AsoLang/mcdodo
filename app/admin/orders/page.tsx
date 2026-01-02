@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Search, LogOut, ChevronDown, ChevronUp, Truck, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Search, LogOut, ChevronDown, ChevronUp, Truck, Trash2, X, Download, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // --- TYPE DEFINITIONS ---
@@ -25,6 +25,8 @@ interface Order {
   fulfillment_status: string;
   tracking_number: string | null;
   created_at: string;
+  weight_grams: number | null;
+  service_type: string;
 }
 
 type TabType = 'all' | 'unfulfilled' | 'shipped' | 'delivered';
@@ -51,6 +53,10 @@ export default function OrdersPage() {
   const [trackingNumber, setTrackingNumber] = useState('');
   const [carrier, setCarrier] = useState('Royal Mail');
   const [isDispatching, setIsDispatching] = useState(false);
+
+  // Royal Mail Export State
+  const [selectedForExport, setSelectedForExport] = useState<Set<string>>(new Set());
+  const [exportingOrder, setExportingOrder] = useState<string | null>(null);
   
   const router = useRouter();
 
@@ -78,6 +84,103 @@ export default function OrdersPage() {
     router.push('/admin');
   };
 
+  // --- ROYAL MAIL FUNCTIONS ---
+
+  const updateShipping = async (orderId: string, data: { weight_grams?: number; service_type?: string }) => {
+    try {
+      await fetch(`/api/admin/orders/${orderId}/shipping`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      // Update local state
+      setOrders(prev => prev.map(o => 
+        o.id === orderId ? { ...o, ...data } : o
+      ));
+    } catch (error) {
+      console.error('Failed to update shipping:', error);
+    }
+  };
+
+  const exportSingleOrder = async (orderId: string) => {
+    setExportingOrder(orderId);
+    try {
+      const res = await fetch('/api/admin/royal-mail-export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderIds: [orderId] })
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const order = orders.find(o => o.id === orderId);
+        a.download = `royal-mail-order-${order?.order_number || orderId}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const error = await res.json();
+        alert(`Export failed: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Error exporting order');
+    } finally {
+      setExportingOrder(null);
+    }
+  };
+
+  const toggleExportSelection = (orderId: string) => {
+    setSelectedForExport(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(orderId)) {
+        newSet.delete(orderId);
+      } else {
+        newSet.add(orderId);
+      }
+      return newSet;
+    });
+  };
+
+  const exportSelectedOrders = async () => {
+    if (selectedForExport.size === 0) {
+      alert('Please select orders to export');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/royal-mail-export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderIds: Array.from(selectedForExport) })
+      });
+
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `royal-mail-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        setSelectedForExport(new Set());
+      } else {
+        const error = await res.json();
+        alert(`Export failed: ${error.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Error exporting orders');
+    }
+  };
+
   // --- ACTIONS (Delete & Dispatch) ---
 
   const handleDelete = async (orderId: string) => {
@@ -96,11 +199,9 @@ export default function OrdersPage() {
     }
   };
 
-  // --- FIXED DISPATCH FUNCTION ---
   const handleDispatch = async (orderId: string) => {
     setIsDispatching(true);
     try {
-      // FIX: Matches your backend route: /api/admin/orders/[id]/dispatch
       const res = await fetch(`/api/admin/orders/${orderId}/dispatch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -108,7 +209,6 @@ export default function OrdersPage() {
       });
 
       if (res.ok) {
-        // Update local state instantly
         const updatedOrders = orders.map(o => 
           o.id === orderId 
             ? { ...o, fulfillment_status: 'shipped', tracking_number: trackingNumber } 
@@ -230,9 +330,19 @@ export default function OrdersPage() {
                <p className="text-sm text-gray-500">{stats.total} total orders found</p>
              </div>
           </div>
-          <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-black text-white font-bold rounded-lg text-sm hover:bg-gray-800">
-            <LogOut size={16} /> Logout
-          </button>
+          <div className="flex gap-3">
+            {selectedForExport.size > 0 && (
+              <button
+                onClick={exportSelectedOrders}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-sm hover:bg-blue-700"
+              >
+                <Download size={16} /> Export Selected ({selectedForExport.size})
+              </button>
+            )}
+            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-black text-white font-bold rounded-lg text-sm hover:bg-gray-800">
+              <LogOut size={16} /> Logout
+            </button>
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -308,6 +418,19 @@ export default function OrdersPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
+                  <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider w-12">
+                    <input
+                      type="checkbox"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedForExport(new Set(filteredOrders.filter(o => getNormalizedStatus(o.fulfillment_status) === 'unfulfilled').map(o => o.id)));
+                        } else {
+                          setSelectedForExport(new Set());
+                        }
+                      }}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                  </th>
                   <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Order</th>
                   <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Customer</th>
                   <th className="text-left px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
@@ -325,6 +448,17 @@ export default function OrdersPage() {
                   return (
                     <React.Fragment key={order.id}>
                       <tr className="hover:bg-gray-50 transition cursor-pointer group">
+                        <td className="px-6 py-4">
+                          {statusNorm === 'unfulfilled' && (
+                            <input
+                              type="checkbox"
+                              checked={selectedForExport.has(order.id)}
+                              onChange={() => toggleExportSelection(order.id)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            />
+                          )}
+                        </td>
                         <td className="px-6 py-4" onClick={() => setExpandedOrder(isExpanded ? null : order.id)}>
                           <div className="flex items-center gap-3">
                             {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
@@ -375,7 +509,7 @@ export default function OrdersPage() {
                       <AnimatePresence>
                         {expandedOrder === order.id && (
                           <tr>
-                            <td colSpan={6} className="p-0 border-none">
+                            <td colSpan={7} className="p-0 border-none">
                               <motion.div
                                 initial={{ height: 0, opacity: 0 }}
                                 animate={{ height: 'auto', opacity: 1 }}
@@ -401,7 +535,7 @@ export default function OrdersPage() {
                                     </div>
                                   </div>
 
-                                  {/* Shipping Info - FIXED ADDRESS LOGIC */}
+                                  {/* Shipping Info */}
                                   <div>
                                     <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Delivery Details</h4>
                                     <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm text-sm space-y-4">
@@ -410,6 +544,47 @@ export default function OrdersPage() {
                                         <div className="text-gray-900 leading-relaxed font-medium">
                                           {formatAddress(order)}
                                         </div>
+                                      </div>
+
+                                      {/* Royal Mail Fields */}
+                                      <div className="pt-3 border-t border-gray-200">
+                                        <div className="flex items-center gap-2 mb-3">
+                                          <Package size={14} className="text-blue-600" />
+                                          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Royal Mail Details</div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3 mb-3">
+                                          <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase block mb-1.5">Weight (g)</label>
+                                            <input 
+                                              type="number"
+                                              defaultValue={order.weight_grams || 100}
+                                              onBlur={(e) => updateShipping(order.id, {weight_grams: parseInt(e.target.value)})}
+                                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                              placeholder="100"
+                                            />
+                                          </div>
+                                          <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase block mb-1.5">Service</label>
+                                            <select 
+                                              defaultValue={order.service_type || 'small_parcel'}
+                                              onChange={(e) => updateShipping(order.id, {service_type: e.target.value})}
+                                              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                                            >
+                                              <option value="large_letter">Large Letter</option>
+                                              <option value="small_parcel">Small Parcel</option>
+                                            </select>
+                                          </div>
+                                        </div>
+                                        {statusNorm === 'unfulfilled' && (
+                                          <button
+                                            onClick={() => exportSingleOrder(order.id)}
+                                            disabled={exportingOrder === order.id}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition"
+                                          >
+                                            <Download size={14} />
+                                            {exportingOrder === order.id ? 'Exporting...' : 'Export to Royal Mail CSV'}
+                                          </button>
+                                        )}
                                       </div>
                                       
                                       {order.tracking_number && (
@@ -504,7 +679,7 @@ export default function OrdersPage() {
                 <select
                   value={carrier}
                   onChange={(e) => setCarrier(e.target.value)}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black outline-none font-medium"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black outline-none font-medium text-gray-900"
                 >
                   <option>Royal Mail</option>
                   <option>DPD</option>
@@ -520,7 +695,7 @@ export default function OrdersPage() {
                   value={trackingNumber}
                   onChange={(e) => setTrackingNumber(e.target.value)}
                   placeholder="e.g. GB234..."
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black outline-none font-medium"
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black outline-none font-medium text-gray-900"
                 />
               </div>
 
