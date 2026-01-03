@@ -131,7 +131,9 @@ export async function POST(req: Request) {
         : undefined;
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      // ✅ REVERTED: 'paypal' is explicitly listed here to avoid the error.
       payment_method_types: ['card', 'paypal'],
+      
       line_items,
       mode: 'payment',
 
