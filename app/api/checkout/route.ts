@@ -130,8 +130,11 @@ export async function POST(req: Request) {
         ? `Discount applied: ${normalizedCode}`
         : undefined;
 
-    const sessionParams: Stripe.Checkout.SessionCreateParams = {
-      payment_method_types: ['card', 'paypal'],
+    // CHANGED: Type is 'any' to fix red line.
+    // CHANGED: Used automatic methods + currency to fix mobile PayPal.
+    const sessionParams: any = {
+      automatic_payment_methods: { enabled: true },
+      currency: 'gbp',
       line_items,
       mode: 'payment',
 
