@@ -2,18 +2,26 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface ApplePayButtonProps {
   productId: string;
   productTitle: string;
   price: number;
-  salePrice?: number;
+  salePrice: number;
   onSale: boolean;
   image: string;
   productUrl: string;
   selectedColor?: string;
   selectedSize?: string;
+  disabled?: boolean;
+}
+
+declare global {
+  interface Window {
+    ApplePaySession?: any;
+  }
 }
 
 export default function ApplePayButton({
@@ -25,77 +33,86 @@ export default function ApplePayButton({
   image,
   productUrl,
   selectedColor,
-  selectedSize
+  selectedSize,
+  disabled = false,
 }: ApplePayButtonProps) {
-  const [isMobile, setIsMobile] = useState(false);
+  const [isApplePayAvailable, setIsApplePayAvailable] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-    // Detect mobile device
-    const checkMobile = () => {
-      const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      setIsMobile(mobile);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    if (
+      typeof window !== 'undefined' &&
+      window.ApplePaySession &&
+      window.ApplePaySession.canMakePayments()
+    ) {
+      setIsApplePayAvailable(true);
+    }
   }, []);
 
   const handleApplePay = async () => {
+    if (disabled || isProcessing) return;
+    
     setIsProcessing(true);
 
     try {
-      const finalPrice = onSale && salePrice ? salePrice : price;
+      const finalPrice = onSale ? salePrice : price;
+      const shippingCost = 0;
 
-      const res = await fetch('/api/apple-pay-checkout', {
+      const items = [{
+        id: productId,
+        title: productTitle,
+        price: finalPrice,
+        quantity: 1,
+        onSale,
+        salePrice,
+        image,
+        color: selectedColor,
+        size: selectedSize,
+      }];
+
+      const response = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId,
-          title: productTitle,
-          price: finalPrice,
-          image,
-          productUrl,
-          color: selectedColor,
-          size: selectedSize,
-          quantity: 1
-        })
+        body: JSON.stringify({ items, shippingCost }),
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
       if (data.url) {
-        window.location.href = data.url;
+        router.push(data.url);
       } else {
-        alert('Failed to process Apple Pay');
-        setIsProcessing(false);
+        throw new Error('Failed to create checkout session');
       }
     } catch (error) {
       console.error('Apple Pay error:', error);
-      alert('Failed to process payment');
+      alert('Failed to process Apple Pay. Please try again.');
+    } finally {
       setIsProcessing(false);
     }
   };
 
-  // Only show on mobile
-  if (!isMobile) return null;
+  if (!isApplePayAvailable) {
+    return null;
+  }
 
   return (
     <button
       onClick={handleApplePay}
-      disabled={isProcessing}
-      className="apple-pay-button apple-pay-button-black w-full h-12 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-      // @ts-ignore - Apple Pay button styling not recognized by TypeScript
+      disabled={disabled || isProcessing}
+      className={`w-full mt-3 py-3.5 rounded-xl font-bold text-base transition shadow-md flex items-center justify-center gap-2 ${
+        disabled 
+          ? 'bg-gray-300 cursor-not-allowed opacity-50 text-gray-500' 
+          : 'bg-black hover:bg-gray-800 text-white'
+      }`}
       style={{
-        WebkitAppearance: '-apple-pay-button',
+        WebkitAppearance: 'none',
       }}
-      aria-label="Buy with Apple Pay"
     >
-      {/* Fallback for browsers that don't support Apple Pay button */}
-      <span className="apple-pay-fallback">
-        {isProcessing ? 'Processing...' : 'Buy with Apple Pay'}
-      </span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+      </svg>
+      {isProcessing ? 'Processing...' : disabled ? 'Out of Stock' : 'Buy with Apple Pay'}
     </button>
   );
 }

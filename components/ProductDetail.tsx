@@ -506,6 +506,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                 productUrl={product.product_url}
                 selectedColor={selectedVariant.color || undefined}
                 selectedSize={selectedVariant.size || undefined}
+                disabled={stock === 0}
               />
             </div>
 
