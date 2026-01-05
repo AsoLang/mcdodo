@@ -2,9 +2,18 @@
 
 import ShopPage from '@/components/ShopPage';
 import { neon } from '@neondatabase/serverless';
+import { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+export const metadata: Metadata = {
+  title: 'Shop - Mcdodo UK',
+  description: 'Browse our collection of premium charging cables, chargers, and accessories',
+  alternates: {
+    canonical: 'https://mcdodo.co.uk/shop',
+  },
+};
 
 const sql = neon(process.env.DATABASE_URL!);
 
