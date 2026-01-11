@@ -130,7 +130,7 @@ export default async function FeaturedProducts() {
 
         <div className="text-center mt-12">
           <Link href="/shop">
-            <button className="px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl shadow-lg transition">
+            <button className="px-10 py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg rounded-xl shadow-xl transition-all hover:scale-105">
               View All Products
             </button>
           </Link>

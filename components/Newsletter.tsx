@@ -22,7 +22,7 @@ export default function Newsletter() {
     <section className="py-16 relative overflow-hidden">
       {/* Softened orange gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-orange-700 opacity-65" />
-      {/* Slight base tint so it still reads “orange” but not neon */}
+      {/* Slight base tint so it still reads "orange" but not neon */}
       <div className="absolute inset-0 bg-orange-600/10" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,10 +37,10 @@ export default function Newsletter() {
           </div>
 
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Get Exclusive Offers
+            Get 10% Off First Order
           </h2>
-          <p className="text-lg text-white/85 mb-8 max-w-2xl mx-auto">
-            Subscribe to our newsletter and be the first to know about new products, special deals, and promotions
+          <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto">
+            Subscribe to our newsletter for exclusive deals, early access to new products, and your 10% discount code
           </p>
 
           <form onSubmit={handleSubmit} className="max-w-md mx-auto">
@@ -49,16 +49,16 @@ export default function Newsletter() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                placeholder="Enter email for 10% off"
                 required
-                className="flex-1 px-6 py-4 rounded-xl bg-white/10 text-white placeholder-white/70 border border-white/35 outline-none focus:border-white/65 focus:ring-2 focus:ring-white/20"
+                className="flex-1 px-4 py-2 rounded-lg bg-white/10 text-white placeholder-white/70 border border-white/35 outline-none focus:border-white/65 focus:ring-2 focus:ring-white/20"
               />
               <button
                 type="submit"
-                className="px-8 py-4 bg-white text-orange-600 font-semibold rounded-xl hover:bg-white/90 transition flex items-center justify-center gap-2 shadow-lg"
+                className="px-6 py-2 bg-white text-orange-600 font-bold rounded-lg hover:bg-white/90 transition flex items-center justify-center gap-2 shadow-lg whitespace-nowrap"
               >
-                Subscribe
-                <Send size={18} />
+                Get 10% Off
+                <Send size={16} />
               </button>
             </div>
 
@@ -68,7 +68,7 @@ export default function Newsletter() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-4 text-white font-medium"
               >
-                ✓ Thanks for subscribing!
+                ✓ Thanks! Check your inbox for 10% off
               </motion.p>
             )}
           </form>

@@ -103,6 +103,7 @@ export default function Navbar() {
                 whileTap={{ scale: 0.9 }} 
                 transition={{ duration: 0.2 }}
                 className="text-gray-700 hover:text-orange-600 transition-colors"
+                aria-label="Search products"
               >
                 <Search size={20} className="md:w-6 md:h-6" />
               </motion.button>
@@ -113,6 +114,7 @@ export default function Navbar() {
                 whileTap={{ scale: 0.9 }} 
                 transition={{ duration: 0.2 }}
                 className="text-gray-700 hover:text-orange-600 relative transition-colors"
+                aria-label={`Shopping cart with ${itemCount} items`}
               >
                 <ShoppingCart size={20} className="md:w-6 md:h-6" />
                 {itemCount > 0 && (
@@ -133,6 +135,7 @@ export default function Navbar() {
                 whileTap={{ scale: 0.9 }} 
                 transition={{ duration: 0.2 }}
                 className="md:hidden text-gray-700 hover:text-orange-600 transition-colors"
+                aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               >
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </motion.button>

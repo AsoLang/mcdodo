@@ -30,6 +30,37 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  
+  // Redirect old Squarespace URLs
+  async redirects() {
+    return [
+      {
+        source: '/privacy-policy',
+        destination: '/privacy',
+        permanent: true,
+      },
+      {
+        source: '/warranty',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/70sale',
+        destination: '/shop',
+        permanent: true,
+      },
+      {
+        source: '/terms-conditions',
+        destination: '/terms',
+        permanent: true,
+      },
+      {
+        source: '/faq',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

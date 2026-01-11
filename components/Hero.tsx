@@ -35,26 +35,20 @@ export default function Hero() {
             Fast charging solutions for your lifestyle. High-quality cables, chargers, and accessories designed for durability and performance.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link href="/shop">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-full sm:w-auto px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-xl shadow-lg transition flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-10 py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg rounded-xl shadow-xl transition flex items-center justify-center gap-2"
               >
                 Shop Now
-                <ArrowRight size={20} />
+                <ArrowRight size={22} />
               </motion.button>
             </Link>
 
-            <Link href="/categories">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-full sm:w-auto px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 font-semibold rounded-xl shadow-lg transition border-2 border-gray-200"
-              >
-                Browse Categories
-              </motion.button>
+            <Link href="/categories" className="text-gray-700 hover:text-orange-600 font-medium transition-colors underline decoration-2 underline-offset-4">
+              Browse Categories
             </Link>
           </div>
 

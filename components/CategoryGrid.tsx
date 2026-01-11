@@ -81,11 +81,11 @@ export default function CategoryGrid() {
                       className="mb-3 h-26 w-26 object-contain transition-transform duration-300 group-hover:scale-125"
                       priority={index < 2}
                     />
-                    <div className="text-sm font-semibold text-center leading-tight text-white">
+                    <h3 className="text-sm font-bold text-center leading-tight text-white">
                       {category.name}
-                    </div>
+                    </h3>
                   </div>
-                  <p className="text-xs text-gray-600 text-center mt-2 group-hover:text-gray-900 transition">
+                  <p className="text-sm text-gray-700 text-center mt-3 leading-relaxed">
                     {category.description}
                   </p>
                 </div>
