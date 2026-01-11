@@ -2,6 +2,7 @@
 
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -31,6 +32,23 @@ export default function RootLayout({
           {children}
           <Footer />
         </CartProvider>
+
+        {/* Plerdy Tracking Code */}
+        <Script
+          id="plerdy-tracking"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              var _protocol="https:"==document.location.protocol?"https://":"http://";
+              _site_hash_code = "71b39c6b715efae20efa227fdf16f5dd",_suid=71790, plerdyScript=document.createElement("script");
+              plerdyScript.setAttribute("defer",""),plerdyScript.dataset.plerdymainscript="plerdymainscript",
+              plerdyScript.src="https://a.plerdy.com/public/js/click/main.js?v="+Math.random();
+              var plerdymainscript=document.querySelector("[data-plerdymainscript='plerdymainscript']");
+              plerdymainscript&&plerdymainscript.parentNode.removeChild(plerdymainscript);
+              try{document.head.appendChild(plerdyScript)}catch(t){console.log(t,"unable add script tag")}
+            `,
+          }}
+        />
       </body>
     </html>
   );
