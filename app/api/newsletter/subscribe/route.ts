@@ -94,7 +94,6 @@ async function sendWelcomeEmail(email: string) {
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background: #f9fafb; }
             .container { max-width: 600px; margin: 0 auto; background: white; }
             .header { background: linear-gradient(135deg, #ea580c 0%, #fb923c 100%); color: white; padding: 40px 20px; text-align: center; }
-            .logo { font-size: 32px; font-weight: 900; margin-bottom: 10px; }
             .content { padding: 40px 30px; }
             .discount-box { background: #fef3c7; border: 2px dashed #f59e0b; padding: 30px; border-radius: 12px; text-align: center; margin: 30px 0; }
             .code { font-size: 28px; font-weight: bold; color: #ea580c; letter-spacing: 2px; background: white; padding: 15px 30px; border-radius: 8px; display: inline-block; margin: 15px 0; font-family: monospace; }
@@ -105,7 +104,7 @@ async function sendWelcomeEmail(email: string) {
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">Mcdodo UK</div>
+              <img src="https://www.mcdodo.co.uk/mcdodo-logo.png" alt="Mcdodo UK" style="height: 40px; width: auto; margin-bottom: 10px;" />
               <p style="margin: 0; font-size: 18px;">Welcome to Premium Charging Accessories</p>
             </div>
 
