@@ -104,7 +104,9 @@ async function sendWelcomeEmail(email: string) {
         <body>
           <div class="container">
             <div class="header">
-              <img src="https://www.mcdodo.co.uk/mcdodo-logo.png" alt="Mcdodo UK" style="height: 40px; width: auto; margin-bottom: 10px;" />
+              <div style="background: white; display: inline-block; padding: 10px 20px; border-radius: 8px; margin-bottom: 15px;">
+                <img src="https://www.mcdodo.co.uk/mcdodo-logo.png" alt="Mcdodo UK" style="height: 35px; width: auto; display: block;" />
+              </div>
               <p style="margin: 0; font-size: 18px;">Welcome to Premium Charging Accessories</p>
             </div>
 
