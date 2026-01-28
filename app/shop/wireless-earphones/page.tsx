@@ -5,6 +5,9 @@ import ProductGrid from '@/components/ProductGrid';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
+export const dynamic = 'force-static';
+export const revalidate = 300;
+
 const sql = neon(process.env.DATABASE_URL!);
 
 export const metadata: Metadata = {

@@ -122,6 +122,8 @@ export async function GET(req: Request) {
       })),
       topProducts,
       recentOrders
+    }, {
+      headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' },
     });
 
   } catch (error: any) {

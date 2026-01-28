@@ -21,19 +21,22 @@ export async function GET(req: Request) {
       case 'all': intervalSQL = '100 years'; break;
     }
 
-    const countries = await sql`
-      SELECT 
-        country,
-        SUM(visits) as total_visits,
-        COUNT(DISTINCT date) as active_days
+    const rows = await sql`
+      SELECT
+        COALESCE(SUM(CASE WHEN country IN ('United Kingdom', 'GB', 'UK') THEN visits ELSE 0 END), 0) AS uk_visits,
+        COALESCE(SUM(CASE WHEN country NOT IN ('United Kingdom', 'GB', 'UK') THEN visits ELSE 0 END), 0) AS other_visits
       FROM visitor_countries
       WHERE date >= CURRENT_DATE - ${intervalSQL}::interval
-      GROUP BY country
-      ORDER BY total_visits DESC
-      LIMIT 10
     `;
 
-    return NextResponse.json(countries);
+    const payload = {
+      uk_visits: Number(rows[0]?.uk_visits || 0),
+      other_visits: Number(rows[0]?.other_visits || 0),
+    };
+
+    return NextResponse.json(payload, {
+      headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' },
+    });
   } catch (error: any) {
     console.error('Visitor countries API error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });

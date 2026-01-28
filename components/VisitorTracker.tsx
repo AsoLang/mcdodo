@@ -11,11 +11,18 @@ export default function VisitorTracker() {
     if (ran.current) return;
     ran.current = true;
 
-    // Track the visit
+    // Track the visit (throttled to reduce DB usage)
     const visited = sessionStorage.getItem('visited_session');
-    if (!visited) {
+    const lastTracked = localStorage.getItem('last_visit_track');
+    const now = Date.now();
+    const sixHours = 6 * 60 * 60 * 1000;
+
+    const sampleRate = 0.25; // track ~25% of visits to reduce DB usage
+
+    if (!visited && (!lastTracked || now - Number(lastTracked) > sixHours) && Math.random() < sampleRate) {
       fetch('/api/track-visit', { method: 'POST' });
       sessionStorage.setItem('visited_session', 'true');
+      localStorage.setItem('last_visit_track', String(now));
     }
   }, []);
 

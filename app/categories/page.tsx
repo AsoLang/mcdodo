@@ -5,6 +5,9 @@ import Image from 'next/image';
 import { neon } from '@neondatabase/serverless';
 import CategoriesPageClient from '@/components/CategoriesPageClient';
 
+export const dynamic = 'force-static';
+export const revalidate = 300;
+
 const sql = neon(process.env.DATABASE_URL!);
 
 function generateSlug(title: string): string {

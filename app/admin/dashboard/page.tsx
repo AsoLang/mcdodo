@@ -20,7 +20,7 @@ const FILTERS = [
 
 export default function Dashboard() {
   const [data, setData] = useState<any>(null);
-  const [countries, setCountries] = useState<any[]>([]);
+  const [countries, setCountries] = useState<{ uk_visits: number; other_visits: number }>({ uk_visits: 0, other_visits: 0 });
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState('7d');
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
@@ -28,6 +28,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchData(range);
+  }, [range]);
+
+  useEffect(() => {
     fetchCountries(range);
   }, [range]);
 
@@ -48,7 +51,10 @@ export default function Dashboard() {
       const res = await fetch(`/api/admin/visitor-countries?range=${selectedRange}`);
       if (res.ok) {
         const json = await res.json();
-        setCountries(json);
+        setCountries({
+          uk_visits: Number(json.uk_visits || 0),
+          other_visits: Number(json.other_visits || 0),
+        });
       }
     } catch (err) {
       console.error('Failed to fetch countries:', err);
@@ -72,6 +78,7 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-3">
              <Link href="/" className="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 text-sm">View Store</Link>
+             <button onClick={() => { fetchData(range); fetchCountries(range); }} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 text-sm">Refresh</button>
              <button onClick={handleLogout} className="px-4 py-2 bg-black text-white font-bold rounded-lg hover:bg-gray-800 text-sm flex items-center gap-2"><LogOut size={16} /> Logout</button>
           </div>
         </div>
@@ -249,29 +256,28 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        {/* Top Countries Widget */}
+        {/* UK vs Other Visitors */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
           <div className="flex items-center gap-2 mb-6">
             <Globe size={20} className="text-orange-600" />
-            <h3 className="font-bold text-gray-900">Top Visitor Countries</h3>
+            <h3 className="font-bold text-gray-900">Visitors</h3>
           </div>
-          {countries.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {countries.map((c: any, i: number) => (
-                <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="text-2xl">{getCountryFlag(c.country)}</div>
-                  <div className="flex-1">
-                    <div className="font-bold text-sm text-gray-900">{c.country}</div>
-                    <div className="text-xs text-gray-500">{c.total_visits} visits</div>
-                  </div>
-                </div>
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl">{getCountryFlag('United Kingdom')}</div>
+              <div className="flex-1">
+                <div className="font-bold text-sm text-gray-900">United Kingdom</div>
+                <div className="text-xs text-gray-500">{countries.uk_visits} visits</div>
+              </div>
             </div>
-          ) : (
-            <div className="text-center py-8 text-gray-400 text-sm">
-              No country data yet. Visit tracking will populate this section.
+            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl">🌍</div>
+              <div className="flex-1">
+                <div className="font-bold text-sm text-gray-900">Other Countries</div>
+                <div className="text-xs text-gray-500">{countries.other_visits} visits</div>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
