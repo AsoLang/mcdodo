@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/admin/recompute-stock",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

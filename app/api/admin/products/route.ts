@@ -30,12 +30,17 @@ export async function GET() {
         COALESCE(p.featured, false) AS featured,
         COALESCE(p.position, 999999)::int AS position,
 
-        -- THE FIX: We force it to look at YOUR new 'stock' column (p.stock)
-        -- We ignore product_variants for stock counting now.
-        COALESCE(p.stock, 0)::int AS total_stock,
+        -- Use variant stock when variants exist, otherwise fall back to product stock
+        CASE 
+          WHEN COUNT(pv.id) > 0 THEN COALESCE(SUM(pv.stock), 0)
+          ELSE COALESCE(p.stock, 0)
+        END::int AS total_stock,
         
         COUNT(pv.id)::int AS variant_count,
-        (COALESCE(p.stock, 0) > 0) AS any_in_stock, -- Updated logic
+        CASE 
+          WHEN COUNT(pv.id) > 0 THEN COALESCE(BOOL_OR(pv.stock > 0), false)
+          ELSE COALESCE(p.stock, 0) > 0
+        END AS any_in_stock,
         COALESCE(BOOL_OR(pv.on_sale = true), false) AS any_on_sale,
 
         dv.id AS display_variant_id,
