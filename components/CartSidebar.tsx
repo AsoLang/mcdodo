@@ -498,9 +498,6 @@ export default function CartSidebar() {
                   Continue Shopping
                 </button>
 
-                <p className="text-xs text-gray-500 text-center mt-3">
-                  Taxes calculated at checkout
-                </p>
               </div>
             )}
           </motion.div>
