@@ -9,6 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 type CartItem = {
   id?: string | number;
+  productId?: string | number;
   title: string;
   price: number;
   quantity: number;
@@ -84,11 +85,18 @@ export async function POST(req: Request) {
 
         const descriptionText = [item.color, item.size].filter(Boolean).join(', ');
 
+        const metadata: Record<string, string> = {};
+        if (item.id !== undefined && item.id !== null) metadata.variantId = String(item.id);
+        if (item.productId !== undefined && item.productId !== null) metadata.productId = String(item.productId);
+        if (item.color) metadata.color = item.color;
+        if (item.size) metadata.size = item.size;
+
         const productData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData =
           {
             name: item.title,
             images: item.image ? [item.image] : [],
             ...(descriptionText ? { description: descriptionText } : {}),
+            ...(Object.keys(metadata).length > 0 ? { metadata } : {}),
           };
 
         return {

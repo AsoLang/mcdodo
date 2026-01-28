@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { neon } from '@neondatabase/serverless';
-import { sendOrderConfirmationEmail } from '@/lib/email';
+import { sendAdminOrderNotificationEmail, sendOrderConfirmationEmail } from '@/lib/email';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20' as any,
@@ -100,16 +100,21 @@ export async function POST(req: NextRequest) {
           return acc;
         }
 
-        // Read productId from LINE ITEM metadata, not product metadata
-        const productId = (item as any).metadata?.productId || null;
+        const productMeta = product?.metadata || {};
+        const variantId = productMeta.variantId || (item as any).metadata?.variantId || null;
+        const color = productMeta.color || null;
+        const size = productMeta.size || null;
 
-        console.log(`[Webhook] Item: ${name}, productId from metadata: ${productId}`);
+        console.log(`[Webhook] Item: ${name}, variantId: ${variantId}`);
 
         acc.push({
-          id: productId,
+          id: variantId,
+          variant_id: variantId,
           name: name,
           quantity: item.quantity || 1,
           price: price,
+          color,
+          size,
         });
         return acc;
       }, []) || [];
@@ -166,6 +171,25 @@ export async function POST(req: NextRequest) {
         shippingTotal: detectedShippingCost,
         total: amountTotal,
       });
+
+      const adminEmail =
+        process.env.ADMIN_ORDER_EMAIL ||
+        process.env.CONTACT_TO_EMAIL ||
+        process.env.ORDER_FROM_EMAIL;
+
+      if (adminEmail) {
+        await sendAdminOrderNotificationEmail({
+          email: adminEmail,
+          orderId: orderNumber.toString(),
+          date: rawDate,
+          customerName,
+          customerEmail,
+          shippingAddress: address,
+          items,
+          shippingTotal: detectedShippingCost,
+          total: amountTotal,
+        });
+      }
 
       await sql`
         UPDATE orders 

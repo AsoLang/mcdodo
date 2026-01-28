@@ -527,7 +527,14 @@ export default function OrdersPage() {
                                             <div className="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center text-xs font-bold text-gray-500">
                                               {item.quantity}x
                                             </div>
-                                            <span className="text-sm font-bold text-black">{item.name || item.product_title}</span>
+                                            <div className="flex flex-col">
+                                              <span className="text-sm font-bold text-black">{item.name || item.product_title}</span>
+                                              {(item.color || item.size) && (
+                                                <span className="text-xs text-gray-500">
+                                                  {[item.color, item.size].filter(Boolean).join(' · ')}
+                                                </span>
+                                              )}
+                                            </div>
                                           </div>
                                           <span className="text-sm font-bold text-gray-900">£{(Number(item.price) * item.quantity).toFixed(2)}</span>
                                         </div>

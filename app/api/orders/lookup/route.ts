@@ -67,6 +67,8 @@ export async function GET(req: Request) {
           quantity: item.quantity,
           price: (item.amount_total || 0) / 100 / (item.quantity || 1),
           variant_id: product?.metadata?.variantId || null,
+          color: product?.metadata?.color || null,
+          size: product?.metadata?.size || null,
           sku: product?.metadata?.sku || null,
           image: product?.images?.[0] || ''
         });

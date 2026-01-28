@@ -498,6 +498,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               {/* Apple Pay Button - Mobile Only, Full Width */}
               <ApplePayButton
                 productId={product.id}
+                variantId={selectedVariant.id}
                 productTitle={product.title}
                 price={price}
                 salePrice={salePrice}

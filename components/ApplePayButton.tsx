@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 
 interface ApplePayButtonProps {
   productId: string;
+  variantId: string;
   productTitle: string;
   price: number;
   salePrice?: number;
@@ -19,6 +20,7 @@ interface ApplePayButtonProps {
 
 export default function ApplePayButton({
   productId,
+  variantId,
   productTitle,
   price,
   salePrice,
@@ -57,6 +59,7 @@ export default function ApplePayButton({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productId,
+          variantId,
           title: productTitle,
           price: finalPrice,
           image,

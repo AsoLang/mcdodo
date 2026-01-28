@@ -6,7 +6,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 export async function POST(req: Request) {
   try {
-    const { productId, title, price, image, productUrl, color, size, quantity } = await req.json();
+    const { productId, variantId, title, price, image, productUrl, color, size, quantity } = await req.json();
 
     const SHIPPING_COST = 3.99;
     const FREE_SHIPPING_THRESHOLD = 20.00;
@@ -35,6 +35,7 @@ export async function POST(req: Request) {
             images: [image],
             metadata: {
               productId,
+              ...(variantId && { variantId }),
               ...(color && { color }),
               ...(size && { size })
             }
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
       metadata: {
         source: 'apple_pay_quick_buy',
         productId,
+        ...(variantId && { variantId }),
       }
     });
 

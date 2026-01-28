@@ -16,6 +16,8 @@ interface OrderItem {
   name: string;
   quantity: number;
   price: number;
+  color?: string | null;
+  size?: string | null;
 }
 
 interface OrderConfirmationEmailProps {
@@ -149,6 +151,134 @@ export async function sendOrderConfirmationEmail({
     return { success: true };
   } catch (error) {
     console.error('[Email] Failed to send confirmation:', error);
+    return { success: false, error };
+  }
+}
+
+interface AdminOrderNotificationEmailProps {
+  email: string;
+  orderId: string;
+  date: string | Date;
+  customerName: string;
+  customerEmail: string;
+  shippingAddress: Address;
+  items: OrderItem[];
+  shippingTotal: number;
+  total: number;
+}
+
+export async function sendAdminOrderNotificationEmail({
+  email,
+  orderId,
+  date,
+  customerName,
+  customerEmail,
+  shippingAddress,
+  items,
+  shippingTotal,
+  total,
+}: AdminOrderNotificationEmailProps) {
+  try {
+    let displayDate = '';
+    const dateObj = new Date(date);
+
+    if (!date || isNaN(dateObj.getTime()) || dateObj.getFullYear() <= 1970) {
+      displayDate = new Date().toLocaleDateString('en-GB', {
+        day: 'numeric', month: 'long', year: 'numeric'
+      });
+    } else {
+      displayDate = dateObj.toLocaleDateString('en-GB', {
+        day: 'numeric', month: 'long', year: 'numeric'
+      });
+    }
+
+    const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const addressLines = [
+      shippingAddress.line1,
+      shippingAddress.line2,
+      shippingAddress.city,
+      shippingAddress.postal_code,
+      shippingAddress.country
+    ].filter(Boolean).join(', ');
+
+    await resend.emails.send({
+      from: 'Mcdodo UK <orders@mcdodo.co.uk>',
+      to: email,
+      subject: `New Order - #${orderId}`,
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #111; }
+            .container { max-width: 640px; margin: 0 auto; padding: 20px; }
+            .header { border-bottom: 2px solid #ea580c; padding-bottom: 12px; }
+            .title { font-size: 20px; font-weight: 800; }
+            .muted { color: #666; font-size: 13px; }
+            .items-table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+            .items-table th { text-align: left; border-bottom: 1px solid #eee; padding: 10px; color: #666; font-size: 12px; text-transform: uppercase; }
+            .items-table td { border-bottom: 1px solid #eee; padding: 12px 10px; vertical-align: middle; }
+            .item-name { font-weight: 600; }
+            .item-meta { color: #666; font-size: 12px; margin-top: 2px; }
+            .totals { margin-top: 16px; text-align: right; }
+            .grand-total { font-size: 18px; font-weight: 700; color: #ea580c; border-top: 1px solid #eee; padding-top: 8px; margin-top: 8px; }
+            .section { margin-top: 20px; }
+            .label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #666; margin-bottom: 6px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="title">New Order #${orderId}</div>
+              <div class="muted">${displayDate}</div>
+            </div>
+
+            <div class="section">
+              <div class="label">Customer</div>
+              <div>${customerName} (${customerEmail})</div>
+            </div>
+
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th width="60%">Item</th>
+                  <th width="20%" style="text-align:center">Qty</th>
+                  <th width="20%" style="text-align:right">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.map(item => `
+                  <tr>
+                    <td>
+                      <div class="item-name">${item.name}</div>
+                      ${(item.color || item.size) ? `<div class="item-meta">${[item.color, item.size].filter(Boolean).join(' · ')}</div>` : ''}
+                    </td>
+                    <td style="text-align:center">${item.quantity}</td>
+                    <td style="text-align:right">£${Number(item.price).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+
+            <div class="totals">
+              <div>Subtotal: £${subtotal.toFixed(2)}</div>
+              <div>Shipping: £${Number(shippingTotal).toFixed(2)}</div>
+              <div class="grand-total">Total Paid: £${Number(total).toFixed(2)}</div>
+            </div>
+
+            <div class="section">
+              <div class="label">Shipping Address</div>
+              <div>${addressLines || 'Address not available'}</div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('[Email] Failed to send admin order email:', error);
     return { success: false, error };
   }
 }
