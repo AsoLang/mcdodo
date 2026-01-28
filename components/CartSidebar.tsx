@@ -38,9 +38,9 @@ export default function CartSidebar() {
 
   // Confetti function
   const fireConfetti = () => {
-    const duration = 3 * 1000;
+    const duration = 1200;
     const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+    const defaults = { startVelocity: 35, spread: 320, ticks: 50, zIndex: 10000 };
 
     function randomInRange(min: number, max: number) {
       return Math.random() * (max - min) + min;
@@ -53,7 +53,7 @@ export default function CartSidebar() {
         return clearInterval(interval);
       }
 
-      const particleCount = 50 * (timeLeft / duration);
+      const particleCount = 35 * (timeLeft / duration);
 
       confetti({
         ...defaults,
@@ -67,7 +67,7 @@ export default function CartSidebar() {
         origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
         colors: ['#ff6b35', '#f7931e', '#10b981', '#3b82f6', '#8b5cf6']
       });
-    }, 250);
+    }, 180);
   };
 
   useEffect(() => {
