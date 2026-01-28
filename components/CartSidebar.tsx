@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, Trash2, ShoppingBag, Truck, Tag, Check, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
@@ -34,6 +34,7 @@ export default function CartSidebar() {
   
   const remainingForFree = FREE_SHIPPING_THRESHOLD - total;
   const progress = Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100);
+  const prevFreeShipping = useRef<boolean | null>(null);
 
   // Confetti function
   const fireConfetti = () => {
@@ -68,6 +69,19 @@ export default function CartSidebar() {
       });
     }, 250);
   };
+
+  useEffect(() => {
+    if (prevFreeShipping.current === null) {
+      prevFreeShipping.current = isFreeShipping;
+      return;
+    }
+
+    if (!prevFreeShipping.current && isFreeShipping) {
+      setTimeout(() => fireConfetti(), 150);
+    }
+
+    prevFreeShipping.current = isFreeShipping;
+  }, [isFreeShipping]);
 
   const validateDiscount = async () => {
     if (!discountCode.trim()) return;
