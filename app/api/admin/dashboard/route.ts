@@ -92,6 +92,7 @@ export async function GET(req: Request) {
         shipping_postal_code,
         shipping_country,
         status, 
+        fulfillment_status,
         total, 
         items,
         created_at 

@@ -36,6 +36,15 @@ type SortType = 'newest' | 'oldest' | 'highest' | 'lowest';
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalOrdersCount, setTotalOrdersCount] = useState(0);
+  const [stats, setStats] = useState<{ total: number; unfulfilled: number; shipped: number; delivered: number; revenue: number }>({
+    total: 0,
+    unfulfilled: 0,
+    shipped: 0,
+    delivered: 0,
+    revenue: 0,
+  });
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   
   // Filtering & Sorting State
   const [search, setSearch] = useState('');
@@ -61,16 +70,43 @@ export default function OrdersPage() {
   const router = useRouter();
 
   useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [debouncedSearch, activeTab, dateFilter, sortBy, currentPage]);
+
+  useEffect(() => {
+    if (currentPage !== 1) setCurrentPage(1);
+  }, [activeTab, dateFilter, sortBy, currentPage]);
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('/api/admin/orders', { cache: 'no-store' });
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        limit: String(itemsPerPage),
+        search: debouncedSearch,
+        status: activeTab,
+        date: dateFilter,
+        sort: sortBy,
+      });
+      const res = await fetch(`/api/admin/orders?${params.toString()}`, { cache: 'no-store' });
       if (res.status === 401) { router.push('/admin'); return; }
       if (res.ok) {
         const data = await res.json();
-        setOrders(data);
+        setOrders(data.orders || []);
+        setTotalOrdersCount(Number(data.total || 0));
+        if (data.stats) {
+          setStats({
+            total: Number(data.stats.total || 0),
+            unfulfilled: Number(data.stats.unfulfilled || 0),
+            shipped: Number(data.stats.shipped || 0),
+            delivered: Number(data.stats.delivered || 0),
+            revenue: Number(data.stats.revenue || 0),
+          });
+        }
       }
     } catch (error) {
       console.error('Failed to fetch orders:', error);
@@ -232,67 +268,16 @@ export default function OrdersPage() {
 
   const getNormalizedStatus = (status: string) => status?.toLowerCase() || 'unfulfilled';
 
-  const filterByTab = (list: Order[]) => {
-    if (activeTab === 'all') return list;
-    return list.filter(o => getNormalizedStatus(o.fulfillment_status) === activeTab);
-  };
-
-  const filterByDate = (list: Order[]) => {
-    if (dateFilter === 'all') return list;
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    return list.filter(o => {
-      const orderDate = new Date(o.created_at);
-      if (dateFilter === 'today') return orderDate >= today;
-      if (dateFilter === 'week') {
-        const weekAgo = new Date(today);
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        return orderDate >= weekAgo;
-      }
-      if (dateFilter === 'month') {
-        const monthAgo = new Date(today);
-        monthAgo.setMonth(monthAgo.getMonth() - 1);
-        return orderDate >= monthAgo;
-      }
-      return true;
-    });
-  };
-
-  const filterBySearch = (list: Order[]) => {
-    if (!search) return list;
-    const query = search.toLowerCase();
-    return list.filter(o =>
-      (o.customer_email || '').toLowerCase().includes(query) ||
-      (o.customer_name || '').toLowerCase().includes(query) ||
-      String(o.order_number || '').includes(query) ||
-      (o.id || '').toLowerCase().includes(query)
-    );
-  };
-
-  const sortOrders = (list: Order[]) => {
-    const sorted = [...list];
-    if (sortBy === 'newest') sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    else if (sortBy === 'oldest') sorted.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-    else if (sortBy === 'highest') sorted.sort((a, b) => Number(b.total) - Number(a.total));
-    else if (sortBy === 'lowest') sorted.sort((a, b) => Number(a.total) - Number(b.total));
-    return sorted;
-  };
-
   // --- PAGINATION CALCS ---
-  const filteredOrders = sortOrders(filterBySearch(filterByDate(filterByTab(orders))));
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-  const paginatedOrders = filteredOrders.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const totalPages = Math.ceil(totalOrdersCount / itemsPerPage);
+  const paginatedOrders = orders;
 
   // --- STATS ---
-  const stats = {
-    total: orders.length,
-    unfulfilled: orders.filter(o => getNormalizedStatus(o.fulfillment_status) === 'unfulfilled').length,
-    shipped: orders.filter(o => getNormalizedStatus(o.fulfillment_status) === 'shipped').length,
-    revenue: orders.reduce((sum, o) => sum + Number(o.total), 0),
+  const statsView = {
+    total: stats.total,
+    unfulfilled: stats.unfulfilled,
+    shipped: stats.shipped,
+    revenue: stats.revenue,
   };
 
   // --- ADDRESS FORMATTER ---
@@ -327,7 +312,7 @@ export default function OrdersPage() {
              </Link>
              <div>
                <h1 className="text-3xl font-black text-gray-900">Orders</h1>
-               <p className="text-sm text-gray-500">{stats.total} total orders found</p>
+               <p className="text-sm text-gray-500">{statsView.total} total orders found</p>
              </div>
           </div>
           <div className="flex gap-3">
@@ -349,19 +334,19 @@ export default function OrdersPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <div className="text-xs font-bold text-gray-500 uppercase">Total Orders</div>
-            <div className="text-2xl font-black text-black mt-1">{stats.total}</div>
+            <div className="text-2xl font-black text-black mt-1">{statsView.total}</div>
           </div>
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <div className="text-xs font-bold text-gray-500 uppercase">Unfulfilled</div>
-            <div className="text-2xl font-black text-orange-600 mt-1">{stats.unfulfilled}</div>
+            <div className="text-2xl font-black text-orange-600 mt-1">{statsView.unfulfilled}</div>
           </div>
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <div className="text-xs font-bold text-gray-500 uppercase">Shipped</div>
-            <div className="text-2xl font-black text-green-600 mt-1">{stats.shipped}</div>
+            <div className="text-2xl font-black text-green-600 mt-1">{statsView.shipped}</div>
           </div>
           <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <div className="text-xs font-bold text-gray-500 uppercase">Revenue</div>
-            <div className="text-2xl font-black text-black mt-1">£{stats.revenue.toFixed(2)}</div>
+            <div className="text-2xl font-black text-black mt-1">£{statsView.revenue.toFixed(2)}</div>
           </div>
         </div>
 
@@ -423,7 +408,7 @@ export default function OrdersPage() {
                       type="checkbox"
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedForExport(new Set(filteredOrders.filter(o => getNormalizedStatus(o.fulfillment_status) === 'unfulfilled').map(o => o.id)));
+                          setSelectedForExport(new Set(orders.filter(o => getNormalizedStatus(o.fulfillment_status) === 'unfulfilled').map(o => o.id)));
                         } else {
                           setSelectedForExport(new Set());
                         }
@@ -620,7 +605,7 @@ export default function OrdersPage() {
             </table>
           </div>
           
-          {filteredOrders.length === 0 && (
+          {orders.length === 0 && (
             <div className="py-20 text-center">
               <div className="text-gray-400 mb-2">No orders found</div>
               <button onClick={() => {setSearch(''); setActiveTab('all');}} className="text-orange-600 font-bold hover:underline">

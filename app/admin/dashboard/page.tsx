@@ -143,7 +143,17 @@ export default function Dashboard() {
                     <div className="flex items-center gap-3">
                       <div className="text-right">
                         <div className="font-bold text-sm">£{Number(o.total).toFixed(2)}</div>
-                        <span className="text-[10px] uppercase bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-bold">{o.status}</span>
+                        <span
+                          className={`text-[10px] uppercase px-1.5 py-0.5 rounded font-bold ${
+                            (o.fulfillment_status || o.status) === 'shipped'
+                              ? 'bg-green-100 text-green-700'
+                              : (o.fulfillment_status || o.status) === 'delivered'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}
+                        >
+                          {o.fulfillment_status || o.status}
+                        </span>
                       </div>
                       {expandedOrder === o.id ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
                     </div>
@@ -183,7 +193,12 @@ export default function Dashboard() {
                           <div className="text-gray-500 mb-1">Items:</div>
                           {o.items.map((item: any, idx: number) => (
                             <div key={idx} className="flex justify-between py-1">
-                              <span>{item.name} x{item.quantity}</span>
+                              <span>
+                                {item.name} x{item.quantity}
+                                {(item.color || item.size) && (
+                                  <span className="text-gray-500"> ({[item.color, item.size].filter(Boolean).join(' · ')})</span>
+                                )}
+                              </span>
                               <span className="font-medium">£{item.price}</span>
                             </div>
                           ))}
