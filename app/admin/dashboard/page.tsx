@@ -107,7 +107,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <KpiCard title="Total Revenue" value={`£${Number(data.revenue).toFixed(2)}`} icon={<DollarSign size={20} />} color="orange" />
           <KpiCard title="Orders" value={data.totalOrders} icon={<ShoppingBag size={20} />} color="blue" />
-          <KpiCard title="Visitors" value={data.visitors} icon={<BarChart3 size={20} />} color="purple" />
+          <KpiCard title="Visitors" value={countries.uk_visits + countries.other_visits} icon={<BarChart3 size={20} />} color="purple" />
           <KpiCard title="Customers" value={data.totalCustomers} icon={<Users size={20} />} color="green" />
         </div>
 
