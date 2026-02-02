@@ -5,8 +5,8 @@ import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const dynamic = 'force-static';
+export const revalidate = 300;
 
 export async function GET() {
   try {
@@ -42,7 +42,11 @@ export async function GET() {
 
     console.log(`Found ${products.length} products`);
     
-    return NextResponse.json(products);
+    return NextResponse.json(products, {
+      headers: {
+        'Cache-Control': 's-maxage=300, stale-while-revalidate=600',
+      },
+    });
   } catch (error) {
     console.error('Failed to fetch products:', error);
     return NextResponse.json({ 
