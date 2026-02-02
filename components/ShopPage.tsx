@@ -278,6 +278,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
     const price = Number(product.variant?.price || 0);
     const salePrice = Number(product.variant?.sale_price || 0);
     const onSale = product.variant?.on_sale || false;
+    const isOutOfStock = !product.variant || product.variant.stock === 0;
     const gradientClass = GRADIENT_BACKGROUNDS[index % GRADIENT_BACKGROUNDS.length];
 
     return (
@@ -289,6 +290,11 @@ export default function ShopPage({ products }: { products: Product[] }) {
           {onSale && (
             <div className="absolute top-4 left-4 bg-white text-orange-600 px-3 py-1 rounded text-xs font-bold z-10 shadow-md">
               Hot
+            </div>
+          )}
+          {isOutOfStock && (
+            <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded text-xs font-bold z-10 shadow-md">
+              Sold Out
             </div>
           )}
 
@@ -514,6 +520,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   const price = Number(product.variant?.price || 0);
                   const salePrice = Number(product.variant?.sale_price || 0);
                   const onSale = product.variant?.on_sale || false;
+                  const isOutOfStock = !product.variant || product.variant.stock === 0;
 
                   return (
                     <motion.div key={product.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.02 }}>
@@ -534,6 +541,13 @@ export default function ShopPage({ products }: { products: Product[] }) {
                             {onSale && (
                               <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
                                 SALE
+                              </div>
+                            )}
+                            {isOutOfStock && (
+                              <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
+                                <span className="bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-bold">
+                                  Sold Out
+                                </span>
                               </div>
                             )}
                           </div>
