@@ -284,7 +284,9 @@ export default function ShopPage({ products }: { products: Product[] }) {
     return (
       <Link href={`/shop/p/${product.product_url}`}>
         <div
-          className={`group ${gradientClass} rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-visible relative pb-8 pt-24 h-full`}
+          className={`group ${gradientClass} rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-visible relative pb-8 pt-24 h-full ${
+            isOutOfStock ? 'ring-1 ring-black/10' : ''
+          }`}
         >
           {/* Hot Badge */}
           {onSale && (
@@ -293,10 +295,10 @@ export default function ShopPage({ products }: { products: Product[] }) {
             </div>
           )}
           {isOutOfStock && (
-            <div className="absolute bottom-4 left-4 right-4 flex justify-center z-10">
-              <span className="bg-red-600/95 text-white px-3 py-1.5 rounded text-xs font-bold shadow-md">
+            <div className="absolute top-4 left-4 z-20">
+              <div className="bg-red-600 text-white px-3 py-1 text-xs font-bold shadow-md transform -rotate-12">
                 Sold Out
-              </span>
+              </div>
             </div>
           )}
 
@@ -308,9 +310,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   src={product.variant.images[0]}
                   alt={product.title}
                   fill
-                  className={`object-contain drop-shadow-2xl transform group-hover:scale-110 transition-transform duration-300 ${
-                    isOutOfStock ? 'opacity-70 grayscale' : ''
-                  }`}
+                  className="object-contain drop-shadow-2xl transform group-hover:scale-110 transition-transform duration-300"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-white/50">No Image</div>
@@ -528,7 +528,11 @@ export default function ShopPage({ products }: { products: Product[] }) {
 
                   return (
                     <motion.div key={product.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.02 }}>
-                      <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group relative">
+                      <div
+                        className={`bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group relative ${
+                          isOutOfStock ? 'ring-1 ring-gray-300 bg-gray-50' : ''
+                        }`}
+                      >
                         <Link href={`/shop/p/${product.product_url}`}>
                           <div className="relative aspect-square bg-gray-50">
                             {product.variant?.images?.[0] ? (
@@ -537,9 +541,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                                 alt={product.title}
                                 fill
                                 sizes="(max-width: 768px) 50vw, 33vw"
-                                className={`object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-300 ${
-                                  isOutOfStock ? 'opacity-70 grayscale' : ''
-                                }`}
+                                className="object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-300"
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
@@ -550,10 +552,10 @@ export default function ShopPage({ products }: { products: Product[] }) {
                               </div>
                             )}
                             {isOutOfStock && (
-                              <div className="absolute bottom-2 left-2 right-2 flex justify-center">
-                                <span className="bg-red-600/95 text-white px-3 py-1.5 rounded-md text-xs font-bold shadow-md">
+                              <div className="absolute top-2 left-2 z-10">
+                                <div className="bg-red-600 text-white px-2.5 py-1 text-[10px] font-bold shadow-md transform -rotate-12">
                                   Sold Out
-                                </span>
+                                </div>
                               </div>
                             )}
                           </div>
