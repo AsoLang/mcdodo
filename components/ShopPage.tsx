@@ -293,8 +293,10 @@ export default function ShopPage({ products }: { products: Product[] }) {
             </div>
           )}
           {isOutOfStock && (
-            <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded text-xs font-bold z-10 shadow-md">
-              Sold Out
+            <div className="absolute bottom-4 left-4 right-4 flex justify-center z-10">
+              <span className="bg-red-600/95 text-white px-3 py-1.5 rounded text-xs font-bold shadow-md">
+                Sold Out
+              </span>
             </div>
           )}
 
@@ -544,8 +546,8 @@ export default function ShopPage({ products }: { products: Product[] }) {
                               </div>
                             )}
                             {isOutOfStock && (
-                              <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
-                                <span className="bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-bold">
+                              <div className="absolute bottom-2 left-2 right-2 flex justify-center">
+                                <span className="bg-red-600/95 text-white px-3 py-1.5 rounded-md text-xs font-bold shadow-md">
                                   Sold Out
                                 </span>
                               </div>
