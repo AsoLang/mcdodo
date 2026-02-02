@@ -309,7 +309,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   alt={product.title}
                   fill
                   className={`object-contain drop-shadow-2xl transform group-hover:scale-110 transition-transform duration-300 ${
-                    isOutOfStock ? 'opacity-80' : ''
+                    isOutOfStock ? 'opacity-70 grayscale' : ''
                   }`}
                 />
               ) : (
@@ -538,7 +538,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                                 fill
                                 sizes="(max-width: 768px) 50vw, 33vw"
                                 className={`object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-300 ${
-                                  isOutOfStock ? 'opacity-80' : ''
+                                  isOutOfStock ? 'opacity-70 grayscale' : ''
                                 }`}
                               />
                             ) : (
