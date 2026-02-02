@@ -513,7 +513,20 @@ export default function OrdersPage() {
                                               {item.quantity}x
                                             </div>
                                             <div className="flex flex-col">
-                                              <span className="text-sm font-bold text-black">{item.name || item.product_title}</span>
+                                              {(() => {
+                                                const itemName = item.name || item.product_title || 'Unnamed item';
+                                                const productUrl = item.product_url || item.productUrl;
+                                                return productUrl ? (
+                                                  <Link
+                                                    href={`/shop/p/${productUrl}`}
+                                                    className="text-sm font-bold text-black hover:text-orange-600 hover:underline"
+                                                  >
+                                                    {itemName}
+                                                  </Link>
+                                                ) : (
+                                                  <span className="text-sm font-bold text-black">{itemName}</span>
+                                                );
+                                              })()}
                                               {(item.color || item.size) && (
                                                 <span className="text-xs text-gray-500">
                                                   {[item.color, item.size].filter(Boolean).join(' · ')}

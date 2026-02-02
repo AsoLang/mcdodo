@@ -94,6 +94,39 @@ export async function GET(req: Request) {
     const dataValues = [...values, limit, (page - 1) * limit];
     const { rows } = await pool.query(dataQuery, dataValues);
 
+    const variantIds = new Set<string>();
+    const skus = new Set<string>();
+
+    rows.forEach((r: any) => {
+      const items = Array.isArray(r.items) ? r.items : (r.items ?? []);
+      items.forEach((item: any) => {
+        if (item?.variant_id) variantIds.add(String(item.variant_id));
+        if (item?.sku) skus.add(String(item.sku));
+      });
+    });
+
+    const productUrlByVariant = new Map<string, string>();
+    const productUrlBySku = new Map<string, string>();
+
+    if (variantIds.size > 0 || skus.size > 0) {
+      const lookup = await pool.query(`
+        SELECT pv.id::text AS variant_id, pv.sku, p.product_url
+        FROM product_variants pv
+        JOIN products p ON p.id = pv.product_id
+        WHERE pv.id::text = ANY($1::text[])
+           OR pv.sku = ANY($2::text[])
+      `, [Array.from(variantIds), Array.from(skus)]);
+
+      lookup.rows.forEach((row: any) => {
+        if (row.variant_id && row.product_url) {
+          productUrlByVariant.set(String(row.variant_id), row.product_url);
+        }
+        if (row.sku && row.product_url) {
+          productUrlBySku.set(String(row.sku), row.product_url);
+        }
+      });
+    }
+
     const statsRes = await pool.query(`
       SELECT
         COUNT(*)::int AS total,
@@ -115,7 +148,13 @@ export async function GET(req: Request) {
       shipping_city: r.shipping_city ?? null,
       shipping_postal_code: r.shipping_postal_code ?? null,
       shipping_country: r.shipping_country ?? null,
-      items: Array.isArray(r.items) ? r.items : (r.items ?? []),
+      items: (Array.isArray(r.items) ? r.items : (r.items ?? [])).map((item: any) => {
+        const existingUrl = item?.product_url || item?.productUrl || null;
+        const viaVariant = item?.variant_id ? productUrlByVariant.get(String(item.variant_id)) : null;
+        const viaSku = item?.sku ? productUrlBySku.get(String(item.sku)) : null;
+        const productUrl = existingUrl || viaVariant || viaSku;
+        return productUrl ? { ...item, product_url: productUrl } : item;
+      }),
       total: Number(r.total ?? 0),
       fulfillment_status: r.fulfillment_status ?? "unfulfilled",
       tracking_number: r.tracking_number ?? null,
