@@ -289,13 +289,13 @@ export default function ShopPage({ products }: { products: Product[] }) {
           }`}
         >
           {/* Hot Badge */}
-          {onSale && (
+          {onSale && !isOutOfStock && (
             <div className="absolute top-4 left-4 bg-white text-orange-600 px-3 py-1 rounded text-xs font-bold z-10 shadow-md">
               Hot
             </div>
           )}
           {isOutOfStock && (
-            <div className="absolute top-4 left-4 z-20">
+            <div className="absolute top-4 right-4 z-20">
               <div className="bg-red-600 text-white px-3 py-1 text-xs font-bold shadow-md transform -rotate-12">
                 Sold Out
               </div>
@@ -546,13 +546,13 @@ export default function ShopPage({ products }: { products: Product[] }) {
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                             )}
-                            {onSale && (
+                            {onSale && !isOutOfStock && (
                               <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 rounded-full text-xs font-bold">
                                 SALE
                               </div>
                             )}
                             {isOutOfStock && (
-                              <div className="absolute top-2 left-2 z-10">
+                              <div className="absolute top-2 right-2 z-10">
                                 <div className="bg-red-600 text-white px-2.5 py-1 text-[10px] font-bold shadow-md transform -rotate-12">
                                   Sold Out
                                 </div>
