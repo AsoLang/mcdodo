@@ -308,7 +308,9 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   src={product.variant.images[0]}
                   alt={product.title}
                   fill
-                  className="object-contain drop-shadow-2xl transform group-hover:scale-110 transition-transform duration-300"
+                  className={`object-contain drop-shadow-2xl transform group-hover:scale-110 transition-transform duration-300 ${
+                    isOutOfStock ? 'opacity-90' : ''
+                  }`}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-white/50">No Image</div>
@@ -535,7 +537,9 @@ export default function ShopPage({ products }: { products: Product[] }) {
                                 alt={product.title}
                                 fill
                                 sizes="(max-width: 768px) 50vw, 33vw"
-                                className="object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-300"
+                                className={`object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-300 ${
+                                  isOutOfStock ? 'opacity-90' : ''
+                                }`}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
