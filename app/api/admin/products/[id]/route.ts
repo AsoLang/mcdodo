@@ -1,6 +1,7 @@
 // Path: app/api/admin/products/[id]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
 
@@ -67,6 +68,10 @@ export async function PUT(
     console.log('Product Images:', body.product_images?.length || 0);
     console.log('Number of variants:', variants?.length);
 
+    // Capture existing slug for cache revalidation if it changes
+    const existing = await sql`SELECT product_url FROM products WHERE id = ${id}`;
+    const oldSlug = existing?.[0]?.product_url as string | undefined;
+
     // Update product
     try {
       await sql`
@@ -94,6 +99,13 @@ export async function PUT(
       console.error('✗ Product update failed:', prodError);
       throw new Error(`Product update failed: ${prodError}`);
     }
+
+    // Revalidate product and listings so changes show immediately
+    const newSlug = product_url as string | undefined;
+    if (newSlug) revalidatePath(`/shop/p/${newSlug}`);
+    if (oldSlug && oldSlug !== newSlug) revalidatePath(`/shop/p/${oldSlug}`);
+    revalidatePath('/shop');
+    revalidatePath('/archive');
 
     // Handle variants
     if (variants && Array.isArray(variants)) {
