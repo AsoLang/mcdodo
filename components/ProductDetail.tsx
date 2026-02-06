@@ -481,7 +481,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                 <button
                   onClick={handleAddToCart}
                   disabled={stock === 0}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-md"
+                  className="flex-1 bg-[#f8d94c] hover:bg-[#f1cf3f] text-black py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-md"
                 >
                   <ShoppingCart size={22} />
                   Add to Cart
@@ -489,7 +489,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                 <button 
                   onClick={handleBuyNow}
                   disabled={stock === 0 || isBuyingNow}
-                  className="bg-cyan-500 hover:bg-cyan-600 text-white px-8 py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                  className="bg-[#ec6c2d] hover:bg-[#de6127] text-white px-8 py-4 rounded-xl font-bold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                 >
                   {isBuyingNow ? 'Processing...' : 'Buy Now'}
                 </button>
