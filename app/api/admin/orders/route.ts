@@ -60,7 +60,35 @@ export async function GET(req: Request) {
       ${whereSql}
     `;
 
-    const dataQuery = `
+    const dataQueryWithCarrier = `
+      SELECT
+        id,
+        order_number,
+        stripe_session_id,
+        customer_email,
+        customer_name,
+        shipping_address_line1,
+        shipping_address_line2,
+        shipping_city,
+        shipping_postal_code,
+        shipping_country,
+        items,
+        total,
+        fulfillment_status,
+        tracking_number,
+        carrier,
+        created_at,
+        email,
+        discount_code,
+        discount_amount,
+        weight_grams,
+        service_type
+      FROM public.orders
+      ${whereSql}
+      ORDER BY ${orderBy}
+      LIMIT $${values.length + 1} OFFSET $${values.length + 2}
+    `;
+    const dataQueryWithoutCarrier = `
       SELECT
         id,
         order_number,
@@ -92,7 +120,14 @@ export async function GET(req: Request) {
     const total = Number(countRes.rows[0]?.count || 0);
 
     const dataValues = [...values, limit, (page - 1) * limit];
-    const { rows } = await pool.query(dataQuery, dataValues);
+    let rows: any[] = [];
+    try {
+      const res = await pool.query(dataQueryWithCarrier, dataValues);
+      rows = res.rows || [];
+    } catch (err) {
+      const res = await pool.query(dataQueryWithoutCarrier, dataValues);
+      rows = res.rows || [];
+    }
 
     const variantIds = new Set<string>();
     const skus = new Set<string>();
@@ -158,6 +193,7 @@ export async function GET(req: Request) {
       total: Number(r.total ?? 0),
       fulfillment_status: r.fulfillment_status ?? "unfulfilled",
       tracking_number: r.tracking_number ?? null,
+      carrier: r.carrier ?? null,
       created_at: r.created_at ?? new Date().toISOString(),
       discount_code: r.discount_code ?? null,
       discount_amount: r.discount_amount ? Number(r.discount_amount) : null,

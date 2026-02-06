@@ -24,6 +24,7 @@ interface Order {
   total: number;
   fulfillment_status: string;
   tracking_number: string | null;
+  carrier?: string | null;
   created_at: string;
   weight_grams: number | null;
   service_type: string;
@@ -118,6 +119,20 @@ export default function OrdersPage() {
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' });
     router.push('/admin');
+  };
+
+  const getTrackingHref = (tracking: string, trackingCarrier?: string | null) => {
+    const value = tracking.trim();
+    if (!value) return '';
+    if (/^https?:\/\//i.test(value)) return value;
+    const c = (trackingCarrier || '').toLowerCase();
+    if (!c || c.includes('royal')) {
+      return `https://www.royalmail.com/track-your-item#/tracking-results/${encodeURIComponent(value)}`;
+    }
+    if (c.includes('dpd')) return `https://track.dpd.co.uk/parcels/${encodeURIComponent(value)}`;
+    if (c.includes('evri')) return `https://www.evri.com/track/parcel/${encodeURIComponent(value)}`;
+    if (c.includes('dhl')) return `https://www.dhl.com/gb-en/home/tracking.html?tracking-id=${encodeURIComponent(value)}`;
+    return `https://www.google.com/search?q=${encodeURIComponent(`${trackingCarrier} tracking ${value}`)}`;
   };
 
   // --- ROYAL MAIL FUNCTIONS ---
@@ -247,7 +262,7 @@ export default function OrdersPage() {
       if (res.ok) {
         const updatedOrders = orders.map(o => 
           o.id === orderId 
-            ? { ...o, fulfillment_status: 'shipped', tracking_number: trackingNumber } 
+            ? { ...o, fulfillment_status: 'shipped', tracking_number: trackingNumber, carrier } 
             : o
         );
         setOrders(updatedOrders);
@@ -595,7 +610,14 @@ export default function OrdersPage() {
                                       {order.tracking_number && (
                                         <div className="pt-2 border-t border-gray-100">
                                           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tracking</div>
-                                          <div className="font-mono text-sm text-black">{order.tracking_number}</div>
+                                          <a
+                                            href={getTrackingHref(order.tracking_number, order.carrier)}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="font-mono text-sm text-orange-600 hover:text-orange-700 hover:underline break-all inline-block"
+                                          >
+                                            {order.tracking_number}
+                                          </a>
                                         </div>
                                       )}
                                       

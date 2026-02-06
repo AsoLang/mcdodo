@@ -80,27 +80,53 @@ export async function GET(req: Request) {
       ORDER BY sold DESC LIMIT 5
     `;
 
-    const recentOrders = await sql`
-      SELECT 
-        id, 
-        order_number, 
-        customer_name, 
-        customer_email,
-        shipping_address_line1,
-        shipping_address_line2,
-        shipping_city,
-        shipping_postal_code,
-        shipping_country,
-        status, 
-        fulfillment_status,
-        tracking_number,
-        total, 
-        items,
-        created_at 
-      FROM orders 
-      ORDER BY created_at DESC 
-      LIMIT 5
-    `;
+    let recentOrders: any[] = [];
+    try {
+      recentOrders = await sql`
+        SELECT 
+          id, 
+          order_number, 
+          customer_name, 
+          customer_email,
+          shipping_address_line1,
+          shipping_address_line2,
+          shipping_city,
+          shipping_postal_code,
+          shipping_country,
+          status, 
+          fulfillment_status,
+          tracking_number,
+          carrier,
+          total, 
+          items,
+          created_at 
+        FROM orders 
+        ORDER BY created_at DESC 
+        LIMIT 5
+      ` as any[];
+    } catch (err) {
+      recentOrders = await sql`
+        SELECT 
+          id, 
+          order_number, 
+          customer_name, 
+          customer_email,
+          shipping_address_line1,
+          shipping_address_line2,
+          shipping_city,
+          shipping_postal_code,
+          shipping_country,
+          status, 
+          fulfillment_status,
+          tracking_number,
+          total, 
+          items,
+          created_at 
+        FROM orders 
+        ORDER BY created_at DESC 
+        LIMIT 5
+      ` as any[];
+    }
 
     return NextResponse.json({
       revenue: totals[0].revenue,

@@ -18,25 +18,49 @@ export async function POST(
 
     // 1. Update order in Database
     // We cast the result to 'any' to stop TypeScript from complaining about dynamic columns
-    const updateResult = await sql`
-      UPDATE orders
-      SET 
-        fulfillment_status = 'shipped',
-        tracking_number = ${trackingNumber}
-      WHERE id::text = ${id} OR order_number::text = ${id}
-      RETURNING 
-        id, 
-        order_number, 
-        customer_email, 
-        customer_name, 
-        stripe_session_id,
-        shipping_address_line1,
-        shipping_address_line2,
-        shipping_city,
-        shipping_postal_code,
-        shipping_country,
-        items
-    ` as any[]; // <--- This cast fixes TypeScript strictness issues
+    let updateResult: any[] = [];
+    try {
+      updateResult = await sql`
+        UPDATE orders
+        SET 
+          fulfillment_status = 'shipped',
+          tracking_number = ${trackingNumber},
+          carrier = ${carrier}
+        WHERE id::text = ${id} OR order_number::text = ${id}
+        RETURNING 
+          id, 
+          order_number, 
+          customer_email, 
+          customer_name, 
+          stripe_session_id,
+          shipping_address_line1,
+          shipping_address_line2,
+          shipping_city,
+          shipping_postal_code,
+          shipping_country,
+          items
+      ` as any[];
+    } catch (err) {
+      updateResult = await sql`
+        UPDATE orders
+        SET 
+          fulfillment_status = 'shipped',
+          tracking_number = ${trackingNumber}
+        WHERE id::text = ${id} OR order_number::text = ${id}
+        RETURNING 
+          id, 
+          order_number, 
+          customer_email, 
+          customer_name, 
+          stripe_session_id,
+          shipping_address_line1,
+          shipping_address_line2,
+          shipping_city,
+          shipping_postal_code,
+          shipping_country,
+          items
+      ` as any[];
+    }
 
     if (!updateResult || updateResult.length === 0) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });

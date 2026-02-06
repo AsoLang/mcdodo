@@ -66,11 +66,18 @@ export default function Dashboard() {
     router.push('/admin');
   };
 
-  const getTrackingHref = (tracking: string) => {
+  const getTrackingHref = (tracking: string, carrier?: string | null) => {
     const value = tracking.trim();
     if (!value) return '';
     if (/^https?:\/\//i.test(value)) return value;
-    return `https://www.royalmail.com/track-your-item#/tracking-results/${encodeURIComponent(value)}`;
+    const c = (carrier || '').toLowerCase();
+    if (!c || c.includes('royal')) {
+      return `https://www.royalmail.com/track-your-item#/tracking-results/${encodeURIComponent(value)}`;
+    }
+    if (c.includes('dpd')) return `https://track.dpd.co.uk/parcels/${encodeURIComponent(value)}`;
+    if (c.includes('evri')) return `https://www.evri.com/track/parcel/${encodeURIComponent(value)}`;
+    if (c.includes('dhl')) return `https://www.dhl.com/gb-en/home/tracking.html?tracking-id=${encodeURIComponent(value)}`;
+    return `https://www.google.com/search?q=${encodeURIComponent(`${carrier} tracking ${value}`)}`;
   };
 
   if (loading && !data) return <div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>;
@@ -222,7 +229,7 @@ export default function Dashboard() {
                         <div className="pt-2 border-t border-gray-200">
                           <div className="text-gray-500 mb-1">Tracking:</div>
                           <a
-                            href={getTrackingHref(o.tracking_number)}
+                            href={getTrackingHref(o.tracking_number, o.carrier)}
                             target="_blank"
                             rel="noreferrer"
                             className="font-mono text-sm text-orange-600 hover:text-orange-700 hover:underline break-all"
