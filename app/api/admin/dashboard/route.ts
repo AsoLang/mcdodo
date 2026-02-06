@@ -93,6 +93,7 @@ export async function GET(req: Request) {
         shipping_country,
         status, 
         fulfillment_status,
+        tracking_number,
         total, 
         items,
         created_at 

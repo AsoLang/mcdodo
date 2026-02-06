@@ -66,6 +66,13 @@ export default function Dashboard() {
     router.push('/admin');
   };
 
+  const getTrackingHref = (tracking: string) => {
+    const value = tracking.trim();
+    if (!value) return '';
+    if (/^https?:\/\//i.test(value)) return value;
+    return `https://www.royalmail.com/track-your-item#/tracking-results/${encodeURIComponent(value)}`;
+  };
+
   if (loading && !data) return <div className="h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div></div>;
 
   return (
@@ -209,6 +216,19 @@ export default function Dashboard() {
                               <span className="font-medium">£{item.price}</span>
                             </div>
                           ))}
+                        </div>
+                      )}
+                      {o.tracking_number && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <div className="text-gray-500 mb-1">Tracking:</div>
+                          <a
+                            href={getTrackingHref(o.tracking_number)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-mono text-sm text-orange-600 hover:text-orange-700 hover:underline break-all"
+                          >
+                            {o.tracking_number}
+                          </a>
                         </div>
                       )}
                       <Link 
