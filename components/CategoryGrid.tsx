@@ -78,6 +78,7 @@ export default function CategoryGrid() {
                       alt={category.name}
                       width={104}
                       height={104}
+                      unoptimized
                       className="mb-3 h-26 w-26 object-contain transition-transform duration-300 group-hover:scale-125"
                       priority={index < 2}
                     />

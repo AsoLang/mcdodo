@@ -156,6 +156,7 @@ export default function SearchModal({ isOpen, onClose, products }: SearchModalPr
                               src={product.image}
                               alt={product.title}
                               fill
+                              unoptimized
                               className="object-contain p-2"
                             />
                           ) : (

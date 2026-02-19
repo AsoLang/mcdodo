@@ -276,6 +276,7 @@ export default function CategoriesPageClient({ products }: { products: Product[]
                   alt={c.name}
                   width={104}
                   height={104}
+                  unoptimized
                   className="mb-3 h-26 w-26 object-contain transition-transform duration-300 group-hover:scale-130"
                   priority={index < 2}
                 />
@@ -312,6 +313,7 @@ export default function CategoriesPageClient({ products }: { products: Product[]
                             src={product.variant.images[0]}
                             alt={product.title}
                             fill
+                            unoptimized
                             sizes="(max-width: 768px) 50vw, 25vw"
                             className="object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-300"
                           />

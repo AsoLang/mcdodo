@@ -250,6 +250,7 @@ export default function CartSidebar() {
                               src={item.image || '/placeholder.jpg'}
                               alt={item.title}
                               fill
+                              unoptimized
                               className="object-contain p-2"
                             />
                           </div>

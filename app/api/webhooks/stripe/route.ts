@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       detectedShippingCost += (fullSession.total_details.amount_shipping / 100);
     }
 
-    const items = fullSession.line_items?.data
+    let items = fullSession.line_items?.data
       .reduce((acc: any[], item) => {
         const product = item.price?.product as Stripe.Product;
         const name = product.name;
@@ -118,6 +118,21 @@ export async function POST(req: NextRequest) {
         });
         return acc;
       }, []) || [];
+
+    const variantIds = items.map(item => item.variant_id).filter(Boolean);
+    if (variantIds.length > 0) {
+      const rows = await sql`
+        SELECT pv.id::text AS variant_id, p.product_url
+        FROM product_variants pv
+        JOIN products p ON p.id = pv.product_id
+        WHERE pv.id = ANY(${variantIds})
+      `;
+      const productUrlByVariant = new Map(rows.map((row: any) => [String(row.variant_id), row.product_url]));
+      items = items.map(item => {
+        const productUrl = item.variant_id ? productUrlByVariant.get(String(item.variant_id)) : null;
+        return productUrl ? { ...item, product_url: productUrl } : item;
+      });
+    }
 
     try {
       const result = await sql`

@@ -18,6 +18,7 @@ interface OrderItem {
   price: number;
   color?: string | null;
   size?: string | null;
+  product_url?: string | null;
 }
 
 interface OrderConfirmationEmailProps {
@@ -120,7 +121,10 @@ export async function sendOrderConfirmationEmail({
               <tbody>
                 ${items.map(item => `
                   <tr>
-                    <td><div class="item-name">${item.name}</div></td>
+                    <td>
+                      <div class="item-name">${item.name}</div>
+                      ${(item.color || item.size) ? `<div class="item-meta">${[item.color, item.size].filter(Boolean).join(' · ')}</div>` : ''}
+                    </td>
                     <td style="text-align:center">${item.quantity}</td>
                     <td style="text-align:right">£${Number(item.price).toFixed(2)}</td>
                   </tr>
@@ -179,6 +183,7 @@ export async function sendAdminOrderNotificationEmail({
   total,
 }: AdminOrderNotificationEmailProps) {
   try {
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.mcdodo.co.uk';
     let displayDate = '';
     const dateObj = new Date(date);
 
@@ -251,7 +256,9 @@ export async function sendAdminOrderNotificationEmail({
                 ${items.map(item => `
                   <tr>
                     <td>
-                      <div class="item-name">${item.name}</div>
+                      <div class="item-name">
+                        ${item.product_url ? `<a href="${baseUrl}/shop/p/${item.product_url}" style="color:#111;text-decoration:underline;">${item.name}</a>` : item.name}
+                      </div>
                       ${(item.color || item.size) ? `<div class="item-meta">${[item.color, item.size].filter(Boolean).join(' · ')}</div>` : ''}
                     </td>
                     <td style="text-align:center">${item.quantity}</td>
