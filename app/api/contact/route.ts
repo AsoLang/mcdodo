@@ -39,6 +39,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Escape HTML special characters to prevent injection
+    const escape = (str: string) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
     // 3. Send Email via Resend
     const { data, error } = await resend.emails.send({
       from: process.env.CONTACT_FROM_EMAIL!,
@@ -55,12 +58,12 @@ export async function POST(request: NextRequest) {
       `,
       html: `
         <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Order Number:</strong> ${orderNumber || 'N/A'}</p>
+        <p><strong>Name:</strong> ${escape(name)}</p>
+        <p><strong>Email:</strong> ${escape(email)}</p>
+        <p><strong>Order Number:</strong> ${escape(orderNumber || 'N/A')}</p>
         <br/>
         <p><strong>Message:</strong></p>
-        <p style="white-space: pre-wrap;">${message}</p>
+        <p style="white-space: pre-wrap;">${escape(message)}</p>
       `,
     });
 

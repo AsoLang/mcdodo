@@ -11,16 +11,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // --- AUTH CHECK (Commented out for debugging) ---
-    // Uncomment this block later when you want to re-enable security
-    /*
     const cookieStore = await cookies();
     const adminAuth = cookieStore.get('admin_auth');
     if (!adminAuth || adminAuth.value !== 'true') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    */
-    // ------------------------------------------------
 
     const { id } = await params;
 

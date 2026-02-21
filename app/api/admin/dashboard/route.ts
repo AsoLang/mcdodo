@@ -2,10 +2,19 @@
 
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import { cookies } from 'next/headers';
 
 const sql = neon(process.env.DATABASE_URL!);
 
+async function isAuthenticated() {
+  const cookieStore = await cookies();
+  return cookieStore.get('admin_auth')?.value === 'true';
+}
+
 export async function GET(req: Request) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const { searchParams } = new URL(req.url);
   const range = searchParams.get('range') || '7d';
 

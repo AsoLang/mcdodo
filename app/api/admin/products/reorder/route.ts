@@ -8,8 +8,8 @@ const sql = neon(process.env.DATABASE_URL!);
 
 async function isAuthenticated() {
   const cookieStore = await cookies();
-  const session = cookieStore.get('admin_session');
-  return session?.value === 'authenticated';
+  const session = cookieStore.get('admin_auth');
+  return session?.value === 'true';
 }
 
 export async function POST(req: Request) {

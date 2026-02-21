@@ -96,7 +96,7 @@ export default function ProductsPage() {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('/api/admin/auth');
+      const res = await fetch('/api/admin/login');
       if (!res.ok) router.push('/admin');
     } catch {
       router.push('/admin');

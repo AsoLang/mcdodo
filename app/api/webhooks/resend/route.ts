@@ -1,13 +1,38 @@
 // Path: app/api/webhooks/resend/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import { Resend } from 'resend';
 
 const sql = neon(process.env.DATABASE_URL!);
+const resend = new Resend(process.env.RESEND_API_KEY!);
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const payload = await req.json();
+    const rawBody = await req.text();
+
+    // Verify webhook signature
+    const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error('RESEND_WEBHOOK_SECRET is not set');
+      return NextResponse.json({ error: 'Webhook secret not configured' }, { status: 500 });
+    }
+
+    let payload: any;
+    try {
+      payload = resend.webhooks.verify({
+        payload: rawBody,
+        headers: {
+          'svix-id': req.headers.get('svix-id') ?? '',
+          'svix-timestamp': req.headers.get('svix-timestamp') ?? '',
+          'svix-signature': req.headers.get('svix-signature') ?? '',
+        },
+        secret: webhookSecret,
+      });
+    } catch {
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 });
+    }
+
     const { type, data } = payload;
 
     // Extract campaign_id and email from tags

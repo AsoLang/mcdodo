@@ -13,6 +13,9 @@ async function isAuthenticated() {
 }
 
 export async function GET() {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     // Ensure columns exist
     await sql`
@@ -120,6 +123,9 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const { id, stock, visible, price } = await req.json();
 

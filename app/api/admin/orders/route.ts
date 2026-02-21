@@ -2,12 +2,21 @@
 
 import { NextResponse } from "next/server";
 import { Pool } from "pg";
+import { cookies } from "next/headers";
 
 export const runtime = "nodejs";
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
+async function isAuthenticated() {
+  const cookieStore = await cookies();
+  return cookieStore.get("admin_auth")?.value === "true";
+}
+
 export async function GET(req: Request) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   try {
     const { searchParams } = new URL(req.url);
     const page = Math.max(1, Number(searchParams.get("page") || 1));

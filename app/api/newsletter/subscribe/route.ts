@@ -9,7 +9,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const { email, token } = await request.json();
 
     // Validate email
     if (!email || !email.includes('@')) {
@@ -17,6 +17,20 @@ export async function POST(request: NextRequest) {
         { error: 'Valid email is required' },
         { status: 400 }
       );
+    }
+
+    // Verify Turnstile token
+    if (!token) {
+      return NextResponse.json({ error: 'Captcha required' }, { status: 400 });
+    }
+    const verifyForm = new FormData();
+    verifyForm.append('secret', process.env.TURNSTILE_SECRET_KEY!);
+    verifyForm.append('response', token);
+    verifyForm.append('remoteip', request.headers.get('x-forwarded-for') || '');
+    const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: verifyForm });
+    const verifyData = await verifyRes.json();
+    if (!verifyData.success) {
+      return NextResponse.json({ error: 'Invalid captcha' }, { status: 403 });
     }
 
     // Check if already subscribed

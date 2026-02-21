@@ -2,10 +2,19 @@
 
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import { cookies } from 'next/headers';
 
 const sql = neon(process.env.DATABASE_URL!);
 
+async function isAuthenticated() {
+  const cookieStore = await cookies();
+  return cookieStore.get('admin_auth')?.value === 'true';
+}
+
 export async function POST(req: Request) {
+  if (!(await isAuthenticated())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const { orderIds } = await req.json();
 
@@ -66,9 +75,17 @@ export async function POST(req: Request) {
       o.customer_email || ''                         // Email
     ]);
 
+    const safeCell = (cell: any) => {
+      const str = String(cell ?? '');
+      const escaped = str.replace(/"/g, '""');
+      // Prefix formula characters to prevent CSV injection
+      const safe = /^[=+\-@]/.test(escaped) ? `'${escaped}` : escaped;
+      return `"${safe}"`;
+    };
+
     const csv = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...rows.map(row => row.map(safeCell).join(','))
     ].join('\n');
 
     return new NextResponse(csv, {
