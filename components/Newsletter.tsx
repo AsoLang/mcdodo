@@ -10,16 +10,27 @@ export default function Newsletter() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   const [token, setToken] = useState<string | null>(null);
+  const [showTurnstile, setShowTurnstile] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleButtonClick = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email || !email.includes('@')) return;
+    setShowTurnstile(true);
+  };
+
+  const handleTurnstileSuccess = (t: string) => {
+    setToken(t);
+    handleSubmit(t);
+  };
+
+  const handleSubmit = async (resolvedToken: string) => {
     setStatus('loading');
 
     try {
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, token }),
+        body: JSON.stringify({ email, token: resolvedToken }),
       });
 
       const data = await response.json();
@@ -76,13 +87,15 @@ export default function Newsletter() {
             Subscribe to our newsletter for exclusive deals, early access to new products, and your 10% discount code
           </p>
 
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto">
-            <div className="flex justify-center mb-3">
-              <Turnstile
-                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                onSuccess={setToken}
-              />
-            </div>
+          <form onSubmit={handleButtonClick} className="max-w-md mx-auto">
+            {showTurnstile && (
+              <div className="flex justify-center mb-3">
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                  onSuccess={handleTurnstileSuccess}
+                />
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row gap-3">
               <input
                 type="email"
@@ -95,10 +108,10 @@ export default function Newsletter() {
               />
               <button
                 type="submit"
-                disabled={status === 'loading'}
+                disabled={status === 'loading' || (showTurnstile && !token)}
                 className="px-6 py-2 bg-white text-orange-600 font-bold rounded-lg hover:bg-white/90 transition flex items-center justify-center gap-2 shadow-lg whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {status === 'loading' ? 'Subscribing...' : (
+                {status === 'loading' ? 'Subscribing...' : showTurnstile && !token ? 'Verifying...' : (
                   <>
                     Get 10% Off
                     <Send size={16} />

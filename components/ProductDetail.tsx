@@ -341,12 +341,12 @@ export default function ProductDetail({ product }: { product: Product }) {
               
               {/* Reviews */}
               {product.review_count && product.review_count > 0 && (
-                <div className="flex items-center gap-2 mb-4">
+                <a href="/reviews" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mb-4 w-fit no-underline" style={{ textDecoration: 'none' }}>
                   <div className="flex">
                     {renderStars(reviewRating)}
                   </div>
                   <span className="text-cyan-600 font-medium">{product.review_count} reviews</span>
-                </div>
+                </a>
               )}
 
               {/* Price */}

@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [data, setData] = useState<any>(null);
   const [countries, setCountries] = useState<{ uk_visits: number; other_visits: number }>({ uk_visits: 0, other_visits: 0 });
   const [loading, setLoading] = useState(true);
-  const [range, setRange] = useState('7d');
+  const [range, setRange] = useState('3m');
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const router = useRouter();
 
@@ -126,23 +126,42 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-[400px]">
-            <h3 className="font-bold text-gray-900 mb-6">Revenue Trend</h3>
-            <ResponsiveContainer width="100%" height="90%">
-              <AreaChart data={data.salesData}>
-                <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ea580c" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#ea580c" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill:'#9ca3af', fontSize:11}} minTickGap={30}/>
-                <YAxis axisLine={false} tickLine={false} tick={{fill:'#9ca3af', fontSize:11}} tickFormatter={(v)=>`£${v}`}/>
-                <Tooltip contentStyle={{borderRadius:'12px', border:'none', boxShadow:'0 4px 20px rgba(0,0,0,0.08)'}} itemStyle={{fontSize:'12px', fontWeight:'bold'}} />
-                <Area type="monotone" dataKey="revenue" stroke="#ea580c" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-[400px] flex flex-col">
+            <div className="px-6 pt-6 pb-4 flex items-start justify-between">
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Revenue Trend</p>
+                <h3 className="text-2xl font-black text-gray-900">
+                  £{data.salesData.reduce((sum: number, d: any) => sum + (d.revenue || 0), 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </h3>
+                <p className="text-xs text-gray-400 mt-0.5">{FILTERS.find(f => f.value === range)?.label} period</p>
+              </div>
+              <div className="flex items-center gap-1.5 bg-orange-50 text-orange-600 text-xs font-bold px-3 py-1.5 rounded-full">
+                <div className="w-2 h-2 rounded-full bg-orange-500" />
+                Revenue
+              </div>
+            </div>
+            <div className="flex-1 px-2 pb-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data.salesData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ea580c" stopOpacity={0.15}/>
+                      <stop offset="100%" stopColor="#ea580c" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f9fafb" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill:'#d1d5db', fontSize:10}} minTickGap={30}/>
+                  <YAxis axisLine={false} tickLine={false} tick={{fill:'#d1d5db', fontSize:10}} tickFormatter={(v) => `£${v}`} width={50}/>
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 8px 30px rgba(0,0,0,0.12)', padding: '10px 14px' }}
+                    itemStyle={{ fontSize: '13px', fontWeight: 'bold', color: '#ea580c' }}
+                    labelStyle={{ fontSize: '11px', color: '#9ca3af', marginBottom: '4px' }}
+                    formatter={(v: any) => [`£${Number(v).toFixed(2)}`, 'Revenue']}
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke="#ea580c" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRev)" dot={false} activeDot={{ r: 5, fill: '#ea580c', strokeWidth: 2, stroke: '#fff' }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col overflow-hidden h-[400px]">
