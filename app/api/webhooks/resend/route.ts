@@ -23,9 +23,9 @@ export async function POST(req: NextRequest) {
       payload = resend.webhooks.verify({
         payload: rawBody,
         headers: {
-          'svix-id': req.headers.get('svix-id') ?? '',
-          'svix-timestamp': req.headers.get('svix-timestamp') ?? '',
-          'svix-signature': req.headers.get('svix-signature') ?? '',
+          id: req.headers.get('svix-id') ?? '',
+          timestamp: req.headers.get('svix-timestamp') ?? '',
+          signature: req.headers.get('svix-signature') ?? '',
         },
         secret: webhookSecret,
       });

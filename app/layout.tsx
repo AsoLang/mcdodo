@@ -10,6 +10,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import CartSidebar from "@/components/CartSidebar";
 import VisitorTracker from "@/components/VisitorTracker";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,6 +35,7 @@ export default function RootLayout({
           <Footer />
         </CartProvider>
         {process.env.NODE_ENV === "production" ? <SpeedInsights /> : null}
+        {process.env.NODE_ENV === "production" ? <Analytics /> : null}
 
         {/* Plerdy Tracking Code */}
         <Script
