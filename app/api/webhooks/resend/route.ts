@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
           timestamp: req.headers.get('svix-timestamp') ?? '',
           signature: req.headers.get('svix-signature') ?? '',
         },
-        secret: webhookSecret,
+        webhookSecret: webhookSecret,
       });
     } catch {
       return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 400 });
