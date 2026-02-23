@@ -530,9 +530,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   return (
                     <motion.div key={product.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.02 }}>
                       <div
-                        className={`bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group relative ${
-                          isOutOfStock ? 'ring-1 ring-gray-300 bg-gray-50' : ''
-                        }`}
+                        className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group relative ring-1 ring-gray-300"
                       >
                         <Link href={`/shop/p/${product.product_url}`}>
                           <div className="relative aspect-square bg-gray-50">
