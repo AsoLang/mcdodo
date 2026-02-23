@@ -8,9 +8,9 @@ function uint8ArrayToHex(arr: Uint8Array): string {
   return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-function hexToUint8Array(hex: string): Uint8Array {
-  if (hex.length % 2 !== 0) return new Uint8Array(0);
-  const arr = new Uint8Array(hex.length / 2);
+function hexToUint8Array(hex: string): Uint8Array<ArrayBuffer> {
+  if (hex.length % 2 !== 0) return new Uint8Array(new ArrayBuffer(0));
+  const arr = new Uint8Array(new ArrayBuffer(hex.length / 2));
   for (let i = 0; i < hex.length; i += 2) {
     arr[i / 2] = parseInt(hex.slice(i, i + 2), 16);
   }
