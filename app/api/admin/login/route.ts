@@ -2,11 +2,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { generateSessionToken, verifySessionToken } from '@/lib/session';
 
 export async function GET() {
   const cookieStore = await cookies();
   const adminAuth = cookieStore.get('admin_auth');
-  if (adminAuth?.value === 'true') {
+  if (adminAuth?.value && await verifySessionToken(adminAuth.value)) {
     return NextResponse.json({ authenticated: true });
   }
   return NextResponse.json({ authenticated: false }, { status: 401 });
@@ -26,15 +27,14 @@ export async function POST(request: NextRequest) {
 
     // 2. Strict Check
     if (password === adminPassword) {
+      const token = await generateSessionToken();
       const cookieStore = await cookies();
-      
-      // We use 'admin_auth' as the cookie name. 
-      // We will fix the logout route to match this.
-      cookieStore.set('admin_auth', 'true', {
+
+      cookieStore.set('admin_auth', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        maxAge: 60 * 60 * 24, // 24 hours
+        maxAge: 60 * 60 * 8, // 8 hours
         path: '/',
       });
 

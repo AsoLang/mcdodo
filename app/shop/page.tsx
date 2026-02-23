@@ -5,7 +5,7 @@ import { neon } from '@neondatabase/serverless';
 import { Metadata } from 'next';
 
 export const dynamic = 'force-static';
-export const revalidate = 300;
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Shop - Mcdodo UK',

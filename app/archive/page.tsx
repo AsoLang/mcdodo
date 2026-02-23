@@ -7,7 +7,7 @@ import { ArrowLeft, ArchiveX } from 'lucide-react';
 import type { Metadata } from 'next';
 
 export const dynamic = 'force-static';
-export const revalidate = 300;
+export const revalidate = 3600;
 
 // Database connection
 const sql = neon(process.env.DATABASE_URL!);

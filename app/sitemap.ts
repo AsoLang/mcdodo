@@ -10,7 +10,7 @@ function generateSlug(title: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.mcdodo.co.uk';

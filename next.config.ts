@@ -2,6 +2,42 @@
 
 import type { NextConfig } from "next";
 
+const securityHeaders = [
+  // Prevent clickjacking
+  { key: 'X-Frame-Options', value: 'DENY' },
+  // Prevent MIME type sniffing
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  // Control referrer information
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  // Disable browser features not needed by this site
+  {
+    key: 'Permissions-Policy',
+    value: 'camera=(), microphone=(), geolocation=(), payment=(self "https://js.stripe.com")',
+  },
+  // Force HTTPS for 1 year
+  {
+    key: 'Strict-Transport-Security',
+    value: 'max-age=31536000; includeSubDomains',
+  },
+  // Content Security Policy
+  // unsafe-inline is required for Next.js hydration scripts and the Plerdy inline script
+  {
+    key: 'Content-Security-Policy',
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://a.plerdy.com https://js.stripe.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' https://fonts.gstatic.com",
+      "connect-src 'self' https://api.stripe.com https://ipapi.co https://a.plerdy.com https://vitals.vercel-insights.com",
+      "frame-src https://js.stripe.com https://hooks.stripe.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join('; '),
+  },
+];
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -31,6 +67,15 @@ const nextConfig: NextConfig = {
     ],
   },
   
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: securityHeaders,
+      },
+    ];
+  },
+
   // Redirect old Squarespace URLs
   async redirects() {
     return [
