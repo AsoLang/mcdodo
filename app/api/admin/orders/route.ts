@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { Pool } from "pg";
 import { cookies } from "next/headers";
+import { verifySessionToken } from "@/lib/session";
 
 export const runtime = "nodejs";
 
@@ -10,7 +11,8 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function isAuthenticated() {
   const cookieStore = await cookies();
-  return cookieStore.get("admin_auth")?.value === "true";
+  const token = cookieStore.get("admin_auth")?.value;
+  return token ? await verifySessionToken(token) : false;
 }
 
 export async function GET(req: Request) {
