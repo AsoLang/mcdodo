@@ -3,12 +3,14 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
+import { verifySessionToken } from '@/lib/session';
 
 const sql = neon(process.env.DATABASE_URL!);
 
 async function isAuthenticated() {
   const cookieStore = await cookies();
-  return cookieStore.get('admin_auth')?.value === 'true';
+  const token = cookieStore.get('admin_auth')?.value;
+  return token ? await verifySessionToken(token) : false;
 }
 
 export async function POST(req: Request) {
