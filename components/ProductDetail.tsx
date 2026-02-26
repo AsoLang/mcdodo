@@ -48,6 +48,7 @@ interface Product {
   description: string;
   categories: string;
   product_url: string;
+  visible?: boolean;
   variants: ProductVariant[];
   accordions?: Accordion[];
   gallery_images?: string[];
@@ -474,6 +475,19 @@ export default function ProductDetail({ product }: { product: Product }) {
                 <p className="text-red-600 font-medium mt-2 text-sm">Out of Stock</p>
               )}
             </div>
+
+            {/* Shop New Arrivals banner - only for archived/hidden products */}
+            {!product.visible && (
+              <Link href="/shop">
+                <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-xl px-5 py-3 mb-3 hover:bg-orange-100 transition group">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-orange-500">New</span>
+                    <p className="font-semibold text-gray-900 text-sm">Shop New Arrivals</p>
+                  </div>
+                  <span className="text-orange-500 font-bold text-lg group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </Link>
+            )}
 
             {/* Add to Cart + Buy Now Buttons */}
             <div className="space-y-3">
