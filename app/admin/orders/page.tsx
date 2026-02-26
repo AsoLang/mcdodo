@@ -80,8 +80,8 @@ export default function OrdersPage() {
   }, [debouncedSearch, activeTab, dateFilter, sortBy, currentPage]);
 
   useEffect(() => {
-    if (currentPage !== 1) setCurrentPage(1);
-  }, [activeTab, dateFilter, sortBy, currentPage]);
+    setCurrentPage(1);
+  }, [activeTab, dateFilter, sortBy]);
 
   const fetchOrders = async () => {
     try {
