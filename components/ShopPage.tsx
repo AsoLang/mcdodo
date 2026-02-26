@@ -95,7 +95,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 10000]);
   const [showOnSale, setShowOnSale] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [activeSlide, setActiveSlide] = useState(0);
@@ -193,7 +193,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
         <button
           onClick={() => {
             setSelectedCategory('all');
-            setPriceRange([0, 100]);
+            setPriceRange([0, 10000]);
             setShowOnSale(false);
           }}
           className="text-sm text-orange-600 hover:text-orange-700 font-medium"
@@ -241,7 +241,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
             [0, 15, '£0 - £15'],
             [15, 25, '£15 - £25'],
             [25, 50, '£25 - £50'],
-            [50, 100, '£50+'],
+            [50, 10000, '£50+'],
           ].map(([min, max, label]) => (
             <button
               key={label as string}
@@ -621,7 +621,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   onClick={() => {
                     setSearch('');
                     setSelectedCategory('all');
-                    setPriceRange([0, 100]);
+                    setPriceRange([0, 10000]);
                     setShowOnSale(false);
                   }}
                   className="text-orange-600 hover:text-orange-700 font-medium"
