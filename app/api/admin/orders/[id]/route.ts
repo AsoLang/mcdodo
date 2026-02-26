@@ -26,11 +26,20 @@ export async function DELETE(
 
     console.log(`[Delete API] Attempting to delete order: ${id}`);
 
+    // Delete child rows first (old migrated orders have order_items FK constraint)
+    await sql`
+      DELETE FROM order_items
+      WHERE order_id::text = ${id}
+         OR order_id IN (
+           SELECT id FROM orders WHERE order_number::text = ${id}
+         )
+    `;
+
     // FIX: Try to delete by matching 'id' column OR 'order_number' column
     // This handles both old imported orders (IDs like '303288') and new orders (UUIDs)
     const deletedOrders = await sql`
-      DELETE FROM orders 
-      WHERE id::text = ${id} 
+      DELETE FROM orders
+      WHERE id::text = ${id}
          OR order_number::text = ${id}
       RETURNING id
     `;
