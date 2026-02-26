@@ -161,7 +161,7 @@ export async function GET(req: Request) {
       topProducts,
       recentOrders
     }, {
-      headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=300' },
+      headers: { 'Cache-Control': 'no-store' },
     });
 
   } catch (error: any) {
