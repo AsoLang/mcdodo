@@ -3,6 +3,7 @@
 import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
+import { verifySessionToken } from '@/lib/session';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -13,7 +14,7 @@ export async function DELETE(
   try {
     const cookieStore = await cookies();
     const adminAuth = cookieStore.get('admin_auth');
-    if (!adminAuth || adminAuth.value !== 'true') {
+    if (!adminAuth || !(await verifySessionToken(adminAuth.value))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
