@@ -465,8 +465,8 @@ export default function OrdersPage() {
                             {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
                             <span className="font-black text-black">#{order.order_number}</span>
                             {order.device && (
-                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${order.device === 'mobile' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                                {order.device === 'mobile' ? '📱' : '🖥'} {order.device}
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${order.device === 'mobile' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                                {order.device === 'mobile' ? '📱 Mobile' : '🖥 Desktop'}
                               </span>
                             )}
                           </div>

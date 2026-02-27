@@ -107,8 +107,8 @@ export default function ProductQuickView({
         </Link>
 
         <div className="flex flex-col sm:flex-row">
-          {/* Image — smaller on mobile */}
-          <div className="relative w-full sm:w-2/5 aspect-square bg-gray-50 shrink-0 max-h-48 sm:max-h-none">
+          {/* Image */}
+          <div className="relative w-full sm:w-2/5 aspect-square bg-gray-50 shrink-0">
             <Image
               src={selectedVariant.images[0] ?? '/placeholder.jpg'}
               alt={product.title}
