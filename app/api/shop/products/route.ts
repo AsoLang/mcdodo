@@ -30,7 +30,11 @@ export async function GET() {
           'stock', pv.stock,
           'images', pv.images
         ) as variant,
-        (SELECT COUNT(*) FROM product_variants WHERE product_id = p.id AND stock > 0) as variant_count
+        (SELECT COUNT(*) FROM product_variants WHERE product_id = p.id AND stock > 0 AND (
+          (size IS NOT NULL AND size != '' AND LOWER(size) != 'default') OR
+          (color IS NOT NULL AND color != '' AND LOWER(color) != 'default') OR
+          (option_value_1 IS NOT NULL AND option_value_1 != '' AND LOWER(option_value_1) != 'default')
+        )) as variant_count
       FROM products p
       LEFT JOIN LATERAL (
         SELECT * FROM product_variants
