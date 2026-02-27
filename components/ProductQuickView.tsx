@@ -160,7 +160,7 @@ export default function ProductQuickView({
 
             {/* Details */}
             <div className="sm:w-1/2 p-6 flex flex-col">
-              <h2 className="text-lg font-bold text-gray-900 mb-2">{product.title}</h2>
+              <Link href={`/shop/p/${product.product_url}`} target="_blank" onClick={onClose} className="text-lg font-bold text-gray-900 mb-2 hover:text-orange-500 transition-colors block no-underline">{product.title}</Link>
               <p className="text-sm text-gray-500 line-clamp-3 mb-4">{stripHtml(product.description)}</p>
 
               {/* Price */}

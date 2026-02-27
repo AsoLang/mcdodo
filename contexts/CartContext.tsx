@@ -83,7 +83,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const removeItem = useCallback((variantId: string) => {
-    setItems((currentItems) => currentItems.filter((item) => item.id !== variantId));
+    setItems((currentItems) => {
+      const updated = currentItems.filter((item) => item.id !== variantId);
+      if (updated.length === 0) setIsOpen(false);
+      return updated;
+    });
   }, []);
 
   const updateQuantity = useCallback(
