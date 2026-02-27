@@ -17,9 +17,12 @@ import {
   DollarSign,
   Headphones,
   ChevronDown,
+  Loader2,
 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import dynamic from 'next/dynamic';
+import type { QuickViewProduct } from '@/components/ProductQuickView';
+import { choosableVariants, variantLabel } from '@/components/ProductQuickView';
 
 const ProductQuickView = dynamic(() => import('@/components/ProductQuickView'), { ssr: false });
 
@@ -94,7 +97,8 @@ const FAQ_ITEMS = [
 
 export default function ShopPage({ products }: { products: Product[] }) {
   const { addItem } = useCart();
-  const [quickViewUrl, setQuickViewUrl] = useState<string | null>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<QuickViewProduct | null>(null);
+  const [loadingIcon, setLoadingIcon] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -583,29 +587,41 @@ export default function ShopPage({ products }: { products: Product[] }) {
                         {/* Basket icon — always visible */}
                         {!isOutOfStock && (
                           <button
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              if (Number(product.variant_count) <= 1 && product.variant) {
-                                addItem({
-                                  id: product.variant.id,
-                                  productId: product.id,
-                                  productUrl: product.product_url,
-                                  title: product.title,
-                                  price,
-                                  salePrice,
-                                  onSale,
-                                  image: product.variant.images?.[0] || '/placeholder.jpg',
-                                  stock: product.variant.stock,
-                                });
-                              } else {
-                                setQuickViewUrl(product.product_url);
+                              setLoadingIcon(product.id);
+                              try {
+                                const res = await fetch(`/api/products/${product.product_url}`);
+                                const data: QuickViewProduct = await res.json();
+                                const inStockChoosable = choosableVariants(data.variants).filter(v => Number(v.stock) > 0);
+                                if (inStockChoosable.length >= 2) {
+                                  setQuickViewProduct(data);
+                                } else {
+                                  const toAdd = data.variants.find(v => Number(v.stock) > 0) ?? data.variants[0];
+                                  addItem({
+                                    id: toAdd.id,
+                                    productId: data.id,
+                                    productUrl: data.product_url,
+                                    title: data.title,
+                                    price: Number(toAdd.price),
+                                    salePrice: Number(toAdd.sale_price),
+                                    onSale: toAdd.on_sale,
+                                    image: toAdd.images[0] ?? '',
+                                    stock: Number(toAdd.stock),
+                                    color: variantLabel(toAdd) || undefined,
+                                  });
+                                }
+                              } finally {
+                                setLoadingIcon(null);
                               }
                             }}
                             className="absolute bottom-3 right-3 w-9 h-9 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
                             aria-label="Quick add to basket"
                           >
-                            <ShoppingCart size={16} />
+                            {loadingIcon === product.id
+                              ? <Loader2 size={16} className="animate-spin" />
+                              : <ShoppingCart size={16} />}
                           </button>
                         )}
                       </div>
@@ -709,10 +725,10 @@ export default function ShopPage({ products }: { products: Product[] }) {
         }
       `}</style>
 
-      {quickViewUrl && (
+      {quickViewProduct && (
         <ProductQuickView
-          productUrl={quickViewUrl}
-          onClose={() => setQuickViewUrl(null)}
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
         />
       )}
     </div>

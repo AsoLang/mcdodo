@@ -6,8 +6,11 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import type { QuickViewProduct } from '@/components/ProductQuickView';
+import { choosableVariants, variantLabel } from '@/components/ProductQuickView';
+import { useCart } from '@/contexts/CartContext';
 
 const ProductQuickView = dynamic(() => import('@/components/ProductQuickView'), { ssr: false });
 
@@ -22,8 +25,10 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product_url, title, price, salePrice, onSale, image, index }: ProductCardProps) {
+  const { addItem } = useCart();
   const [isHovered, setIsHovered] = useState(false);
-  const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const [quickViewProduct, setQuickViewProduct] = useState<QuickViewProduct | null>(null);
+  const [loadingIcon, setLoadingIcon] = useState(false);
 
   return (
     <>
@@ -78,15 +83,39 @@ export default function ProductCard({ product_url, title, price, salePrice, onSa
 
               {/* Basket icon — always visible */}
               <button
-                onClick={e => {
+                onClick={async e => {
                   e.preventDefault();
                   e.stopPropagation();
-                  setQuickViewOpen(true);
+                  setLoadingIcon(true);
+                  try {
+                    const res = await fetch(`/api/products/${product_url}`);
+                    const data: QuickViewProduct = await res.json();
+                    const inStockChoosable = choosableVariants(data.variants).filter(v => Number(v.stock) > 0);
+                    if (inStockChoosable.length >= 2) {
+                      setQuickViewProduct(data);
+                    } else {
+                      const toAdd = data.variants.find(v => Number(v.stock) > 0) ?? data.variants[0];
+                      addItem({
+                        id: toAdd.id,
+                        productId: data.id,
+                        productUrl: data.product_url,
+                        title: data.title,
+                        price: Number(toAdd.price),
+                        salePrice: Number(toAdd.sale_price),
+                        onSale: toAdd.on_sale,
+                        image: toAdd.images[0] ?? '',
+                        stock: Number(toAdd.stock),
+                        color: variantLabel(toAdd) || undefined,
+                      });
+                    }
+                  } finally {
+                    setLoadingIcon(false);
+                  }
                 }}
                 className="absolute bottom-3 right-3 w-10 h-10 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
                 aria-label="Quick add to basket"
               >
-                <ShoppingCart size={18} />
+                {loadingIcon ? <Loader2 size={18} className="animate-spin" /> : <ShoppingCart size={18} />}
               </button>
             </div>
 
@@ -133,10 +162,10 @@ export default function ProductCard({ product_url, title, price, salePrice, onSa
         </motion.div>
       </Link>
 
-      {quickViewOpen && (
+      {quickViewProduct && (
         <ProductQuickView
-          productUrl={product_url}
-          onClose={() => setQuickViewOpen(false)}
+          product={quickViewProduct}
+          onClose={() => setQuickViewProduct(null)}
         />
       )}
     </>

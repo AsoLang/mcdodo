@@ -181,7 +181,8 @@ export async function sendAdminOrderNotificationEmail({
   items,
   shippingTotal,
   total,
-}: AdminOrderNotificationEmailProps) {
+  device,
+}: AdminOrderNotificationEmailProps & { device?: string | null }) {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.mcdodo.co.uk';
     let displayDate = '';
@@ -242,6 +243,7 @@ export async function sendAdminOrderNotificationEmail({
             <div class="section">
               <div class="label">Customer</div>
               <div>${customerName} (${customerEmail})</div>
+              ${device ? `<div class="muted" style="margin-top:4px;">${device === 'mobile' ? '📱 Mobile order' : '🖥 Desktop order'}</div>` : ''}
             </div>
 
             <table class="items-table">

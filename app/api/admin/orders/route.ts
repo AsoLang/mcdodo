@@ -93,7 +93,8 @@ export async function GET(req: Request) {
         discount_code,
         discount_amount,
         weight_grams,
-        service_type
+        service_type,
+        device
       FROM public.orders
       ${whereSql}
       ORDER BY ${orderBy}
@@ -120,7 +121,8 @@ export async function GET(req: Request) {
         discount_code,
         discount_amount,
         weight_grams,
-        service_type
+        service_type,
+        device
       FROM public.orders
       ${whereSql}
       ORDER BY ${orderBy}

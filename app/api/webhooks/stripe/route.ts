@@ -207,6 +207,7 @@ export async function POST(req: NextRequest) {
           items,
           shippingTotal: detectedShippingCost,
           total: amountTotal,
+          device,
         });
       }
 
