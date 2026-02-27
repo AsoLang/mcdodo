@@ -58,7 +58,7 @@ export default function ProductQuickView({
         setSelectedVariant(firstInStock);
 
         // Check if there are meaningful variant choices
-        const unique = [...new Map(data.variants.map((v: Variant) => [variantLabel(v), v])).values()].filter((v: Variant) => {
+        const unique = ([...new Map(data.variants.map((v: Variant) => [variantLabel(v), v])).values()] as Variant[]).filter((v: Variant) => {
           const label = variantLabel(v);
           return label && label.toLowerCase() !== 'default';
         });
