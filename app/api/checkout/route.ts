@@ -20,6 +20,10 @@ type CartItem = {
   size?: string;
 };
 
+function detectDevice(ua: string | null): 'mobile' | 'desktop' {
+  return /mobile|android|iphone|ipad|tablet/i.test(ua || '') ? 'mobile' : 'desktop';
+}
+
 export async function POST(req: Request) {
   try {
     const { items, shippingCost, discountCode } = (await req.json()) as {
@@ -29,6 +33,7 @@ export async function POST(req: Request) {
     };
 
     const origin = req.headers.get('origin') || 'http://localhost:3000';
+    const device = detectDevice(req.headers.get('user-agent'));
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'No items provided' }, { status: 400 });
@@ -162,6 +167,7 @@ export async function POST(req: Request) {
 
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/`,
+      metadata: { device },
     };
 
     // Apply coupon discount if valid

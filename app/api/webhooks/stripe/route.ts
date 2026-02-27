@@ -134,6 +134,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const device = session.metadata?.device || null;
+
     try {
       const result = await sql`
         INSERT INTO orders (
@@ -149,6 +151,7 @@ export async function POST(req: NextRequest) {
           shipping_city,
           shipping_postal_code,
           shipping_country,
+          device,
           created_at
         )
         VALUES (
@@ -164,6 +167,7 @@ export async function POST(req: NextRequest) {
           ${address.city},
           ${address.postal_code},
           ${address.country},
+          ${device},
           NOW()
         )
         RETURNING order_number, created_at

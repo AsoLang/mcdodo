@@ -586,7 +586,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              if (Number(product.variant_count) <= 1) {
+                              if (Number(product.variant_count) <= 1 && product.variant) {
                                 addItem({
                                   id: product.variant.id,
                                   productId: product.id,
