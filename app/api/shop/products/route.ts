@@ -29,11 +29,12 @@ export async function GET() {
           'on_sale', pv.on_sale,
           'stock', pv.stock,
           'images', pv.images
-        ) as variant
+        ) as variant,
+        (SELECT COUNT(*) FROM product_variants WHERE product_id = p.id) as variant_count
       FROM products p
       LEFT JOIN LATERAL (
-        SELECT * FROM product_variants 
-        WHERE product_id = p.id 
+        SELECT * FROM product_variants
+        WHERE product_id = p.id
         LIMIT 1
       ) pv ON true
       WHERE p.visible = true

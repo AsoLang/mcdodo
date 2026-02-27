@@ -44,6 +44,7 @@ interface Product {
   created_at: string;
   featured?: boolean;
   variant: ProductVariant;
+  variant_count: number;
 }
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'name';
@@ -92,7 +93,7 @@ const FAQ_ITEMS = [
 ];
 
 export default function ShopPage({ products }: { products: Product[] }) {
-  const { addItem: _addItem } = useCart();
+  const { addItem } = useCart();
   const [quickViewUrl, setQuickViewUrl] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
@@ -585,7 +586,21 @@ export default function ShopPage({ products }: { products: Product[] }) {
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              setQuickViewUrl(product.product_url);
+                              if (Number(product.variant_count) <= 1) {
+                                addItem({
+                                  id: product.variant.id,
+                                  productId: product.id,
+                                  productUrl: product.product_url,
+                                  title: product.title,
+                                  price,
+                                  salePrice,
+                                  onSale,
+                                  image: product.variant.images?.[0] || '/placeholder.jpg',
+                                  stock: product.variant.stock,
+                                });
+                              } else {
+                                setQuickViewUrl(product.product_url);
+                              }
                             }}
                             className="absolute bottom-3 right-3 w-9 h-9 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
                             aria-label="Quick add to basket"

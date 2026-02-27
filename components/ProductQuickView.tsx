@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { X, ShoppingCart, Loader2, Maximize2, CheckCircle } from 'lucide-react';
+import { X, ShoppingCart, Loader2, Maximize2 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 
 interface Variant {
@@ -47,43 +47,18 @@ export default function ProductQuickView({
   const [loading, setLoading] = useState(true);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [added, setAdded] = useState(false);
-  const [autoAdded, setAutoAdded] = useState(false);
 
   useEffect(() => {
     fetch(`/api/products/${productUrl}`)
       .then(r => r.json())
       .then(data => {
         setProduct(data);
-        const firstInStock: Variant = data.variants.find((v: Variant) => Number(v.stock) > 0) ?? data.variants[0];
-        setSelectedVariant(firstInStock);
-
-        // Check if there are meaningful variant choices
-        const unique = ([...new Map(data.variants.map((v: Variant) => [variantLabel(v), v])).values()] as Variant[]).filter((v: Variant) => {
-          const label = variantLabel(v);
-          return label && label.toLowerCase() !== 'default';
-        });
-
-        // No choice needed — auto-add and close
-        if (unique.length < 2 && firstInStock && Number(firstInStock.stock) > 0) {
-          addItem({
-            id: firstInStock.id,
-            productId: data.id,
-            productUrl: data.product_url,
-            title: data.title,
-            price: Number(firstInStock.price),
-            salePrice: Number(firstInStock.sale_price),
-            onSale: firstInStock.on_sale,
-            image: firstInStock.images[0] ?? '',
-            stock: Number(firstInStock.stock),
-            color: variantLabel(firstInStock) || undefined,
-          });
-          setAutoAdded(true);
-          setTimeout(onClose, 900);
-        }
-
+        setSelectedVariant(
+          data.variants.find((v: Variant) => Number(v.stock) > 0) ?? data.variants[0]
+        );
         setLoading(false);
       });
-  }, [productUrl, addItem, onClose]);
+  }, [productUrl]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -139,11 +114,6 @@ export default function ProductQuickView({
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 size={32} className="animate-spin text-orange-500" />
-          </div>
-        ) : autoAdded ? (
-          <div className="flex flex-col items-center justify-center h-48 gap-3">
-            <CheckCircle size={48} className="text-green-500" />
-            <p className="text-lg font-semibold text-gray-900">Added to basket!</p>
           </div>
         ) : product && selectedVariant ? (
           <div className="flex flex-col sm:flex-row">

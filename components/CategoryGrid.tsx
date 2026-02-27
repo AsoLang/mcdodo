@@ -10,36 +10,42 @@ const categories = [
     image: '/categories/1.png',
     link: '/shop?category=usb-c-cables',
     description: 'Fast charging USB-C cables',
+    imgSize: 104,
   },
   {
     name: 'Lightning Cables',
     image: '/categories/2.png',
     link: '/shop?category=lightning-cables',
     description: 'Apple certified cables',
+    imgSize: 104,
   },
   {
     name: 'Power Adapters',
     image: '/categories/3.png',
     link: '/shop?category=power-adapters',
     description: 'Wall & car chargers',
+    imgSize: 108,
   },
   {
     name: 'Cable Accessories',
     image: '/categories/4.png',
     link: '/shop?category=accessories',
     description: 'Organizers & converters',
+    imgSize: 104,
   },
   {
     name: 'Audio Accessories',
     image: '/categories/5.png',
     link: '/shop?category=audio',
     description: 'Earbuds & headphones',
+    imgSize: 104,
   },
   {
     name: 'Protection',
     image: '/categories/6.png',
     link: '/shop?category=protection',
     description: 'Cases & screen protectors',
+    imgSize: 108,
   },
 ];
 
@@ -76,10 +82,11 @@ export default function CategoryGrid() {
                     <Image
                       src={category.image}
                       alt={category.name}
-                      width={104}
-                      height={104}
+                      width={category.imgSize}
+                      height={category.imgSize}
                       unoptimized
-                      className="mb-3 h-26 w-26 object-contain transition-transform duration-300 group-hover:scale-125"
+                      className="mb-3 object-contain transition-transform duration-300 group-hover:scale-125"
+                      style={{ width: category.imgSize, height: category.imgSize }}
                       priority={index < 2}
                     />
                     <h3 className="text-sm font-bold text-center leading-tight text-white">
