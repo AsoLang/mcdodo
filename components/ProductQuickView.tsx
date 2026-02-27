@@ -103,7 +103,7 @@ export default function ProductQuickView({
       onSale: selectedVariant.on_sale,
       image: selectedVariant.images[0] ?? '',
       stock: Number(selectedVariant.stock),
-      color: selectedVariant.option_value_1,
+      color: selectedVariant.option_value_1 ?? undefined,
     });
     setAdded(true);
     setTimeout(onClose, 700);
