@@ -12,7 +12,6 @@ import {
   ShoppingCart,
   SlidersHorizontal,
   X,
-  ShoppingBasket,
   Truck,
   Shield,
   DollarSign,
@@ -20,6 +19,9 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
+import dynamic from 'next/dynamic';
+
+const ProductQuickView = dynamic(() => import('@/components/ProductQuickView'), { ssr: false });
 
 interface ProductVariant {
   id: string;
@@ -90,7 +92,8 @@ const FAQ_ITEMS = [
 ];
 
 export default function ShopPage({ products }: { products: Product[] }) {
-  const { addItem } = useCart();
+  const { addItem: _addItem } = useCart();
+  const [quickViewUrl, setQuickViewUrl] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -576,39 +579,20 @@ export default function ShopPage({ products }: { products: Product[] }) {
                           </div>
                         </Link>
 
-                        {/* Add to Basket Button */}
-                        <div className="px-3 sm:px-4 pb-3 sm:pb-4 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+                        {/* Basket icon — always visible */}
+                        {!isOutOfStock && (
                           <button
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-
-                              if (product.variant && product.variant.stock > 0) {
-                                const variantLabel = product.variant.color || product.variant.size || product.variant.option_value_1 || null;
-                                
-                                addItem({
-                                  id: product.variant.id,
-                                  productId: product.id,
-                                  productUrl: product.product_url,
-                                  title: product.title,
-                                  color: product.variant.color || undefined,
-                                  size: product.variant.size || variantLabel || undefined,
-                                  price: price,
-                                  salePrice: salePrice,
-                                  onSale: onSale,
-                                  image: product.variant.images?.[0] || '/placeholder.jpg',
-                                  stock: product.variant.stock,
-                                });
-                              }
+                              setQuickViewUrl(product.product_url);
                             }}
-                            disabled={!product.variant || product.variant.stock === 0}
-                            className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-2 rounded-lg font-semibold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2"
+                            className="absolute bottom-3 right-3 w-9 h-9 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 active:scale-95"
+                            aria-label="Quick add to basket"
                           >
-                            <ShoppingBasket size={14} />
-                            <span className="hidden sm:inline">Add to Basket</span>
-                            <span className="sm:hidden">Add</span>
+                            <ShoppingCart size={16} />
                           </button>
-                        </div>
+                        )}
                       </div>
                     </motion.div>
                   );
@@ -709,6 +693,13 @@ export default function ShopPage({ products }: { products: Product[] }) {
           scrollbar-width: none;
         }
       `}</style>
+
+      {quickViewUrl && (
+        <ProductQuickView
+          productUrl={quickViewUrl}
+          onClose={() => setQuickViewUrl(null)}
+        />
+      )}
     </div>
   );
 }
