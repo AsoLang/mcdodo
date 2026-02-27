@@ -3,17 +3,28 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { X, ShoppingCart, Loader2, Maximize2 } from 'lucide-react';
+import { X, ShoppingCart, Loader2, Maximize2, CheckCircle } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 
 interface Variant {
   id: string;
-  option_value_1: string;
+  option_value_1?: string | null;
+  color?: string | null;
+  size?: string | null;
+  sku?: string | null;
   price: number;
   sale_price: number;
   on_sale: boolean;
   stock: number;
   images: string[];
+}
+
+function variantLabel(v: Variant): string {
+  return v.size || v.color || v.option_value_1 || v.sku || '';
+}
+
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').trim();
 }
 
 interface QuickViewProduct {
@@ -36,18 +47,43 @@ export default function ProductQuickView({
   const [loading, setLoading] = useState(true);
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
   const [added, setAdded] = useState(false);
+  const [autoAdded, setAutoAdded] = useState(false);
 
   useEffect(() => {
     fetch(`/api/products/${productUrl}`)
       .then(r => r.json())
       .then(data => {
         setProduct(data);
-        setSelectedVariant(
-          data.variants.find((v: Variant) => Number(v.stock) > 0) ?? data.variants[0]
-        );
+        const firstInStock: Variant = data.variants.find((v: Variant) => Number(v.stock) > 0) ?? data.variants[0];
+        setSelectedVariant(firstInStock);
+
+        // Check if there are meaningful variant choices
+        const unique = [...new Map(data.variants.map((v: Variant) => [variantLabel(v), v])).values()].filter((v: Variant) => {
+          const label = variantLabel(v);
+          return label && label.toLowerCase() !== 'default';
+        });
+
+        // No choice needed — auto-add and close
+        if (unique.length < 2 && firstInStock && Number(firstInStock.stock) > 0) {
+          addItem({
+            id: firstInStock.id,
+            productId: data.id,
+            productUrl: data.product_url,
+            title: data.title,
+            price: Number(firstInStock.price),
+            salePrice: Number(firstInStock.sale_price),
+            onSale: firstInStock.on_sale,
+            image: firstInStock.images[0] ?? '',
+            stock: Number(firstInStock.stock),
+            color: variantLabel(firstInStock) || undefined,
+          });
+          setAutoAdded(true);
+          setTimeout(onClose, 900);
+        }
+
         setLoading(false);
       });
-  }, [productUrl]);
+  }, [productUrl, addItem, onClose]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -94,7 +130,7 @@ export default function ProductQuickView({
         <Link
           href={`/shop/p/${productUrl}`}
           onClick={onClose}
-          className="absolute top-4 right-14 z-10 w-8 h-8 bg-gray-100 hover:bg-orange-500 hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
+          className="absolute top-4 left-4 z-10 w-8 h-8 bg-gray-100 hover:bg-orange-500 hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
           title="View full product"
         >
           <Maximize2 size={14} />
@@ -103,6 +139,11 @@ export default function ProductQuickView({
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 size={32} className="animate-spin text-orange-500" />
+          </div>
+        ) : autoAdded ? (
+          <div className="flex flex-col items-center justify-center h-48 gap-3">
+            <CheckCircle size={48} className="text-green-500" />
+            <p className="text-lg font-semibold text-gray-900">Added to basket!</p>
           </div>
         ) : product && selectedVariant ? (
           <div className="flex flex-col sm:flex-row">
@@ -120,7 +161,7 @@ export default function ProductQuickView({
             {/* Details */}
             <div className="sm:w-1/2 p-6 flex flex-col">
               <h2 className="text-lg font-bold text-gray-900 mb-2">{product.title}</h2>
-              <p className="text-sm text-gray-500 line-clamp-3 mb-4">{product.description}</p>
+              <p className="text-sm text-gray-500 line-clamp-3 mb-4">{stripHtml(product.description)}</p>
 
               {/* Price */}
               <div className="flex items-center gap-2 mb-4">
@@ -134,10 +175,12 @@ export default function ProductQuickView({
                 )}
               </div>
 
-              {/* Variants — only show if there are meaningful, distinct options */}
+              {/* Variants */}
               {(() => {
-                const meaningful = product.variants.filter(v => v.option_value_1 && v.option_value_1.toLowerCase() !== 'default');
-                const unique = [...new Map(meaningful.map(v => [v.option_value_1, v])).values()];
+                const unique = [...new Map(product.variants.map(v => [variantLabel(v), v])).values()].filter(v => {
+                  const label = variantLabel(v);
+                  return label && label.toLowerCase() !== 'default';
+                });
                 if (unique.length < 2) return null;
                 return (
                   <div className="mb-4">
@@ -152,11 +195,11 @@ export default function ProductQuickView({
                             selectedVariant.id === v.id
                               ? 'border-orange-500 bg-orange-50 text-orange-600'
                               : Number(v.stock) === 0
-                              ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                              ? 'border-gray-200 text-gray-300 line-through cursor-not-allowed'
                               : 'border-gray-200 text-gray-700 hover:border-orange-300'
                           }`}
                         >
-                          {v.option_value_1}
+                          {variantLabel(v)}
                         </button>
                       ))}
                     </div>

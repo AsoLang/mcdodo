@@ -86,7 +86,7 @@ export default function CategoryGrid() {
                       {category.name}
                     </h3>
                   </div>
-                  <p className="text-sm text-gray-700 text-center mt-3 leading-relaxed">
+                  <p className="text-sm text-gray-700 text-center mt-3 leading-relaxed min-h-[2.5rem]">
                     {category.description}
                   </p>
                 </div>

@@ -21,7 +21,7 @@ export async function GET(
     }
 
     const variants = await sql`
-      SELECT id, option_value_1, price, sale_price, on_sale, stock, images
+      SELECT id, option_value_1, color, size, sku, price, sale_price, on_sale, stock, images
       FROM product_variants
       WHERE product_id = ${product.id}
       ORDER BY price ASC
