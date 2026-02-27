@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { X, ShoppingCart, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { X, ShoppingCart, Loader2, Maximize2 } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 
 interface Variant {
@@ -89,6 +90,16 @@ export default function ProductQuickView({
           <X size={16} />
         </button>
 
+        {/* Expand to full product page */}
+        <Link
+          href={`/shop/p/${productUrl}`}
+          onClick={onClose}
+          className="absolute top-4 right-14 z-10 w-8 h-8 bg-gray-100 hover:bg-orange-500 hover:text-white text-gray-600 rounded-full flex items-center justify-center transition-colors"
+          title="View full product"
+        >
+          <Maximize2 size={14} />
+        </Link>
+
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 size={32} className="animate-spin text-orange-500" />
@@ -123,30 +134,35 @@ export default function ProductQuickView({
                 )}
               </div>
 
-              {/* Variants */}
-              {product.variants.length > 1 && (
-                <div className="mb-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Option</p>
-                  <div className="flex flex-wrap gap-2">
-                    {product.variants.map(v => (
-                      <button
-                        key={v.id}
-                        onClick={() => setSelectedVariant(v)}
-                        disabled={Number(v.stock) === 0}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
-                          selectedVariant.id === v.id
-                            ? 'border-orange-500 bg-orange-50 text-orange-600'
-                            : Number(v.stock) === 0
-                            ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-                            : 'border-gray-200 text-gray-700 hover:border-orange-300'
-                        }`}
-                      >
-                        {v.option_value_1}
-                      </button>
-                    ))}
+              {/* Variants — only show if there are meaningful, distinct options */}
+              {(() => {
+                const meaningful = product.variants.filter(v => v.option_value_1 && v.option_value_1.toLowerCase() !== 'default');
+                const unique = [...new Map(meaningful.map(v => [v.option_value_1, v])).values()];
+                if (unique.length < 2) return null;
+                return (
+                  <div className="mb-4">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Option</p>
+                    <div className="flex flex-wrap gap-2">
+                      {unique.map(v => (
+                        <button
+                          key={v.id}
+                          onClick={() => setSelectedVariant(v)}
+                          disabled={Number(v.stock) === 0}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${
+                            selectedVariant.id === v.id
+                              ? 'border-orange-500 bg-orange-50 text-orange-600'
+                              : Number(v.stock) === 0
+                              ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                              : 'border-gray-200 text-gray-700 hover:border-orange-300'
+                          }`}
+                        >
+                          {v.option_value_1}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {Number(selectedVariant.stock) === 0 && (
                 <p className="text-sm text-red-500 mb-3">Out of stock</p>

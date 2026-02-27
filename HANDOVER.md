@@ -5,10 +5,12 @@
 ### Latest changes
 - Added `CLAUDE.md` — codebase guidance for Claude Code
 - Added `HANDOVER.md` — this file (gitignored)
-- `components/Footer.tsx` — replaced Visa/Mastercard/Maestro/Amex text with SVG logos (Visa, Mastercard, PayPal, Apple Pay, Google Pay)
-- Added "We Deliver With" section with Royal Mail + Evri SVG logos
+- `components/Footer.tsx` — replaced Visa/Mastercard/Maestro/Amex text with SVG logos (Visa, Mastercard, PayPal, Apple Pay, Google Pay); added "We Deliver With" section (Royal Mail + Evri SVGs); removed "We Deliver To" countries text
 - SVGs stored in `public/media/`
-- Removed "We Deliver To" countries text
+- `components/ShopPage.tsx` — removed full-width "Add to Basket" button (was adding random variant); replaced with small always-visible orange basket icon (bottom-right of image); clicking opens quick view modal
+- `components/ProductQuickView.tsx` — new modal: fetches product + all variants on click, shows image/title/description/price/variant selector/add to basket; closes on X, backdrop click, or Escape
+- `app/api/products/[slug]/route.ts` — new API route, returns product + all variants by slug (used by quick view modal)
+- `components/ProductCard.tsx` — also updated with basket icon + modal (used on homepage featured section)
 
 ### What's working
 - Admin panel fully secured with HMAC-SHA256 session tokens (all routes migrated)
