@@ -1,6 +1,14 @@
 # Handover
 
-## Current State (2026-02-27)
+## Current State (2026-02-27 — updated)
+
+### Latest changes
+- Added `CLAUDE.md` — codebase guidance for Claude Code
+- Added `HANDOVER.md` — this file (gitignored)
+- `components/Footer.tsx` — replaced Visa/Mastercard/Maestro/Amex text with SVG logos (Visa, Mastercard, PayPal, Apple Pay, Google Pay)
+- Added "We Deliver With" section with Royal Mail + Evri SVG logos
+- SVGs stored in `public/media/`
+- Removed "We Deliver To" countries text
 
 ### What's working
 - Admin panel fully secured with HMAC-SHA256 session tokens (all routes migrated)

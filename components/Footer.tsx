@@ -124,7 +124,7 @@ export default function Footer() {
             </div>
             
             <h3 className="text-gray-900 font-bold text-sm mb-3">We Deliver With</h3>
-            <div className="flex flex-wrap gap-3 mb-4 items-center">
+            <div className="flex flex-wrap gap-3 mb-1 items-center">
               <Image src="/media/royal-mail-logo.svg" alt="Royal Mail" width={80} height={30} className="h-7 w-auto" />
               <Image src="/media/evri-logo.svg" alt="Evri" width={40} height={20} className="h-5 w-auto" />
             </div>
