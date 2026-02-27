@@ -115,21 +115,19 @@ export default function Footer() {
           {/* Payment & Delivery */}
           <div>
             <h3 className="text-gray-900 font-bold text-lg mb-6">We Accept</h3>
-            <div className="flex flex-wrap gap-2 mb-6">
-              <div className="bg-white border border-gray-200 rounded px-3 py-2 text-xs font-medium text-gray-700">
-                Visa
-              </div>
-              <div className="bg-white border border-gray-200 rounded px-3 py-2 text-xs font-medium text-gray-700">
-                Mastercard
-              </div>
-              <div className="bg-white border border-gray-200 rounded px-3 py-2 text-xs font-medium text-gray-700">
-                Maestro
-              </div>
-              <div className="bg-white border border-gray-200 rounded px-3 py-2 text-xs font-medium text-gray-700">
-                Amex
-              </div>
+            <div className="flex flex-wrap gap-3 mb-6 items-center">
+              <Image src="/media/visa.svg" alt="Visa" width={50} height={30} className="h-7 w-auto" />
+              <Image src="/media/master-card.svg" alt="Mastercard" width={50} height={30} className="h-7 w-auto" />
+              <Image src="/media/paypal.svg" alt="PayPal" width={50} height={30} className="h-7 w-auto" />
+              <Image src="/media/apple-pay.svg" alt="Apple Pay" width={50} height={30} className="h-7 w-auto" />
+              <Image src="/media/google-pay.svg" alt="Google Pay" width={50} height={30} className="h-7 w-auto" />
             </div>
             
+            <h3 className="text-gray-900 font-bold text-sm mb-3">We Deliver With</h3>
+            <div className="flex flex-wrap gap-3 mb-4 items-center">
+              <Image src="/media/royal-mail-logo.svg" alt="Royal Mail" width={80} height={30} className="h-7 w-auto" />
+              <Image src="/media/evri-logo.svg" alt="Evri" width={60} height={30} className="h-7 w-auto" />
+            </div>
             <h3 className="text-gray-900 font-bold text-sm mb-3">We Deliver To</h3>
             <p className="text-gray-600 text-sm">
               UK • FR • BE • DE • NL • IT • ES
