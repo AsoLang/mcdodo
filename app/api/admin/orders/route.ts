@@ -212,6 +212,7 @@ export async function GET(req: Request) {
       discount_amount: r.discount_amount ? Number(r.discount_amount) : null,
       weight_grams: r.weight_grams ?? null,
       service_type: r.service_type ?? 'small_parcel',
+      device: r.device ?? null,
     }));
 
     return NextResponse.json({
