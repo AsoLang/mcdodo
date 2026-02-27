@@ -464,16 +464,16 @@ export default function OrdersPage() {
                           <div className="flex items-center gap-3">
                             {isExpanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
                             <span className="font-black text-black">#{order.order_number}</span>
-                            {order.device && (
-                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${order.device === 'mobile' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                                {order.device === 'mobile' ? '📱 Mobile' : '🖥 Desktop'}
-                              </span>
-                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="font-bold text-black">{order.customer_name || 'Guest'}</div>
                           <div className="text-xs text-gray-500">{order.customer_email || 'N/A'}</div>
+                          {order.device && (
+                            <span className={`inline-flex items-center gap-1 mt-1 text-xs font-semibold px-2 py-0.5 rounded-full ${order.device === 'mobile' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                              {order.device === 'mobile' ? '📱 Mobile' : '🖥 Desktop'}
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold uppercase ${
