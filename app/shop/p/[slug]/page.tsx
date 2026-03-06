@@ -207,7 +207,8 @@ export default async function ProductPage({ params }: Props) {
   }
 
   const firstVariant = product.variants?.[0];
-  const price = firstVariant?.on_sale ? firstVariant.sale_price : firstVariant?.price;
+  const rawPrice = firstVariant?.on_sale ? firstVariant.sale_price : firstVariant?.price;
+  const price = rawPrice != null ? Number(rawPrice) : null;
   const image = product.product_images?.[0] ?? firstVariant?.images?.[0] ?? '';
   const inStock = product.variants.some(v => v.stock > 0);
 
