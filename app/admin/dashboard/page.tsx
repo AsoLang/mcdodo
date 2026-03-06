@@ -101,6 +101,7 @@ export default function Dashboard() {
           <button className="px-4 py-2 text-orange-600 border-b-2 border-orange-600 font-bold text-sm">Overview</button>
           <Link href="/admin/orders" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Orders</Link>
           <Link href="/admin/products" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Products</Link>
+          <Link href="/admin/settings" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Settings</Link>
           <Link href="/admin/customers" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Customers</Link>
         </div>
 

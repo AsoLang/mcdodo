@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import PromoBanner from "@/components/PromoBanner";
 import Footer from "@/components/Footer";
 import { CartProvider } from "@/contexts/CartContext";
 import CartSidebar from "@/components/CartSidebar";
@@ -30,6 +31,7 @@ export default function RootLayout({
         <CartProvider>
           <VisitorTracker />
           <Navbar />
+          <PromoBanner />
           <CartSidebar />
           {children}
           <Footer />
