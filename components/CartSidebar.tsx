@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { X, Minus, Plus, Trash2, ShoppingBag, Truck, Tag, Check, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,6 +11,7 @@ import { useCart } from '@/contexts/CartContext';
 import confetti from 'canvas-confetti';
 
 export default function CartSidebar() {
+  const pathname = usePathname();
   const { items, itemCount, total, isOpen, closeCart, updateQuantity, removeItem } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   
@@ -81,6 +83,8 @@ export default function CartSidebar() {
 
     prevFreeShipping.current = isFreeShipping;
   }, [isFreeShipping]);
+
+  if (pathname?.startsWith('/admin')) return null;
 
   const validateDiscount = async () => {
     if (!discountCode.trim()) return;

@@ -5,9 +5,12 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Mail, Instagram, Facebook } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
+  const pathname = usePathname();
   const currentYear = new Date().getFullYear();
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <footer className="bg-gradient-to-b from-gray-50 to-white border-t border-gray-200">

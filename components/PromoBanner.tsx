@@ -3,6 +3,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 
 interface BannerItem {
@@ -23,6 +24,7 @@ const iconMap = {
 };
 
 export default function PromoBanner() {
+  const pathname = usePathname();
   const [settings, setSettings] = useState<BannerSettings | null>(null);
   const [visible, setVisible] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -65,6 +67,7 @@ export default function PromoBanner() {
     }
   };
 
+  if (pathname?.startsWith('/admin')) return null;
   if (!settings || !settings.enabled) return null;
 
   const currentItem = settings.items[currentIndex];

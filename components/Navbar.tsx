@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { ShoppingCart, Search, Menu, X, ShoppingBag, Package, Truck, Heart } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import SearchModal from './SearchModal';
 
 interface SearchProduct {
@@ -22,12 +23,13 @@ interface SearchProduct {
 }
 
 export default function Navbar() {
+  const pathname = usePathname();
   const { scrollY } = useScroll();
   const { itemCount, openCart } = useCart();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [products, setProducts] = useState<SearchProduct[]>([]);
-  
+
   const backgroundColor = useTransform(
     scrollY,
     [0, 100],
@@ -41,6 +43,7 @@ export default function Navbar() {
 
   // Fetch products for search
   useEffect(() => {
+    if (pathname?.startsWith('/admin')) return;
     const fetchProducts = async () => {
       try {
         const res = await fetch('/api/products/search');
@@ -53,9 +56,11 @@ export default function Navbar() {
       }
     };
     fetchProducts();
-  }, []);
+  }, [pathname]);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
+
+  if (pathname?.startsWith('/admin')) return null;
 
   return (
     <>
