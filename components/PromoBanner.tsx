@@ -33,24 +33,29 @@ export default function PromoBanner() {
   if (!settings || !settings.enabled) return null;
 
   return (
-    <div className="w-full bg-orange-500 text-white">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-center gap-6 md:gap-12 py-2.5 overflow-x-auto">
-          {settings.items.map((item, i) => (
-            <div key={i} className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
-              <Image
-                src={iconMap[item.icon]}
-                alt={item.icon}
-                width={20}
-                height={20}
-                unoptimized
-                className="brightness-0 invert"
-              />
-              <span className="text-sm font-semibold">{item.text}</span>
-            </div>
-          ))}
+    <>
+      {/* Fixed banner positioned below the navbar (h-16 mobile / h-20 desktop) */}
+      <div className="fixed top-16 md:top-20 left-0 right-0 z-40 w-full bg-orange-500 text-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-center gap-6 md:gap-12 py-2.5 overflow-x-auto">
+            {settings.items.map((item, i) => (
+              <div key={i} className="flex items-center gap-2 whitespace-nowrap flex-shrink-0">
+                <Image
+                  src={iconMap[item.icon]}
+                  alt={item.icon}
+                  width={20}
+                  height={20}
+                  unoptimized
+                  className="brightness-0 invert"
+                />
+                <span className="text-sm font-semibold">{item.text}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+      {/* Spacer so page content isn't hidden behind the fixed banner (~40px) */}
+      <div className="h-10" />
+    </>
   );
 }
