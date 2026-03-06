@@ -252,7 +252,7 @@ Fixed "A form field element should have an id or name attribute" and "No label a
 
 ---
 
-### Session 8 (2026-03-06) — Buy Now merges cart
+### Session 8 (2026-03-06) — Buy Now merges cart + Banner scroll behaviour
 
 **Feature: Buy Now includes existing cart items**
 - Previously "Buy Now" opened a Stripe session for only the clicked product, ignoring anything already in the cart
@@ -260,6 +260,13 @@ Fixed "A form field element should have an id or name attribute" and "No label a
 - If the same variant is already in the cart, quantities are combined (cart qty + Buy Now qty)
 - Shipping threshold (`>= £20`) recalculated across the full combined order
 - No API changes — `/api/checkout` already accepted an array of items
+
+**Feature: Promo banner hides on scroll down, reappears on scroll up**
+- `components/PromoBanner.tsx` — added scroll listener via `useEffect` + `useRef` to track last scroll position
+- Scrolling down → `visible = false` → `-translate-y-full` slides banner behind the navbar
+- Scrolling back up (or within 50px of top) → `visible = true` → `translate-y-0`
+- CSS `transition-transform duration-300` for smooth animation
+- Spacer `<div className="h-10" />` stays in DOM at all times so page content never jumps
 
 ---
 
