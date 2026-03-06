@@ -13,7 +13,8 @@ import {
 
 export const metadata = {
   title: "Privacy Policy | Mcdodo UK",
-  description: "Privacy policy for shopping at Mcdodo UK",
+  description: "Read the Mcdodo UK privacy policy. We explain how we collect, use and protect your personal data.",
+  alternates: { canonical: 'https://www.mcdodo.co.uk/privacy' },
 };
 
 export default function PrivacyPage() {

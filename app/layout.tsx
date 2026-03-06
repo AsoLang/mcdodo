@@ -16,7 +16,16 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Mcdodo UK - Premium Charging Accessories",
-  description: "Fast charging cables, chargers, and accessories with patented auto power-off technology",
+  description: "Fast charging cables, chargers, and accessories with patented auto power-off technology. Free UK delivery over £20.",
+  metadataBase: new URL('https://www.mcdodo.co.uk'),
+  openGraph: {
+    siteName: 'Mcdodo UK',
+    type: 'website',
+    images: [{ url: '/mcdodo-logo.png', width: 400, height: 100, alt: 'Mcdodo UK' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
 };
 
 export default function RootLayout({

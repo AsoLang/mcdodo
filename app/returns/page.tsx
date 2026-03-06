@@ -1,5 +1,13 @@
 // Path: app/returns/page.tsx
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Returns & Refunds | Mcdodo UK',
+  description: 'Easy returns and refunds on all Mcdodo UK orders. Find out how to return a product and our refund policy.',
+  alternates: { canonical: 'https://www.mcdodo.co.uk/returns' },
+};
+
 export default function ReturnsPage() {
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4 md:px-8">

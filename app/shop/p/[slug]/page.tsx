@@ -206,5 +206,49 @@ export default async function ProductPage({ params }: Props) {
     redirect('/archive');
   }
 
-  return <ProductDetail product={product} />;
+  const firstVariant = product.variants?.[0];
+  const price = firstVariant?.on_sale ? firstVariant.sale_price : firstVariant?.price;
+  const image = product.product_images?.[0] ?? firstVariant?.images?.[0] ?? '';
+  const inStock = product.variants.some(v => v.stock > 0);
+
+  const jsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.title,
+    description: product.seo_description || product.description,
+    image: image ? [image] : undefined,
+    brand: { '@type': 'Brand', name: 'Mcdodo' },
+    url: `https://www.mcdodo.co.uk/shop/p/${slug}`,
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'GBP',
+      price: price?.toFixed(2),
+      availability: inStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      url: `https://www.mcdodo.co.uk/shop/p/${slug}`,
+      seller: { '@type': 'Organization', name: 'Mcdodo UK' },
+    },
+    ...(product.review_count && product.review_count > 0
+      ? {
+          aggregateRating: {
+            '@type': 'AggregateRating',
+            ratingValue: Number(product.review_rating).toFixed(1),
+            reviewCount: product.review_count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductDetail product={product} />
+    </>
+  );
 }

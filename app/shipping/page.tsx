@@ -1,5 +1,13 @@
 // Path: app/shipping/page.tsx
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Shipping Information | Mcdodo UK',
+  description: 'Free UK delivery on orders over £20. Standard delivery £3.99. Dispatched via Royal Mail or Evri with tracking on every order.',
+  alternates: { canonical: 'https://www.mcdodo.co.uk/shipping' },
+};
+
 export default function ShippingPage() {
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4 md:px-8">

@@ -4,7 +4,8 @@ import { ArrowLeft, Shield, Globe, CreditCard, Package, AlertCircle, Mail } from
 
 export const metadata = {
   title: "Terms & Conditions | Mcdodo UK",
-  description: "Terms and conditions for shopping at Mcdodo UK"
+  description: "Read the Mcdodo UK terms and conditions including our purchasing, shipping, and returns policies.",
+  alternates: { canonical: 'https://www.mcdodo.co.uk/terms' },
 };
 
 export default function TermsPage() {
