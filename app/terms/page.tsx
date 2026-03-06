@@ -66,9 +66,10 @@ export default function TermsPage() {
     {
       title: "Shipping & Delivery",
       paragraphs: [
-        "International deliveries will be dispatched using the buyer's selected shipping method where available.",
-        "For UK orders, we offer free delivery on all orders.",
-        "2-day delivery is only available for purchases made Monday to Thursday before 5pm (UK time). Purchases after 5pm may not be delivered within 2 days."
+        "We currently ship to all UK addresses, including England, Scotland, Wales, and Northern Ireland.",
+        "Standard delivery is £3.99. Orders of £20 or over qualify for free delivery.",
+        "Delivery is via Royal Mail or Evri and typically takes 3–5 business days. Tracking is provided with all orders.",
+"If your parcel arrives damaged or does not arrive, please contact us within 48 hours at support@mcdodo.co.uk."
       ]
     }
   ];
