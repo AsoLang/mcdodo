@@ -25,11 +25,11 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://a.plerdy.com https://js.stripe.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://api.stripe.com https://ipapi.co https://a.plerdy.com https://vitals.vercel-insights.com",
+      "connect-src 'self' https://api.stripe.com https://ipapi.co https://vitals.vercel-insights.com",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "object-src 'none'",
       "base-uri 'self'",

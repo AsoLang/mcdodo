@@ -104,9 +104,13 @@ export default function SettingsPage() {
             <div className="bg-orange-500 px-4 py-2.5 flex items-center justify-center gap-6 flex-wrap">
               {settings.items.map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-white text-sm font-semibold whitespace-nowrap">
-                  <span className="text-base">
-                    {item.icon === 'truck' ? '🚚' : item.icon === 'rocket' ? '🚀' : '🛒'}
-                  </span>
+                  <img
+                    src={item.icon === 'truck' ? '/media/svg/truck.svg' : item.icon === 'rocket' ? '/media/svg/rcoket.svg' : '/media/svg/basketicon.svg'}
+                    alt={item.icon}
+                    width={20}
+                    height={20}
+                    className="brightness-0 invert"
+                  />
                   {item.text}
                 </div>
               ))}
@@ -118,7 +122,7 @@ export default function SettingsPage() {
             {settings.items.map((item, i) => (
               <div key={i}>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                  {item.icon === 'truck' ? '🚚' : item.icon === 'rocket' ? '🚀' : '🛒'} {ICON_LABELS[item.icon]} text
+                  {ICON_LABELS[item.icon]} text
                 </label>
                 <input
                   type="text"
