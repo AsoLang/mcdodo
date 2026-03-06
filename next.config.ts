@@ -20,15 +20,15 @@ const securityHeaders = [
     value: 'max-age=31536000; includeSubDomains',
   },
   // Content Security Policy
-  // unsafe-inline is required for Next.js hydration scripts and the Plerdy inline script
+  // unsafe-inline is required for Next.js hydration scripts
   {
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://challenges.cloudflare.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://challenges.cloudflare.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
       "img-src 'self' data: blob: https:",
-      "font-src 'self' https://fonts.gstatic.com",
+      "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
       "connect-src 'self' https://api.stripe.com https://ipapi.co https://vitals.vercel-insights.com https://challenges.cloudflare.com",
       "frame-src https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
       "object-src 'none'",

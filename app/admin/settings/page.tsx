@@ -112,7 +112,11 @@ export default function SettingsPage() {
                 name="bannerColor"
                 type="text"
                 value={settings.color || ''}
-                onChange={e => setSettings({ ...settings, color: e.target.value })}
+                onChange={e => {
+                  let val = e.target.value;
+                  if (val && !val.startsWith('#')) val = '#' + val;
+                  setSettings({ ...settings, color: val });
+                }}
                 placeholder="#f97316"
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 font-mono focus:ring-2 focus:ring-orange-500 outline-none"
               />
