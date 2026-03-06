@@ -58,7 +58,7 @@ interface Product {
 }
 
 export default function ProductDetail({ product }: { product: Product }) {
-  const { addItem } = useCart();
+  const { addItem, items: cartItems } = useCart();
 
   // Safety check: Product must have at least one variant
   if (!product.variants || product.variants.length === 0) {
@@ -167,23 +167,43 @@ export default function ProductDetail({ product }: { product: Product }) {
       
       const finalPrice = onSale ? salePrice : price;
 
-      const totalAmount = finalPrice * quantity;
+      // Merge cart items + this Buy Now item into one payload
+      const buyNowItem = {
+        id: selectedVariant.id,
+        title: product.title,
+        image: imageUrl,
+        price: price,
+        salePrice: salePrice,
+        onSale: onSale,
+        color: selectedVariant.color,
+        size: selectedVariant.size,
+        quantity: quantity
+      };
+
+      const existingItems = cartItems
+        .filter(item => item.id !== selectedVariant.id)
+        .map(item => ({
+          id: item.id,
+          title: item.title,
+          image: item.image.startsWith('http') ? item.image : `${window.location.origin}${item.image.startsWith('/') ? '' : '/'}${item.image}`,
+          price: item.price,
+          salePrice: item.salePrice,
+          onSale: item.onSale,
+          color: item.color,
+          size: item.size,
+          quantity: item.quantity
+        }));
+
+      // If the variant is already in cart, add the quantities together
+      const cartMatch = cartItems.find(item => item.id === selectedVariant.id);
+      if (cartMatch) buyNowItem.quantity = cartMatch.quantity + quantity;
+
+      const allItems = [...existingItems, buyNowItem];
+
+      const totalAmount = allItems.reduce((sum, item) => sum + (item.onSale ? item.salePrice : item.price) * item.quantity, 0);
       const shippingCost = totalAmount >= 20 ? 0 : 3.99;
 
-      const stripePayload = {
-        items: [{
-          id: selectedVariant.id, 
-          title: product.title,
-          image: imageUrl,
-          price: price,
-          salePrice: salePrice,
-          onSale: onSale,
-          color: selectedVariant.color,
-          size: selectedVariant.size,
-          quantity: quantity
-        }],
-        shippingCost
-      };
+      const stripePayload = { items: allItems, shippingCost };
 
       const cartItemBackup = {
         id: selectedVariant.id,

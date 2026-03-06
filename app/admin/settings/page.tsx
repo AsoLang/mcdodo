@@ -14,6 +14,7 @@ interface BannerItem {
 
 interface BannerSettings {
   enabled: boolean;
+  color: string;
   items: BannerItem[];
 }
 
@@ -99,9 +100,28 @@ export default function SettingsPage() {
             </button>
           </div>
 
+          {/* Banner Colour */}
+          <div className="mb-6">
+            <label htmlFor="banner-color" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+              Banner colour
+            </label>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg border border-gray-200 flex-shrink-0" style={{ backgroundColor: settings.color || '#f97316' }} />
+              <input
+                id="banner-color"
+                name="bannerColor"
+                type="text"
+                value={settings.color || ''}
+                onChange={e => setSettings({ ...settings, color: e.target.value })}
+                placeholder="#f97316"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 font-mono focus:ring-2 focus:ring-orange-500 outline-none"
+              />
+            </div>
+          </div>
+
           {/* Preview */}
           <div className={`rounded-lg mb-6 overflow-hidden transition-opacity ${settings.enabled ? 'opacity-100' : 'opacity-40'}`}>
-            <div className="bg-orange-500 px-4 py-2.5 flex items-center justify-center gap-6 flex-wrap">
+            <div className="px-4 py-2.5 flex items-center justify-center gap-6 flex-wrap" style={{ backgroundColor: settings.color || '#f97316' }}>
               {settings.items.map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-white text-sm font-semibold whitespace-nowrap">
                   <img
@@ -121,10 +141,12 @@ export default function SettingsPage() {
           <div className="space-y-4">
             {settings.items.map((item, i) => (
               <div key={i}>
-                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                <label htmlFor={`banner-text-${i}`} className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
                   {ICON_LABELS[item.icon]} text
                 </label>
                 <input
+                  id={`banner-text-${i}`}
+                  name={`bannerText${i}`}
                   type="text"
                   value={item.text}
                   onChange={e => updateText(i, e.target.value)}

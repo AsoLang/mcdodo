@@ -218,8 +218,10 @@ export default function ContactPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Name Input */}
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-black ml-1">Name</label>
+                      <label htmlFor="contact-name" className="text-sm font-bold text-black ml-1">Name</label>
                       <input
+                        id="contact-name"
+                        name="name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         autoComplete="name"
@@ -230,8 +232,10 @@ export default function ContactPage() {
 
                     {/* Email Input */}
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-black ml-1">Email</label>
+                      <label htmlFor="contact-email" className="text-sm font-bold text-black ml-1">Email</label>
                       <input
+                        id="contact-email"
+                        name="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         autoComplete="email"
@@ -243,10 +247,12 @@ export default function ContactPage() {
 
                   {/* Order Number */}
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-black ml-1">
+                    <label htmlFor="contact-order" className="text-sm font-bold text-black ml-1">
                       Order number <span className="text-gray-500 font-medium text-xs ml-1">(Optional)</span>
                     </label>
                     <input
+                      id="contact-order"
+                      name="orderNumber"
                       value={orderNumber}
                       onChange={(e) => setOrderNumber(e.target.value)}
                       className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10"
@@ -256,8 +262,10 @@ export default function ContactPage() {
 
                   {/* Message */}
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-black ml-1">Message</label>
+                    <label htmlFor="contact-message" className="text-sm font-bold text-black ml-1">Message</label>
                     <textarea
+                      id="contact-message"
+                      name="message"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       className="w-full min-h-[160px] rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 resize-y"

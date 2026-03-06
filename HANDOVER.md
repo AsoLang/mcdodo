@@ -1,6 +1,6 @@
 # Mcdodo UK — Handover Document
 
-_Last updated: 2026-03-06 (Session 6)_
+_Last updated: 2026-03-06 (Session 8)_
 
 ---
 
@@ -12,7 +12,7 @@ _Last updated: 2026-03-06 (Session 6)_
 - **Payments:** Stripe
 - **Emails:** Resend
 - **Blob storage:** Vercel Blob
-- **Tracking:** Plerdy (inline script) + ipapi.co for geolocation
+- **Tracking:** ipapi.co for geolocation (Plerdy removed)
 - **Admin panel:** `/admin` — protected by HMAC-SHA256 signed cookie
 
 ---
@@ -200,6 +200,67 @@ All admin API routes now on HMAC token verification.
 **framer-motion still present in 12 files (lower priority):**
 `ProductCard`, `CategoryGrid`, `Newsletter`, `SearchModal`, `Navbar`, `Hero`, `success/page`, `contact/page`, `checkout/cancel/page`, `about/page`, `WhyChooseUs`, `TrustBadges`
 
+**Plerdy removed**
+- Plerdy script was using `eval()` which violated CSP and threw console errors
+- Removed entire `<Script>` block from `app/layout.tsx`, removed `next/script` import
+- Cleaned CSP in `next.config.ts`: removed Plerdy domains from `script-src` and `connect-src`, removed `unsafe-eval`
+
+**Promo banner**
+- Orange banner displayed below the navbar, showing 3 items (truck / rocket / basket icons + editable text)
+- Admin can toggle on/off, edit text per item, change background colour via hex code
+- New files:
+  - `components/PromoBanner.tsx` — client component, fetches `/api/promo-banner` on mount, renders `fixed top-16 md:top-20 z-40` + `h-10` spacer div
+  - `app/api/promo-banner/route.ts` — public GET, reads `site_settings` where key = `promo_banner`, `Cache-Control: no-store`
+  - `app/api/admin/settings/route.ts` — protected GET + PUT, upserts `site_settings` JSONB
+  - `app/admin/settings/page.tsx` — toggle, colour hex input, 3 text inputs, live preview, save button
+- DB table required:
+  ```sql
+  CREATE TABLE IF NOT EXISTS site_settings (
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  );
+  INSERT INTO site_settings (key, value)
+  VALUES ('promo_banner', '{"enabled": true, "color": "#f97316", "items": [{"icon": "truck", "text": "Free freight over £39"}, {"icon": "rocket", "text": "Price Match Guarantee!"}, {"icon": "basket", "text": "100 days right of withdrawal"}]}')
+  ON CONFLICT (key) DO NOTHING;
+  ```
+- SVG icons: `/media/svg/truck.svg`, `/media/svg/rcoket.svg` (typo in filename — keep as-is), `/media/svg/basketicon.svg`
+- Icons rendered with `brightness-0 invert` CSS filter to appear white on any background colour
+- Banner colour is stored as a hex string in the DB; applied via inline `style` (not Tailwind class) since Tailwind can't resolve dynamic values
+
+---
+
+### Session 7 (2026-03-06) — Promo Banner, Plerdy Removal, Accessibility Fixes, Banner Colour
+
+**Promo banner** — see Session 6 details above (built and shipped in session 6, documented here with fixes applied in session 7)
+
+**Accessibility fixes (Chrome console warnings)**
+Fixed "A form field element should have an id or name attribute" and "No label associated with a form field" warnings across:
+- `app/contact/page.tsx` — added `id` + `name` to all 4 inputs (name, email, orderNumber, message); added `htmlFor` to all 4 labels
+- `components/CartSidebar.tsx` — added `htmlFor="discount-code"` to label, `id="discount-code" name="discountCode"` to mobile input, `name="discountCode"` to desktop input
+- `app/admin/settings/page.tsx` — added `htmlFor={banner-text-${i}}` to labels, `id` + `name` to each banner text input
+
+**Banner colour picker**
+- Added `color` field to `BannerSettings` interface in both `PromoBanner.tsx` and `admin/settings/page.tsx`
+- Admin settings page now shows a hex input with a live colour swatch preview
+- `PromoBanner.tsx` applies colour via `style={{ backgroundColor: settings.color || '#f97316' }}`
+- To add the colour field to existing DB rows, run:
+  ```sql
+  UPDATE site_settings SET value = value || '{"color": "#f97316"}' WHERE key = 'promo_banner' AND value->>'color' IS NULL;
+  ```
+  Or just open Admin → Settings and save — the PUT endpoint writes the full object including colour
+
+---
+
+### Session 8 (2026-03-06) — Buy Now merges cart
+
+**Feature: Buy Now includes existing cart items**
+- Previously "Buy Now" opened a Stripe session for only the clicked product, ignoring anything already in the cart
+- Fixed: `components/ProductDetail.tsx` — `handleBuyNow` now reads `cartItems` from `useCart`, merges them with the Buy Now product into one Stripe payload
+- If the same variant is already in the cart, quantities are combined (cart qty + Buy Now qty)
+- Shipping threshold (`>= £20`) recalculated across the full combined order
+- No API changes — `/api/checkout` already accepted an array of items
+
 ---
 
 ## Current State (as of 2026-03-06)
@@ -215,6 +276,10 @@ All admin API routes now on HMAC token verification.
 - Image transformations stopped (`unoptimized: true`)
 - Non-UK traffic blocked at middleware level (GB only)
 - framer-motion removed from all critical pages (INP fix)
+- Plerdy removed; CSP cleaned (`unsafe-eval` gone)
+- Promo banner: live on site, admin-controlled (toggle, text, colour)
+- Form accessibility warnings resolved (contact page, cart sidebar, admin settings)
+- Buy Now includes existing cart items in the Stripe checkout session
 
 ### Outstanding Tech Debt (priority order)
 1. **Rate limiting** — no rate limiting on login or any public API

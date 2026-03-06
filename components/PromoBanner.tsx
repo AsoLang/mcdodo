@@ -12,6 +12,7 @@ interface BannerItem {
 
 interface BannerSettings {
   enabled: boolean;
+  color: string;
   items: BannerItem[];
 }
 
@@ -35,7 +36,7 @@ export default function PromoBanner() {
   return (
     <>
       {/* Fixed banner positioned below the navbar (h-16 mobile / h-20 desktop) */}
-      <div className="fixed top-16 md:top-20 left-0 right-0 z-40 w-full bg-orange-500 text-white">
+      <div className="fixed top-16 md:top-20 left-0 right-0 z-40 w-full text-white" style={{ backgroundColor: settings.color || '#f97316' }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-center gap-6 md:gap-12 py-2.5 overflow-x-auto">
             {settings.items.map((item, i) => (

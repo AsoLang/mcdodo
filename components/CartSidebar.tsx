@@ -350,7 +350,7 @@ export default function CartSidebar() {
                         {discountOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                       </button>
 
-                      <label className="hidden sm:block text-sm font-medium text-gray-700 mb-2">
+                      <label htmlFor="discount-code" className="hidden sm:block text-sm font-medium text-gray-700 mb-2">
                         <div className="flex items-center gap-2">
                           <Tag size={15} /> Have a discount code?
                         </div>
@@ -361,6 +361,8 @@ export default function CartSidebar() {
                           <div className="flex gap-2">
                             <input
                               type="text"
+                              id="discount-code"
+                              name="discountCode"
                               value={discountCode}
                               onChange={(e) => {
                                 setDiscountCode(e.target.value.toUpperCase());
@@ -391,6 +393,7 @@ export default function CartSidebar() {
                         <div className="flex gap-2">
                           <input
                             type="text"
+                            name="discountCode"
                             value={discountCode}
                             onChange={(e) => {
                               setDiscountCode(e.target.value.toUpperCase());
