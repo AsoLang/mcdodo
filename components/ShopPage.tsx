@@ -3,7 +3,6 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -360,7 +359,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             {/* Left: Text Content */}
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
+            <div>
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
                 Shop Mcdodo&apos;s Best Products
               </h1>
@@ -377,15 +376,10 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   ✓ Quality Guaranteed
                 </span>
               </div>
-            </motion.div>
+            </div>
 
             {/* Right: Search Bar */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="flex justify-end"
-            >
+            <div className="flex justify-end">
               <div className="w-full max-w-md">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Search Your Desired Product</h3>
                 <div className="relative">
@@ -412,7 +406,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   </p>
                 )}
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
@@ -426,15 +420,9 @@ export default function ShopPage({ products }: { products: Product[] }) {
             {/* Desktop Grid */}
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {bestSellers.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="relative pt-24"
-                >
+                <div key={product.id} className="relative pt-24">
                   <BestSellerCard product={product} index={index} />
-                </motion.div>
+                </div>
               ))}
             </div>
 
@@ -536,7 +524,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   const isOutOfStock = !product.variant || product.variant.stock === 0;
 
                   return (
-                    <motion.div key={product.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.02 }}>
+                    <div key={product.id}>
                       <div
                         className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group relative ring-1 ring-gray-300"
                       >
@@ -625,7 +613,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
                           </button>
                         )}
                       </div>
-                    </motion.div>
+                    </div>
                   );
                 })}
               </div>
@@ -652,20 +640,13 @@ export default function ShopPage({ products }: { products: Product[] }) {
         <section className="my-16 py-12 bg-white rounded-2xl shadow-sm">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 px-8">
             {FEATURES.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="flex flex-col items-center text-center"
-              >
+              <div key={index} className="flex flex-col items-center text-center">
                 <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mb-4">
                   <feature.icon className="w-7 h-7 text-orange-600" />
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
                 <p className="text-sm text-gray-600">{feature.description}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </section>
@@ -685,14 +666,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
           <h2 className="text-2xl font-bold text-gray-900 mb-6">FAQ About Power Strips</h2>
           <div className="space-y-3">
             {FAQ_ITEMS.map((faq, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-white rounded-lg shadow-sm overflow-hidden"
-              >
+              <div key={index} className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <button
                   onClick={() => setOpenFaq(openFaq === index ? null : index)}
                   className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-gray-50 transition"
@@ -704,12 +678,10 @@ export default function ShopPage({ products }: { products: Product[] }) {
                     }`}
                   />
                 </button>
-                {openFaq === index && (
-                  <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden">
-                    <div className="px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 leading-relaxed text-sm sm:text-base">{faq.answer}</div>
-                  </motion.div>
-                )}
-              </motion.div>
+                <div className={`overflow-hidden transition-all duration-200 ${openFaq === index ? 'max-h-96' : 'max-h-0'}`}>
+                  <div className="px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 leading-relaxed text-sm sm:text-base">{faq.answer}</div>
+                </div>
+              </div>
             ))}
           </div>
         </section>

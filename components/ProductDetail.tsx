@@ -5,7 +5,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingCart, Minus, Plus, Star, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, Truck, ShieldCheck, Headphones, CreditCard, Package, Tag } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import ApplePayButton from '@/components/ApplePayButton';
@@ -282,12 +281,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Left: Images */}
           <div className="space-y-4">
-            <motion.div 
-              className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              key={selectedVariant.id}
-            >
+            <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden">
               {displayImages[selectedImage] ? (
                 <Image
                   src={displayImages[selectedImage]}
@@ -307,7 +301,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                   SAVE £{(price - salePrice).toFixed(2)}
                 </div>
               )}
-            </motion.div>
+            </div>
 
             {displayImages.length > 1 && (
               <div className="grid grid-cols-4 gap-3">
@@ -552,22 +546,14 @@ export default function ProductDetail({ product }: { product: Product }) {
                           <ChevronDown size={20} className="text-gray-600" />
                         )}
                       </button>
-                      <AnimatePresence>
-                        {expandedAccordions[accordion.id] && (
-                          <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: 'auto' }}
-                            exit={{ height: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
-                            <div 
-                              className="p-4 text-gray-700 border-t border-gray-200"
-                              dangerouslySetInnerHTML={{ __html: accordion.content }}
-                            />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      <div
+                        className={`overflow-hidden transition-all duration-200 ease-out ${expandedAccordions[accordion.id] ? 'max-h-96' : 'max-h-0'}`}
+                      >
+                        <div
+                          className="p-4 text-gray-700 border-t border-gray-200"
+                          dangerouslySetInnerHTML={{ __html: accordion.content }}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -713,15 +699,11 @@ export default function ProductDetail({ product }: { product: Product }) {
       </div>
 
       {/* Gallery Modal */}
-      <AnimatePresence>
-        {galleryModalOpen && product.gallery_images && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4"
-            onClick={() => setGalleryModalOpen(false)}
-          >
+      {galleryModalOpen && product.gallery_images && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4"
+          onClick={() => setGalleryModalOpen(false)}
+        >
             <button
               onClick={() => setGalleryModalOpen(false)}
               className="absolute top-4 right-4 text-white hover:text-gray-300 transition z-10"
@@ -756,9 +738,8 @@ export default function ProductDetail({ product }: { product: Product }) {
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm">
               {galleryModalIndex + 1} / {product.gallery_images.length}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }

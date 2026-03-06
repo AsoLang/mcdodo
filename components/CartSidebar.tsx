@@ -3,7 +3,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { X, Minus, Plus, Trash2, ShoppingBag, Truck, Tag, Check, AlertCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -157,24 +156,16 @@ export default function CartSidebar() {
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeCart}
-            className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
-          />
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={closeCart}
+        className={`fixed inset-0 bg-black/50 z-50 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      />
 
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-white shadow-2xl z-50 flex flex-col"
-          >
+      {/* Sidebar */}
+      <div className={`fixed right-0 top-0 h-full w-full sm:w-[450px] bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      >
             {/* Header */}
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-orange-50 to-orange-100">
               <div className="flex items-center gap-2 sm:gap-3">
@@ -207,13 +198,9 @@ export default function CartSidebar() {
               </div>
               
               <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className={`h-full rounded-full ${
-                    isFreeShipping ? 'bg-green-500' : 'bg-orange-500'
-                  }`}
+                <div
+                  style={{ width: `${progress}%`, transition: 'width 0.2s ease-out' }}
+                  className={`h-full rounded-full ${isFreeShipping ? 'bg-green-500' : 'bg-orange-500'}`}
                 />
               </div>
             </div>
@@ -235,12 +222,8 @@ export default function CartSidebar() {
               ) : (
                 <div className="space-y-3 sm:space-y-4">
                   {items.map((item) => (
-                    <motion.div
+                    <div
                       key={item.id}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, x: 100 }}
                       className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200"
                     >
                       <div className="flex gap-3 sm:gap-4">
@@ -328,7 +311,7 @@ export default function CartSidebar() {
                           )}
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -341,11 +324,7 @@ export default function CartSidebar() {
                 {/* Discount Code Section */}
                 <div className="mb-3 sm:mb-4">
                   {appliedDiscount ? (
-                    <motion.div 
-                      initial={{ scale: 0.9, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="bg-green-50 border border-green-200 rounded-lg p-2.5 sm:p-3 flex items-center justify-between"
-                    >
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-2.5 sm:p-3 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Check size={17} className="text-green-600" />
                         <span className="text-sm font-semibold text-green-900">
@@ -358,7 +337,7 @@ export default function CartSidebar() {
                       >
                         Remove
                       </button>
-                    </motion.div>
+                    </div>
                   ) : (
                     <div>
                       <button
@@ -378,44 +357,34 @@ export default function CartSidebar() {
                       </label>
                       
                       <div className="sm:hidden">
-                        <AnimatePresence>
-                          {discountOpen && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="overflow-hidden"
+                        <div className={`overflow-hidden transition-all duration-200 ${discountOpen ? 'max-h-32' : 'max-h-0'}`}>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={discountCode}
+                              onChange={(e) => {
+                                setDiscountCode(e.target.value.toUpperCase());
+                                setDiscountError('');
+                              }}
+                              onKeyPress={(e) => e.key === 'Enter' && validateDiscount()}
+                              placeholder="ENTER CODE"
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-base font-mono uppercase text-gray-900 placeholder:text-gray-400"
+                            />
+                            <button
+                              onClick={validateDiscount}
+                              disabled={!discountCode.trim() || isValidating}
+                              className="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50 text-sm"
                             >
-                              <div className="flex gap-2">
-                                <input
-                                  type="text"
-                                  value={discountCode}
-                                  onChange={(e) => {
-                                    setDiscountCode(e.target.value.toUpperCase());
-                                    setDiscountError('');
-                                  }}
-                                  onKeyPress={(e) => e.key === 'Enter' && validateDiscount()}
-                                  placeholder="ENTER CODE"
-                                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-base font-mono uppercase text-gray-900 placeholder:text-gray-400"
-                                />
-                                <button
-                                  onClick={validateDiscount}
-                                  disabled={!discountCode.trim() || isValidating}
-                                  className="px-4 py-2 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50 text-sm"
-                                >
-                                  {isValidating ? '...' : 'Apply'}
-                                </button>
-                              </div>
-                              {discountError && (
-                                <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
-                                  <AlertCircle size={14} />
-                                  <span>{discountError}</span>
-                                </div>
-                              )}
-                            </motion.div>
+                              {isValidating ? '...' : 'Apply'}
+                            </button>
+                          </div>
+                          {discountError && (
+                            <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
+                              <AlertCircle size={14} />
+                              <span>{discountError}</span>
+                            </div>
                           )}
-                        </AnimatePresence>
+                        </div>
                       </div>
 
                       <div className="hidden sm:block">
@@ -501,9 +470,7 @@ export default function CartSidebar() {
 
               </div>
             )}
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+      </div>
+    </>
   );
 }

@@ -4,9 +4,21 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, useInView } from 'framer-motion';
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { useCart } from '@/contexts/CartContext';
+
+function useInView(ref: React.RefObject<HTMLDivElement | null>, options?: IntersectionObserverInit) {
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    if (!ref.current) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); observer.disconnect(); }
+    }, options);
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [ref, options]);
+  return inView;
+}
 
 const categories = [
   {
@@ -139,14 +151,9 @@ function Stat({
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={start ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="mt-3"
-      >
+      <div className={`mt-3 transition-all duration-350 ease-out ${start ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
         <div className="text-sm font-semibold text-gray-900">{subtitle}</div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -154,7 +161,7 @@ function Stat({
 export default function CategoriesPageClient({ products }: { products: Product[] }) {
   const { addItem } = useCart();
   const statsRef = useRef<HTMLDivElement | null>(null);
-  const statsInView = useInView(statsRef, { once: true, margin: '-20% 0px -20% 0px' });
+  const statsInView = useInView(statsRef, { rootMargin: '-20% 0px -20% 0px' });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 pt-24 pb-12 px-4">
@@ -196,30 +203,21 @@ export default function CategoriesPageClient({ products }: { products: Product[]
           className="mb-12 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start"
         >
           <div className="rounded-2xl border border-gray-100 bg-white p-7 shadow-sm">
-            <motion.h2
-              initial={{ opacity: 0, y: 10 }}
-              animate={statsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="text-2xl md:text-3xl font-extrabold text-gray-900"
+            <h2
+              className={`text-2xl md:text-3xl font-extrabold text-gray-900 transition-all duration-400 ease-out ${statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
             >
               Built for modern charging
-            </motion.h2>
+            </h2>
 
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={statsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-              transition={{ duration: 0.45, ease: 'easeOut', delay: 0.06 }}
-              className="mt-3 text-gray-600 leading-relaxed"
+            <p
+              className={`mt-3 text-gray-600 leading-relaxed transition-all duration-500 ease-out delay-75 ${statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
             >
               From fast-charging cables to compact GaN chargers and everyday essentials, Mcdodo focuses on clean design,
               durable materials, and smart details that make daily use feel better.
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={statsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-              transition={{ duration: 0.45, ease: 'easeOut', delay: 0.12 }}
-              className="mt-6 flex flex-wrap gap-2"
+            <div
+              className={`mt-6 flex flex-wrap gap-2 transition-all duration-500 ease-out delay-100 ${statsInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
             >
               <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm font-semibold text-gray-800">
                 Fast Charging
@@ -230,7 +228,7 @@ export default function CategoriesPageClient({ products }: { products: Product[]
               <span className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm font-semibold text-gray-800">
                 Modern Design
               </span>
-            </motion.div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -298,7 +296,7 @@ export default function CategoriesPageClient({ products }: { products: Product[]
           
           {products.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {products.map((product) => {
+              {products.map((product, index) => {
                 const price = Number(product.variant?.price || 0);
                 const salePrice = Number(product.variant?.sale_price || 0);
                 const onSale = product.variant?.on_sale || false;
@@ -315,6 +313,7 @@ export default function CategoriesPageClient({ products }: { products: Product[]
                             fill
                             unoptimized
                             sizes="(max-width: 768px) 50vw, 25vw"
+                            priority={index < 4}
                             className="object-contain p-4 sm:p-6 group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (

@@ -8,6 +8,12 @@ import { verifySessionToken } from '@/lib/session';
 export default async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
+  // Geo-block: only allow GB. Block all other known countries.
+  const country = request.geo?.country;
+  if (country && country !== 'GB') {
+    return new NextResponse('Service not available in your region.', { status: 403 });
+  }
+
   // 1. Define Protected Routes
   // Any path that starts with /admin (BUT NOT the login page itself)
   const isAdminRoute = path.startsWith('/admin');
@@ -30,7 +36,9 @@ export default async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Configuration: Only run this middleware on admin paths
 export const config = {
-  matcher: '/admin/:path*',
+  matcher: [
+    // Run on all routes except static files and Next.js internals
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js)).*)',
+  ],
 };

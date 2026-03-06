@@ -3,7 +3,8 @@
     "allow": [
       "WebFetch(domain:resend.com)",
       "WebSearch",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(node:*)"
     ]
   }
 }

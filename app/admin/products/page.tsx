@@ -4,7 +4,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -343,14 +342,11 @@ export default function ProductsPage() {
     const currentQty = isEditingQty ? editingQuantity[product.id] : totalStock;
 
     return (
-      <motion.div
+      <div
         ref={setNodeRef}
         style={style}
         {...attributes}
         {...listeners}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.15 }}
         className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group"
       >
         <div className="relative aspect-square bg-gray-50">
@@ -475,7 +471,7 @@ export default function ProductsPage() {
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
     );
   };
 

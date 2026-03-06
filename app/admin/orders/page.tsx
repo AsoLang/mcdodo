@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Search, LogOut, ChevronDown, ChevronUp, Truck, Trash2, X, Download, Package } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 // --- TYPE DEFINITIONS ---
 interface Order {
@@ -512,16 +511,10 @@ export default function OrdersPage() {
                       </tr>
 
                       {/* Expanded Row Details */}
-                      <AnimatePresence>
                         {expandedOrder === order.id && (
                           <tr>
                             <td colSpan={7} className="p-0 border-none">
-                              <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="bg-gray-50 border-t border-gray-200 overflow-hidden"
-                              >
+                              <div className="bg-gray-50 border-t border-gray-200 overflow-hidden">
                                 <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                                   {/* Items List */}
                                   <div>
@@ -634,11 +627,10 @@ export default function OrdersPage() {
                                     </div>
                                   </div>
                                 </div>
-                              </motion.div>
+                              </div>
                             </td>
                           </tr>
                         )}
-                      </AnimatePresence>
                     </React.Fragment>
                   );
                 })}
@@ -683,11 +675,7 @@ export default function OrdersPage() {
       {/* Dispatch Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
-          >
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-black text-black">Dispatch Order</h3>
               <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-gray-100 rounded-full transition">
@@ -740,7 +728,7 @@ export default function OrdersPage() {
                 {isDispatching ? 'Processing...' : 'Confirm Dispatch'}
               </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
     </div>
