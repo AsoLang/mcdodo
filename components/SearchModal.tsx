@@ -88,7 +88,7 @@ export default function SearchModal({ isOpen, onClose, products }: SearchModalPr
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            transition={{ type: 'spring', damping: 25 }}
+            transition={{ type: 'tween', duration: 0.15, ease: 'easeOut' }}
             className="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl z-50 overflow-hidden"
           >
             {/* Search Input */}

@@ -167,7 +167,7 @@ export default function Navbar() {
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              transition={{ type: 'tween', duration: 0.15, ease: 'easeOut' }}
               className="fixed top-16 right-0 bottom-0 w-80 bg-white shadow-2xl z-40 md:hidden overflow-y-auto"
             >
               <div className="p-6 space-y-6">
