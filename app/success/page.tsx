@@ -82,7 +82,7 @@ function SuccessContent() {
     if (orderNumber) return `Order #${orderNumber}`;
     if (!sessionId) return null;
     if (lookupState === 'loading') return 'Finding your order number...';
-    if (lookupState === ‘not_found’) return ‘Order received - we\’re confirming it now.’;
+    if (lookupState === ‘not_found’) return "Order received - we’re confirming it now.";
     return null;
   }, [orderNumber, sessionId, lookupState]);
 
