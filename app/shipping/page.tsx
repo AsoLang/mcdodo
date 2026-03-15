@@ -22,21 +22,6 @@ export default function ShippingPage() {
         {/* Main Content */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 md:p-12 space-y-8">
           
-          {/* Free Shipping Banner */}
-          <section className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold mb-1">Free Shipping on Orders Over £20</h2>
-                <p className="text-green-100">Orders under £20 have a flat £3.99 shipping fee</p>
-              </div>
-            </div>
-          </section>
-
           {/* Delivery Times */}
           <section>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Delivery Times</h2>

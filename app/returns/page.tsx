@@ -51,8 +51,8 @@ export default function ReturnsPage() {
               <li className="flex gap-4">
                 <span className="flex-shrink-0 w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold">2</span>
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-1">Get Return Authorization</h3>
-                  <p className="text-gray-700">We'll send you a return authorization and instructions within 24 hours.</p>
+                  <h3 className="font-bold text-gray-900 mb-1">Get Return Authorisation</h3>
+                  <p className="text-gray-700">We'll send you a return authorisation and instructions within 24 hours.</p>
                 </div>
               </li>
               <li className="flex gap-4">
@@ -77,6 +77,7 @@ export default function ReturnsPage() {
             <h2 className="text-xl font-bold text-blue-900 mb-2">Return Shipping Costs</h2>
             <p className="text-blue-800">
               <strong>Faulty items:</strong> We'll cover return shipping costs.<br/>
+              <strong>Wrong item or colour sent:</strong> We'll cover return shipping costs.<br/>
               <strong>Change of mind:</strong> Customer is responsible for return shipping costs.
             </p>
           </section>

@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Mcdodo UK | USB-C Cables, Fast Chargers & Charging Accessories',
-  description: 'Shop premium Mcdodo UK charging accessories — USB-C cables, fast chargers, wireless chargers and more. Free UK delivery on orders over £20. Trusted by 100,000+ customers.',
+  description: 'Shop premium Mcdodo UK charging accessories - USB-C cables, fast chargers, wireless chargers and more. Free UK delivery on orders over £20. Trusted by 100,000+ customers.',
   alternates: { canonical: 'https://www.mcdodo.co.uk' },
 };
 
