@@ -24,6 +24,11 @@ const DISCOUNT_CODES: Record<string, {
     type: 'fixed',
     value: 5, // £5 off
     active: true
+  },
+  'FREESHIP-7X4K2': {
+    type: 'fixed',
+    value: 3.99, // free shipping (one-time — set active: false after customer uses it)
+    active: true
   }
 };
 
