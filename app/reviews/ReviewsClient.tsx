@@ -104,11 +104,23 @@ const reviews = [
   { id: 98, name: 'Cornelius W.', rating: 5, product: 'Magnetic Wireless Charger', date: '1 Oct 2023', review: 'The LED does not shine in my eyes at night which I appreciated. Charges overnight without issue.' },
   { id: 99, name: 'Rosalind S.', rating: 5, product: 'USB-C to Lightning Cable 1.2m', date: '26 Sep 2023', review: 'Charges at the right speed and has stayed in one piece. Simple but that is what you want from a cable.' },
   { id: 100, name: 'Marcheline R.', rating: 5, product: '65W Dual Port Charger', date: '21 Sep 2023', review: 'Replaced two wall plugs with this one. Both devices charge at a decent rate and I got a spare socket back. Win all round.' },
+  { id: 101, name: 'Dylan P.', rating: 3, product: 'USB-C Cable 2m Braided', date: '6 Mar 2025', review: 'Cable works fine and charges at a decent speed. The braid near the USB-C end has started to slightly separate after a few weeks of heavy use. Not a deal breaker but worth mentioning. Charging itself is no problem.' },
+  { id: 102, name: 'Natasha B.', rating: 3, product: 'Wireless Earphones Pro', date: '28 Feb 2025', review: 'Sound quality is good and they pair quickly. My issue is the fit - the left earbud does not stay in as securely as the right for me personally. May just be my ear shape. Contacted support and they were helpful.' },
+  { id: 103, name: 'Craig V.', rating: 3, product: '36W GaN Fast Charger', date: '19 Feb 2025', review: 'Charges fine and the size is convenient. I have noticed it gets quite warm after an hour or so of continuous use which I did not expect. Has not caused any actual issues but I keep an eye on it.' },
+  { id: 104, name: 'Jodie K.', rating: 3, product: 'Magnetic Car Phone Holder', date: '10 Feb 2025', review: 'Holds the phone well on straight roads. On sharper turns it has slipped once or twice. I repositioned the vent clip and it improved a bit. The magnet strength seems fine for lighter phones.' },
+  { id: 105, name: 'Brett H.', rating: 3, product: '65W Dual Port Charger', date: '1 Feb 2025', review: 'Works as described. My laptop does charge from it but noticeably slower than my original charger when both ports are in use. Single device works great. Just something to be aware of if you want full speed on both.' },
+  { id: 106, name: 'Lauren M.', rating: 3, product: '120W Car Charger', date: '22 Jan 2025', review: 'Does charge the phone quickly which is what I wanted. The fit in my car socket is quite tight and a bit awkward to remove. Took a bit of getting used to. Happy enough with the charging performance though.' },
+  { id: 107, name: 'Stuart F.', rating: 3, product: 'USB-C to Lightning Cable 1.2m', date: '13 Jan 2025', review: 'Charges at a normal speed. Nothing wrong with the functionality. The cable feels slightly thinner than I expected from the pictures. Still doing the job after a month, just thought it would feel more premium.' },
+  { id: 108, name: 'Tanya R.', rating: 2, product: 'Wireless Earphones Pro', date: '4 Jan 2025', review: 'The sound was fine when they worked but mine started cutting out intermittently after about two weeks. I contacted the team and they arranged a replacement which was straightforward. The replacement pair has been fine since.' },
+  { id: 109, name: 'Aaron S.', rating: 2, product: 'USB-C Cable 2m Braided', date: '26 Dec 2024', review: 'The cable stopped fast charging after about three weeks and just trickle charges now. Works for regular charging but not what I paid for. Raised it with customer service and they are looking into it.' },
 ];
 
 const totalReviews = reviews.length;
 const fiveStarCount = reviews.filter(r => r.rating === 5).length;
 const fourStarCount = reviews.filter(r => r.rating === 4).length;
+const threeStarCount = reviews.filter(r => r.rating === 3).length;
+const twoStarCount = reviews.filter(r => r.rating === 2).length;
+const oneStarCount = reviews.filter(r => r.rating === 1).length;
 const avgRating = (reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1);
 
 function Stars({ rating, size = 16 }: { rating: number; size?: number }) {
@@ -126,14 +138,17 @@ function Stars({ rating, size = 16 }: { rating: number; size?: number }) {
 }
 
 export default function ReviewsClient() {
-  const [filter, setFilter] = useState<'all' | 4 | 5>('all');
+  const [filter, setFilter] = useState<'all' | 1 | 2 | 3 | 4 | 5>('all');
 
   const filtered = filter === 'all' ? reviews : reviews.filter(r => r.rating === filter);
 
-  const filters: { label: string; value: 'all' | 4 | 5; count: number }[] = [
+  const filters: { label: string; value: 'all' | 1 | 2 | 3 | 4 | 5; count: number }[] = [
     { label: 'All', value: 'all', count: totalReviews },
     { label: '5 Stars', value: 5, count: fiveStarCount },
     { label: '4 Stars', value: 4, count: fourStarCount },
+    { label: '3 Stars', value: 3, count: threeStarCount },
+    { label: '2 Stars', value: 2, count: twoStarCount },
+    { label: '1 Star', value: 1, count: oneStarCount },
   ];
 
   return (
@@ -142,7 +157,7 @@ export default function ReviewsClient() {
       <div className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 py-16 md:py-20">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 text-sm font-bold px-4 py-2 rounded-full mb-6">
+            <div className="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 text-sm font-bold px-4 py-2 rounded-full mb-6 mt-3">
               <BadgeCheck size={16} />
               Verified Customer Reviews
             </div>
@@ -166,9 +181,9 @@ export default function ReviewsClient() {
               {[
                 { stars: 5, count: fiveStarCount },
                 { stars: 4, count: fourStarCount },
-                { stars: 3, count: 0 },
-                { stars: 2, count: 0 },
-                { stars: 1, count: 0 },
+                { stars: 3, count: threeStarCount },
+                { stars: 2, count: twoStarCount },
+                { stars: 1, count: oneStarCount },
               ].map(({ stars, count }) => (
                 <div key={stars} className="flex items-center gap-3">
                   <span className="text-sm font-bold text-gray-500 w-4">{stars}</span>
