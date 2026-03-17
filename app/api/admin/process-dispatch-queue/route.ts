@@ -1,5 +1,6 @@
 // Path: app/api/admin/process-dispatch-queue/route.ts
 // Vercel cron: runs every hour — sends scheduled dispatch emails
+// v2
 
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
