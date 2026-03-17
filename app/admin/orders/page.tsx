@@ -62,6 +62,7 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [trackingNumber, setTrackingNumber] = useState('');
   const [carrier, setCarrier] = useState('Royal Mail');
+  const [delayHours, setDelayHours] = useState(0);
   const [isDispatching, setIsDispatching] = useState(false);
 
   // Royal Mail Export State
@@ -256,18 +257,19 @@ export default function OrdersPage() {
       const res = await fetch(`/api/admin/orders/${orderId}/dispatch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trackingNumber, carrier }),
+        body: JSON.stringify({ trackingNumber, carrier, delayHours }),
       });
 
       if (res.ok) {
-        const updatedOrders = orders.map(o => 
-          o.id === orderId 
-            ? { ...o, fulfillment_status: 'shipped', tracking_number: trackingNumber, carrier } 
+        const updatedOrders = orders.map(o =>
+          o.id === orderId
+            ? { ...o, fulfillment_status: 'shipped', tracking_number: trackingNumber, carrier }
             : o
         );
         setOrders(updatedOrders);
         setSelectedOrder(null);
         setTrackingNumber('');
+        setDelayHours(0);
       } else {
         alert('Failed to update order');
       }
@@ -720,12 +722,37 @@ export default function OrdersPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-bold text-black mb-1.5">Send Dispatch Email</label>
+                <select
+                  value={delayHours}
+                  onChange={(e) => setDelayHours(Number(e.target.value))}
+                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-black outline-none font-medium text-gray-900"
+                >
+                  <option value={0}>Now</option>
+                  <option value={1}>In 1 hour</option>
+                  <option value={2}>In 2 hours</option>
+                  <option value={3}>In 3 hours</option>
+                  <option value={4}>In 4 hours</option>
+                  <option value={5}>In 5 hours</option>
+                  <option value={6}>In 6 hours</option>
+                  <option value={7}>In 7 hours</option>
+                  <option value={8}>In 8 hours</option>
+                  <option value={12}>In 12 hours</option>
+                </select>
+                {delayHours > 0 && (
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    Email will send automatically around {new Date(Date.now() + delayHours * 3600000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                )}
+              </div>
+
               <button
                 onClick={() => handleDispatch(selectedOrder.id)}
                 disabled={isDispatching}
                 className="w-full bg-black text-white py-3.5 rounded-xl font-bold hover:bg-gray-800 transition shadow-lg mt-2 disabled:opacity-50"
               >
-                {isDispatching ? 'Processing...' : 'Confirm Dispatch'}
+                {isDispatching ? 'Processing...' : delayHours === 0 ? 'Confirm Dispatch' : `Schedule & Dispatch`}
               </button>
             </div>
           </div>
