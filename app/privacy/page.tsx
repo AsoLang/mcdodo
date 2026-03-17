@@ -79,7 +79,7 @@ export default function PrivacyPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white pt-20 md:pt-24">
+    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero */}
       <div className="relative bg-gradient-to-r from-orange-500 to-orange-600 overflow-hidden">
         <div className="absolute inset-0 bg-black/10" />

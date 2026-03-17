@@ -256,7 +256,7 @@ export default function ContactPage() {
                       value={orderNumber}
                       onChange={(e) => setOrderNumber(e.target.value)}
                       className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10"
-                      placeholder="e.g. #303288"
+                      placeholder="e.g. #12345"
                     />
                   </div>
 
