@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 
 export const metadata = {
-  title: "Privacy Policy | Mcdodo UK",
-  description: "Read the Mcdodo UK privacy policy. We explain how we collect, use and protect your personal data.",
+  title: "Privacy Policy | Mcdodo (UK)",
+  description: "Read the Mcdodo (UK) privacy policy. We explain how we collect, use and protect your personal data.",
   alternates: { canonical: 'https://www.mcdodo.co.uk/privacy' },
 };
 
@@ -23,7 +23,7 @@ export default function PrivacyPage() {
       icon: Shield,
       title: "GDPR & Privacy",
       content:
-        "Mcdodo UK follows the UK GDPR / EU GDPR principles. Please read this policy carefully so you understand how we handle your data.",
+        "Mcdodo (UK) follows the UK GDPR / EU GDPR principles. Please read this policy carefully so you understand how we handle your data.",
       accent: "orange",
     },
     {
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
       icon: LinkIcon,
       title: "Third-Party Links",
       content:
-        "Our site may link to third-party websites we don’t operate. Their privacy practices are governed by their own policies.",
+        "Our site may link to third-party websites we do not operate. Their privacy practices are governed by their own policies.",
       accent: "black",
     },
   ];
@@ -59,15 +59,15 @@ export default function PrivacyPage() {
     {
       title: "Information Collected Automatically",
       paragraphs: [
-        "When you visit our site, we may collect log & device data such as: referrer URL, device model, operating system, browser type, unique device identifiers, IP address, network carrier, and approximate time zone/location.",
-        "Advertising/analytics providers may also share aggregated performance data (e.g., who clicked an ad). If we associate it with you, we treat it as personal data.",
+        "When you visit our site, we may collect log and device data such as: referrer URL, device model, operating system, browser type, unique device identifiers, IP address, network carrier, and approximate time zone/location.",
+        "Advertising and analytics providers may also share aggregated performance data (e.g. who clicked an ad). If we associate it with you, we treat it as personal data.",
       ],
     },
     {
       title: "Sharing Your Information",
       paragraphs: [
         "We do not sell, trade, or rent your personal information.",
-        "We only share information with third parties when necessary to fulfil your order (e.g., sharing shipping details with delivery partners). Those parties must not use the information for unrelated purposes.",
+        "We only share information with third parties when necessary to fulfil your order (e.g. sharing shipping details with delivery partners). Those parties must not use the information for unrelated purposes.",
       ],
     },
     {
@@ -176,7 +176,7 @@ export default function PrivacyPage() {
 
               <h2 className="text-3xl font-black text-white mb-4">Contacting Us</h2>
               <p className="text-lg text-white/95 leading-relaxed mb-6">
-                Queries, comments, or requests about this policy? Contact support.
+                Queries, comments, or requests about this policy? Contact our support team.
               </p>
 
               <a
@@ -198,7 +198,7 @@ export default function PrivacyPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600 leading-relaxed">
-                <strong className="text-gray-900 font-bold">Last Updated:</strong> December 2025.
+                <strong className="text-gray-900 font-bold">Last Updated:</strong> March 2026.
                 We may update this policy from time to time. Continued use of the website means you
                 accept the updated policy.
               </p>

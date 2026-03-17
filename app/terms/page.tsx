@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { ArrowLeft, Shield, Globe, CreditCard, Package, AlertCircle, Mail } from 'lucide-react';
 
 export const metadata = {
-  title: "Terms & Conditions | Mcdodo UK",
-  description: "Read the Mcdodo UK terms and conditions including our purchasing, shipping, and returns policies.",
+  title: "Terms & Conditions | Mcdodo (UK)",
+  description: "Read the Mcdodo (UK) terms and conditions including our purchasing, shipping, and returns policies.",
   alternates: { canonical: 'https://www.mcdodo.co.uk/terms' },
 };
 
@@ -69,8 +69,8 @@ export default function TermsPage() {
       paragraphs: [
         "We currently ship to all UK addresses, including England, Scotland, Wales, and Northern Ireland.",
         "Standard delivery is £3.99. Orders of £20 or over qualify for free delivery.",
-        "Delivery is via Royal Mail or Evri and typically takes 3–5 business days. Tracking is provided with all orders.",
-"If your parcel arrives damaged or does not arrive, please contact us within 48 hours at support@mcdodo.co.uk."
+        "Delivery is via Royal Mail or Evri and typically takes 3-5 business days. Tracking is provided with all orders.",
+        "If your parcel arrives damaged or does not arrive, please contact us within 48 hours at support@mcdodo.co.uk."
       ]
     }
   ];
@@ -83,16 +83,16 @@ export default function TermsPage() {
         <div className="absolute inset-0" style={{
           backgroundImage: 'url("data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.05%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
         }}></div>
-        
+
         <div className="relative max-w-7xl mx-auto px-6 py-16 md:py-24">
-          <Link 
+          <Link
             href="/"
             className="inline-flex items-center gap-2 text-white/90 hover:text-white font-bold transition mb-8 group"
           >
             <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
             <span>Back to Shop</span>
           </Link>
-          
+
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-6xl font-black text-white mb-4 tracking-tight">
               Terms & Conditions
@@ -111,26 +111,26 @@ export default function TermsPage() {
           {sections.map((section, idx) => {
             const Icon = section.icon;
             return (
-              <div 
+              <div
                 key={idx}
                 className={`group relative bg-white rounded-2xl border-2 ${
-                  section.color === 'orange' 
-                    ? 'border-orange-200 hover:border-orange-400' 
+                  section.color === 'orange'
+                    ? 'border-orange-200 hover:border-orange-400'
                     : 'border-gray-200 hover:border-black'
                 } p-8 transition-all duration-300 hover:shadow-xl`}
               >
                 <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl ${
-                  section.color === 'orange' 
-                    ? 'bg-orange-100 text-orange-600' 
+                  section.color === 'orange'
+                    ? 'bg-orange-100 text-orange-600'
                     : 'bg-black text-white'
                 } mb-6 transition-transform group-hover:scale-110`}>
                   <Icon size={28} strokeWidth={2.5} />
                 </div>
-                
+
                 <h2 className="text-2xl font-black text-black mb-4">
                   {section.title}
                 </h2>
-                
+
                 <p className="text-gray-700 leading-relaxed">
                   {section.content}
                 </p>
@@ -142,14 +142,14 @@ export default function TermsPage() {
         {/* Additional Sections */}
         <div className="space-y-12">
           {additionalSections.map((section, idx) => (
-            <div 
+            <div
               key={idx}
               className="bg-white rounded-2xl border border-gray-200 p-8 md:p-10 hover:shadow-lg transition-shadow"
             >
               <h2 className="text-3xl font-black text-black mb-6 pb-4 border-b-2 border-orange-200">
                 {section.title}
               </h2>
-              
+
               <div className="space-y-4">
                 {section.paragraphs.map((para, pIdx) => (
                   <p key={pIdx} className="text-lg text-gray-700 leading-relaxed">
@@ -160,26 +160,26 @@ export default function TermsPage() {
             </div>
           ))}
 
-          {/* Contact Section - Special Styling */}
+          {/* Contact Section */}
           <div className="relative bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-8 md:p-10 overflow-hidden">
             <div className="absolute inset-0 bg-black/5"></div>
             <div className="absolute inset-0" style={{
-              backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+              backgroundImage: 'url("data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.05%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
             }}></div>
-            
+
             <div className="relative">
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-white/20 backdrop-blur-sm text-white mb-6">
                 <Mail size={28} strokeWidth={2.5} />
               </div>
-              
+
               <h2 className="text-3xl font-black text-white mb-4">
                 Contact Information
               </h2>
-              
+
               <p className="text-lg text-white/95 leading-relaxed mb-6">
-                Questions about these Terms should be sent to our support team. We're here to help!
+                Questions about these Terms should be sent to our support team.
               </p>
-              
+
               <a
                 href="mailto:support@mcdodo.co.uk"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-white text-orange-600 font-bold rounded-xl hover:bg-gray-50 transition-colors shadow-lg hover:shadow-xl"
@@ -199,8 +199,8 @@ export default function TermsPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600 leading-relaxed">
-                <strong className="text-gray-900 font-bold">Last Updated:</strong> December 2025. 
-                By using our website and services, you agree to these terms and conditions. 
+                <strong className="text-gray-900 font-bold">Last Updated:</strong> March 2026.
+                By using our website and services, you agree to these terms and conditions.
                 We recommend reviewing this page periodically to stay informed of any updates.
               </p>
             </div>
