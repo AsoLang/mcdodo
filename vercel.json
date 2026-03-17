@@ -1,4 +1,5 @@
 {
+  "_updated": "2026-03-17",
   "crons": [
     {
       "path": "/api/admin/recompute-stock",
