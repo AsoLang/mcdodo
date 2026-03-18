@@ -246,7 +246,7 @@ export default function Navbar() {
                       onClick={closeMobileMenu}
                       className="block text-sm text-gray-600 hover:text-orange-600 transition-colors py-2 px-3 rounded-lg hover:bg-orange-50"
                     >
-                      About Mcdodo UK
+                      About Mcdodo (UK)
                     </Link>
                     <Link 
                       href="/contact" 
@@ -261,7 +261,7 @@ export default function Navbar() {
                 {/* Footer Info */}
                 <div className="border-t border-gray-200 pt-6 pb-4">
                   <p className="text-xs text-gray-500 text-center">
-                    © 2026 Mcdodo UK. All rights reserved.
+                    © 2026 Mcdodo (UK). All rights reserved.
                   </p>
                 </div>
 

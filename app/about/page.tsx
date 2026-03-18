@@ -87,10 +87,10 @@ export default function AboutPage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
-    name: 'Mcdodo UK',
+    name: 'Mcdodo (UK)',
     url: 'https://mcdodo.co.uk',
     description:
-      'Mcdodo UK is a UK-based store offering Mcdodo fast charging cables, GaN chargers, power banks, audio accessories and device protection.',
+      'Mcdodo (UK) is a UK-based store offering Mcdodo fast charging cables, GaN chargers, power banks, audio accessories and device protection.',
     sameAs: [],
   };
 
@@ -105,7 +105,7 @@ export default function AboutPage() {
         {/* HERO */}
         <section className="mb-14">
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">
-            About Mcdodo UK
+            About Mcdodo (UK)
           </h1>
           <p className="mt-4 max-w-3xl text-lg text-gray-600">
             Mcdodo (UK) is based in the United Kingdom, bringing trusted Mcdodo fast charging
@@ -198,7 +198,7 @@ export default function AboutPage() {
 
         {/* FOOTER */}
         <footer className="flex justify-between text-sm text-gray-500">
-          <span>© {new Date().getFullYear()} Mcdodo UK</span>
+          <span>© {new Date().getFullYear()} Mcdodo (UK)</span>
           <div className="flex gap-4">
             <Link href="/">Home</Link>
             <Link href="/shop">Shop</Link>
