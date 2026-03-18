@@ -118,7 +118,7 @@ export default async function BlogPostPage({ params }: Props) {
       </section>
 
       {/* Article */}
-      <section className="max-w-3xl mx-auto px-5 py-10">
+      <section className="max-w-3xl mx-auto px-5 py-10 bg-white">
         <div
           className="prose prose-base md:prose-lg max-w-none
             prose-headings:font-bold prose-headings:text-gray-900 prose-headings:tracking-tight
@@ -128,7 +128,15 @@ export default async function BlogPostPage({ params }: Props) {
             prose-a:text-orange-600 prose-a:no-underline hover:prose-a:underline
             prose-strong:text-gray-900 prose-strong:font-semibold
             prose-ul:text-gray-700 prose-li:my-1.5
-            prose-ol:text-gray-700"
+            prose-ol:text-gray-700 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:mt-8 [&_h1]:mb-4
+            [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:mt-10 [&_h2]:mb-3
+            [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-gray-900 [&_h3]:mt-6 [&_h3]:mb-2
+            [&_p]:text-gray-800 [&_p]:leading-relaxed [&_p]:my-4 [&_p]:text-base
+            [&_ul]:text-gray-800 [&_ul]:my-4 [&_ul]:pl-6 [&_ul]:list-disc
+            [&_ol]:text-gray-800 [&_ol]:my-4 [&_ol]:pl-6 [&_ol]:list-decimal
+            [&_li]:my-1.5 [&_li]:text-gray-800
+            [&_strong]:text-gray-900 [&_strong]:font-semibold
+            [&_a]:text-orange-600 [&_a]:no-underline hover:[&_a]:underline"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
