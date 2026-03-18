@@ -36,13 +36,15 @@ tech e-commerce aesthetic matching Mcdodo UK brand colours (orange #ea580c, dark
       }
     );
 
+    const geminiData = await geminiRes.json();
+    console.error('[RegenerateImage] Gemini status:', geminiRes.status, JSON.stringify(geminiData).slice(0, 500));
+
     if (!geminiRes.ok) {
-      return NextResponse.json({ error: 'Gemini failed' }, { status: 500 });
+      return NextResponse.json({ error: 'Gemini failed', detail: geminiData }, { status: 500 });
     }
 
-    const geminiData = await geminiRes.json();
     const b64 = geminiData?.predictions?.[0]?.bytesBase64Encoded;
-    if (!b64) return NextResponse.json({ error: 'No image returned' }, { status: 500 });
+    if (!b64) return NextResponse.json({ error: 'No image returned', detail: geminiData }, { status: 500 });
 
     const buffer = Buffer.from(b64, 'base64');
     const filename = `blog/${Date.now()}-${keyword.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.jpg`;
