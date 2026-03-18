@@ -119,6 +119,17 @@ export default async function BlogPostPage({ params }: Props) {
 
       {/* Article */}
       <section className="max-w-3xl mx-auto px-5 py-10 bg-white">
+        {post.featured_image && (
+          <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-10">
+            <Image
+              src={post.featured_image}
+              alt={post.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+            />
+          </div>
+        )}
         <div
           className="prose prose-base md:prose-lg max-w-none
             prose-headings:font-bold prose-headings:text-gray-900 prose-headings:tracking-tight
