@@ -17,7 +17,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(grep:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(sed -i \"s/About Mcdodo UK/About Mcdodo \\(UK\\)/g; s/© 2026 Mcdodo UK/© 2026 Mcdodo \\(UK\\)/g\" /c/Users/asoan/OneDrive/Desktop/Projects/mcdodo/components/Navbar.tsx)",
+      "Bash(__NEW_LINE_bb0a028228b6c49d__ sed:*)"
     ]
   }
 }
