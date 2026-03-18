@@ -95,12 +95,6 @@ export default function AdminBlogPage() {
     fetchPosts();
   }
 
-  async function openPreview(slug: string) {
-    const res = await fetch(`/api/blog/post/${slug}`);
-    const data = await res.json();
-    setPreviewContent(data.content || '');
-    setPreview(slug);
-  }
 
   const filtered = filter === 'all' ? posts : posts.filter((p) => p.status === filter);
 
