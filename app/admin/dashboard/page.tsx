@@ -103,6 +103,7 @@ export default function Dashboard() {
           <Link href="/admin/products" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Products</Link>
           <Link href="/admin/settings" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Settings</Link>
           <Link href="/admin/customers" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Customers</Link>
+          <Link href="/admin/blog" className="px-4 py-2 text-gray-500 hover:text-gray-900 font-medium text-sm">Blog</Link>
         </div>
 
         <div className="flex gap-2 mb-8 overflow-x-auto">
