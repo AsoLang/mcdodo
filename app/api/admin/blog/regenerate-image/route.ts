@@ -25,30 +25,33 @@ Clean minimal background, high quality, no text overlays, no logos, photorealist
 tech e-commerce aesthetic matching Mcdodo UK brand colours (orange #ea580c, dark charcoal background).`;
 
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          instances: [{ prompt: imagePrompt }],
-          parameters: { sampleCount: 1, aspectRatio: '16:9' },
+          contents: [{ parts: [{ text: imagePrompt }] }],
+          generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
         }),
       }
     );
 
-    const geminiData = await geminiRes.json();
-    console.error('[RegenerateImage] Gemini status:', geminiRes.status, JSON.stringify(geminiData).slice(0, 500));
-
     if (!geminiRes.ok) {
-      return NextResponse.json({ error: 'Gemini failed', detail: geminiData }, { status: 500 });
+      const err = await geminiRes.text();
+      console.error('[RegenerateImage] Gemini error:', err);
+      return NextResponse.json({ error: 'Gemini failed', detail: err }, { status: 500 });
     }
 
-    const b64 = geminiData?.predictions?.[0]?.bytesBase64Encoded;
-    if (!b64) return NextResponse.json({ error: 'No image returned', detail: geminiData }, { status: 500 });
+    const geminiData = await geminiRes.json();
+    const part = geminiData?.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
+    const b64 = part?.inlineData?.data;
+    const mimeType = part?.inlineData?.mimeType || 'image/png';
+    if (!b64) return NextResponse.json({ error: 'No image returned' }, { status: 500 });
 
     const buffer = Buffer.from(b64, 'base64');
-    const filename = `blog/${Date.now()}-${keyword.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.jpg`;
-    const blob = await put(filename, buffer, { access: 'public', contentType: 'image/jpeg' });
+    const ext = mimeType.includes('png') ? 'png' : 'jpg';
+    const filename = `blog/${Date.now()}-${keyword.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.${ext}`;
+    const blob = await put(filename, buffer, { access: 'public', contentType: mimeType });
 
     await sql`UPDATE blog_posts SET featured_image = ${blob.url} WHERE id = ${id}`;
 
