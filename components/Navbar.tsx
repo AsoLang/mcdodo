@@ -5,7 +5,7 @@
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ShoppingCart, Search, Menu, X, ShoppingBag, Package, Truck, Heart } from 'lucide-react';
+import { ShoppingCart, Search, Menu, X, ShoppingBag, Package, Truck, Heart, BookOpen } from 'lucide-react';
 import { useCart } from '@/contexts/CartContext';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
@@ -208,7 +208,7 @@ export default function Navbar() {
                       onClick={closeMobileMenu}
                       className="flex items-center gap-3 text-base font-semibold text-gray-900 hover:text-orange-600 transition-colors py-2.5 px-3 rounded-lg hover:bg-orange-50"
                     >
-                      <Truck size={18} />
+                      <BookOpen size={18} />
                       Blog
                     </Link>
                   </div>
