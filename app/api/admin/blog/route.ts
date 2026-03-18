@@ -20,11 +20,19 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status') || 'all';
 
-  const posts = status === 'all'
-    ? await sql`SELECT id, title, slug, excerpt, keyword, status, created_at, published_at, reading_time_mins FROM blog_posts ORDER BY created_at DESC`
-    : await sql`SELECT id, title, slug, excerpt, keyword, status, created_at, published_at, reading_time_mins FROM blog_posts WHERE status = ${status} ORDER BY created_at DESC`;
+  try {
+    await sql`ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS featured_image TEXT`;
+  } catch (_) {}
 
-  return NextResponse.json({ posts });
+  try {
+    const posts = status === 'all'
+      ? await sql`SELECT id, title, slug, excerpt, keyword, status, created_at, published_at, reading_time_mins, featured_image FROM blog_posts ORDER BY created_at DESC`
+      : await sql`SELECT id, title, slug, excerpt, keyword, status, created_at, published_at, reading_time_mins, featured_image FROM blog_posts WHERE status = ${status} ORDER BY created_at DESC`;
+    return NextResponse.json({ posts });
+  } catch (err) {
+    console.error('[Blog] GET error:', err);
+    return NextResponse.json({ posts: [] });
+  }
 }
 
 export async function PATCH(request: NextRequest) {

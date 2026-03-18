@@ -4,7 +4,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Sparkles, Trash2, Eye, CheckCircle, XCircle, Clock, Globe } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowLeft, Sparkles, Trash2, CheckCircle, XCircle, Clock, Globe, RefreshCw } from 'lucide-react';
 
 interface BlogPost {
   id: string;
@@ -16,6 +17,7 @@ interface BlogPost {
   created_at: string;
   published_at: string | null;
   reading_time_mins: number;
+  featured_image: string | null;
 }
 
 const STATUS_COLOURS: Record<string, string> = {
@@ -29,9 +31,8 @@ export default function AdminBlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [regeneratingImage, setRegeneratingImage] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
-  const [preview, setPreview] = useState<string | null>(null);
-  const [previewContent, setPreviewContent] = useState<string>('');
 
   useEffect(() => {
     fetchPosts();
@@ -70,6 +71,22 @@ export default function AdminBlogPage() {
       body: JSON.stringify({ id, status }),
     });
     fetchPosts();
+  }
+
+  async function regenerateImage(id: string, keyword: string) {
+    setRegeneratingImage(id);
+    try {
+      const res = await fetch('/api/admin/blog/regenerate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, keyword }),
+      });
+      if (res.ok) fetchPosts();
+      else alert('Image regeneration failed');
+    } catch {
+      alert('Network error');
+    }
+    setRegeneratingImage(null);
   }
 
   async function deletePost(id: string, title: string) {
@@ -146,7 +163,26 @@ export default function AdminBlogPage() {
         ) : (
           <div className="space-y-3">
             {filtered.map((post) => (
-              <div key={post.id} className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+              <div key={post.id} className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                {/* Image thumbnail */}
+                <div className="relative w-full h-40 bg-gray-800 flex items-center justify-center">
+                  {post.featured_image ? (
+                    <Image src={post.featured_image} alt={post.title} fill className="object-cover" sizes="600px" />
+                  ) : (
+                    <span className="text-gray-600 text-sm">No image</span>
+                  )}
+                  <button
+                    onClick={() => regenerateImage(post.id, post.keyword)}
+                    disabled={regeneratingImage === post.id}
+                    className="absolute bottom-2 right-2 flex items-center gap-1.5 bg-black/70 hover:bg-black text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition disabled:opacity-50"
+                    title="Regenerate image"
+                  >
+                    <RefreshCw size={12} className={regeneratingImage === post.id ? 'animate-spin' : ''} />
+                    {regeneratingImage === post.id ? 'Generating...' : 'New image'}
+                  </button>
+                </div>
+
+                <div className="p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -213,6 +249,7 @@ export default function AdminBlogPage() {
                       <Trash2 size={15} />
                     </button>
                   </div>
+                </div>
                 </div>
               </div>
             ))}

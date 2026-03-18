@@ -31,6 +31,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
       "connect-src 'self' https://api.stripe.com https://ipapi.co https://vitals.vercel-insights.com https://challenges.cloudflare.com",
       "frame-src https://js.stripe.com https://hooks.stripe.com https://challenges.cloudflare.com",
+      "worker-src 'self' blob:",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
