@@ -49,5 +49,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  return [...staticRoutes, ...productRoutes];
+  let blogRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await sql`
+      SELECT slug, published_at FROM blog_posts WHERE status = 'published'
+    `;
+    blogRoutes = posts.map((p: any) => ({
+      url: `${baseUrl}/blog/${p.slug}`,
+      lastModified: p.published_at ? new Date(p.published_at) : new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }));
+  } catch (_) {}
+
+  return [...staticRoutes, ...productRoutes, ...blogRoutes];
 }

@@ -68,7 +68,7 @@ export default function PromoBanner() {
   };
 
   if (pathname?.startsWith('/admin')) return null;
-  if (pathname === '/privacy' || pathname === '/terms') return null;
+  if (pathname === '/privacy' || pathname === '/terms' || pathname?.startsWith('/blog')) return null;
   if (!settings || !settings.enabled) return null;
 
   const currentItem = settings.items[currentIndex];

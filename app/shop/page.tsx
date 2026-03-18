@@ -8,8 +8,8 @@ export const dynamic = 'force-static';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'Shop - Mcdodo UK',
-  description: 'Browse our collection of premium charging cables, chargers, and accessories',
+  title: 'USB-C Cables, Fast Chargers & Charging Accessories | Mcdodo UK',
+  description: 'Shop premium USB-C cables, fast chargers, wireless chargers and adapters. Free UK delivery over £20. Trusted by 100,000+ customers.',
   alternates: {
     canonical: 'https://mcdodo.co.uk/shop',
   },

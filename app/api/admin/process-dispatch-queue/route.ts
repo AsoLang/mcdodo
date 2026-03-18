@@ -79,6 +79,27 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Auto-generate blog article on Mondays
+    const now = new Date();
+    if (now.getUTCDay() === 1) {
+      try {
+        const lastWeek = new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000);
+        const recent = await sql`SELECT id FROM blog_posts WHERE created_at >= ${lastWeek.toISOString()} LIMIT 1`;
+        if (recent.length === 0) {
+          const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.mcdodo.co.uk';
+          const genRes = await fetch(`${baseUrl}/api/admin/blog/generate`, {
+            method: 'POST',
+            headers: { 'x-cron-secret': process.env.CRON_SECRET || '' },
+          });
+          if (genRes.ok) {
+            console.log('[DispatchQueue] Weekly blog article generated');
+          }
+        }
+      } catch (blogErr) {
+        console.error('[DispatchQueue] Blog generation failed:', blogErr);
+      }
+    }
+
     return NextResponse.json({ success: true, sent, failed });
   } catch (error) {
     console.error('[DispatchQueue] Cron error:', error);

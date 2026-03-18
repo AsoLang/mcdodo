@@ -663,7 +663,7 @@ export default function ShopPage({ products }: { products: Product[] }) {
 
         {/* FAQ Section */}
         <section className="my-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">FAQ About Power Strips</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Frequently Asked Questions About USB Cables</h2>
           <div className="space-y-3">
             {FAQ_ITEMS.map((faq, index) => (
               <div key={index} className="bg-white rounded-lg shadow-sm overflow-hidden">

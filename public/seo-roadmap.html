@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mcdodo UK — SEO Growth Roadmap</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f0f; color: #e5e5e5; min-height: 100vh; }
+
+  .hero { background: linear-gradient(135deg, #ea580c 0%, #fb923c 50%, #ea580c 100%); padding: 60px 40px; text-align: center; }
+  .hero h1 { font-size: 2.8rem; font-weight: 800; color: white; margin-bottom: 10px; }
+  .hero p { font-size: 1.1rem; color: rgba(255,255,255,0.85); }
+  .hero .score { display: inline-flex; align-items: center; gap: 12px; background: rgba(0,0,0,0.25); border-radius: 50px; padding: 12px 28px; margin-top: 24px; }
+  .hero .score .num { font-size: 2.2rem; font-weight: 900; color: white; }
+  .hero .score .label { font-size: 0.85rem; color: rgba(255,255,255,0.8); text-align: left; line-height: 1.4; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 50px 24px; }
+
+  .section-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: #6b7280; margin-bottom: 20px; }
+
+  /* Phase cards */
+  .phase { margin-bottom: 48px; }
+  .phase-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+  .phase-badge { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; }
+  .phase-badge.now { background: #dc2626; color: white; }
+  .phase-badge.next { background: #ea580c; color: white; }
+  .phase-badge.soon { background: #1d4ed8; color: white; }
+  .phase-badge.future { background: #374151; color: #9ca3af; }
+  .phase-title { font-size: 1.4rem; font-weight: 700; color: white; }
+  .phase-desc { font-size: 0.9rem; color: #6b7280; margin-left: auto; }
+
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+
+  .card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px; padding: 22px; position: relative; transition: border-color 0.2s; }
+  .card:hover { border-color: #404040; }
+  .card.done { border-left: 3px solid #16a34a; }
+  .card.in-progress { border-left: 3px solid #ea580c; }
+  .card.pending { border-left: 3px solid #374151; }
+  .card.blocked { border-left: 3px solid #dc2626; }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .card-icon { font-size: 1.5rem; }
+  .card-status { font-size: 0.7rem; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+  .card-status.done { background: #14532d; color: #4ade80; }
+  .card-status.in-progress { background: #431407; color: #fb923c; }
+  .card-status.pending { background: #1f2937; color: #6b7280; }
+  .card-status.blocked { background: #450a0a; color: #f87171; }
+
+  .card h3 { font-size: 1rem; font-weight: 700; color: #f3f4f6; margin-bottom: 6px; }
+  .card p { font-size: 0.85rem; color: #6b7280; line-height: 1.5; }
+  .card .impact { display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; font-size: 0.75rem; font-weight: 600; color: #9ca3af; }
+  .card .impact .dots { display: flex; gap: 3px; }
+  .card .impact .dot { width: 7px; height: 7px; border-radius: 50%; background: #374151; }
+  .card .impact .dot.filled { background: #ea580c; }
+
+  /* Stats bar */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 48px; }
+  .stat { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 14px; padding: 20px; text-align: center; }
+  .stat .num { font-size: 2rem; font-weight: 800; color: #ea580c; }
+  .stat .label { font-size: 0.8rem; color: #6b7280; margin-top: 4px; }
+
+  /* Content strategy section */
+  .content-box { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px; padding: 28px; margin-bottom: 20px; }
+  .content-box h3 { font-size: 1.1rem; font-weight: 700; color: #f3f4f6; margin-bottom: 8px; }
+  .content-box p { font-size: 0.875rem; color: #6b7280; line-height: 1.6; margin-bottom: 16px; }
+  .keyword-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { background: #111827; border: 1px solid #374151; border-radius: 8px; padding: 5px 12px; font-size: 0.78rem; color: #d1d5db; }
+  .chip.high { border-color: #ea580c; color: #fb923c; }
+
+  /* AI automation box */
+  .ai-box { background: linear-gradient(135deg, #1e1b4b, #0f172a); border: 1px solid #312e81; border-radius: 16px; padding: 28px; }
+  .ai-box h3 { font-size: 1.1rem; font-weight: 700; color: #a5b4fc; margin-bottom: 8px; }
+  .ai-box p { font-size: 0.875rem; color: #6b7280; line-height: 1.6; }
+  .ai-box .tag { display: inline-block; background: #1e1b4b; border: 1px solid #4338ca; border-radius: 6px; padding: 3px 10px; font-size: 0.75rem; color: #818cf8; margin: 4px 4px 0 0; }
+
+  /* Progress bar */
+  .progress-wrap { margin-bottom: 48px; }
+  .progress-bar-outer { background: #1a1a1a; border-radius: 20px; height: 10px; overflow: hidden; margin-top: 8px; }
+  .progress-bar-inner { height: 100%; border-radius: 20px; background: linear-gradient(90deg, #ea580c, #fb923c); }
+  .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: #6b7280; margin-top: 6px; }
+
+  .divider { border: none; border-top: 1px solid #1f2937; margin: 40px 0; }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.8rem; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Mcdodo UK — SEO Growth Roadmap</h1>
+  <p>What we're building, why it matters, and where we're headed</p>
+  <div class="score">
+    <div class="num">62</div>
+    <div class="label">Current SEO Score<br><span style="opacity:0.6">Target: 90+ by June 2026</span></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat">
+      <div class="num">32</div>
+      <div class="label">Pages in Sitemap</div>
+    </div>
+    <div class="stat">
+      <div class="num">0</div>
+      <div class="label">Blog Articles<br><span style="color:#ea580c">Target: 20+</span></div>
+    </div>
+    <div class="stat">
+      <div class="num">4</div>
+      <div class="label">Bugs Fixed Today</div>
+    </div>
+    <div class="stat">
+      <div class="num">100k+</div>
+      <div class="label">Trust Signals Live</div>
+    </div>
+  </div>
+
+  <!-- Overall progress -->
+  <div class="progress-wrap">
+    <div class="section-title">Overall SEO Progress</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:#9ca3af;margin-bottom:4px;"><span>Technical SEO</span><span>65%</span></div>
+        <div class="progress-bar-outer"><div class="progress-bar-inner" style="width:65%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:#9ca3af;margin-bottom:4px;"><span>Content & Blog</span><span>5%</span></div>
+        <div class="progress-bar-outer"><div class="progress-bar-inner" style="width:5%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:#9ca3af;margin-bottom:4px;"><span>Schema / Structured Data</span><span>40%</span></div>
+        <div class="progress-bar-outer"><div class="progress-bar-inner" style="width:40%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:#9ca3af;margin-bottom:4px;"><span>AI Search (GEO)</span><span>10%</span></div>
+        <div class="progress-bar-outer"><div class="progress-bar-inner" style="width:10%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Phase 1 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge now">Phase 1 — Now</span>
+      <span class="phase-title">Fix the Foundation</span>
+      <span class="phase-desc">March 2026</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card done">
+        <div class="card-top">
+          <span class="card-icon">🖼️</span>
+          <span class="card-status done">Done</span>
+        </div>
+        <h3>Fix Product Image Labels</h3>
+        <p>Google reads image alt text to understand what a photo is. All product thumbnails were labelled "Thumbnail 1" — now they say the product name. Helps Google index your images in Google Images search.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div><div class="dot"></div></div></div>
+      </div>
+
+      <div class="card done">
+        <div class="card-top">
+          <span class="card-icon">❓</span>
+          <span class="card-status done">Done</span>
+        </div>
+        <h3>Fix Wrong FAQ Heading</h3>
+        <p>The Shop page FAQ said "FAQ About Power Strips" — on a USB cable shop. Now corrected. Google penalises irrelevant content headings.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+      </div>
+
+      <div class="card done">
+        <div class="card-top">
+          <span class="card-icon">🔍</span>
+          <span class="card-status done">Done</span>
+        </div>
+        <h3>Better Shop Page Title & Description</h3>
+        <p>Changed "Shop - Mcdodo UK" to include the actual keywords Google users search for: USB-C cables, fast chargers, wireless chargers. This is what shows up in Google results.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div><div class="dot"></div></div></div>
+      </div>
+
+      <div class="card blocked">
+        <div class="card-top">
+          <span class="card-icon">🤖</span>
+          <span class="card-status blocked">Action Needed</span>
+        </div>
+        <h3>Unblock Google AI Overviews</h3>
+        <p>Cloudflare's "Block AI crawlers" setting also blocked Google-Extended — the bot that powers Google's AI answer boxes at the top of search results. Your site can't appear in those boxes while this is on.</p>
+        <p style="margin-top:10px;font-size:0.8rem;color:#f87171;">Fix: Cloudflare Dashboard → AI → Block AI training bots → Turn OFF</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge next">Phase 2 — Next</span>
+      <span class="phase-title">Content That Brings People In</span>
+      <span class="phase-desc">April 2026</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card pending">
+        <div class="card-top">
+          <span class="card-icon">✍️</span>
+          <span class="card-status pending">Planned</span>
+        </div>
+        <h3>Blog — Charging Guides & Advice</h3>
+        <p>Articles targeting what UK shoppers actually search before buying. Each article is a door into your shop. Someone searches "best USB-C cable iPhone 15" — they find your article — they buy your cable.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div></div></div>
+      </div>
+
+      <div class="card pending">
+        <div class="card-top">
+          <span class="card-icon">🗺️</span>
+          <span class="card-status pending">Planned</span>
+        </div>
+        <h3>Richer Product Descriptions</h3>
+        <p>Expand product page text to answer the questions buyers ask: compatibility, wattage, cable length comparisons. More text = more keywords Google can find.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div><div class="dot"></div></div></div>
+      </div>
+
+      <div class="card pending">
+        <div class="card-top">
+          <span class="card-icon">🧩</span>
+          <span class="card-status pending">Planned</span>
+        </div>
+        <h3>Breadcrumb Schema on Product Pages</h3>
+        <p>Tells Google the structure: Home > Shop > USB-C Cables > Prism 65W. Google shows this path in search results which increases click-through rates.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+      </div>
+
+      <div class="card pending">
+        <div class="card-top">
+          <span class="card-icon">⭐</span>
+          <span class="card-status pending">Planned</span>
+        </div>
+        <h3>Star Ratings in Google Results</h3>
+        <p>Product review stars visible directly in Google search listings. Increases clicks by 15–30%. Your schema already has ratings — needs a small tweak to display properly.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div><div class="dot"></div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Phase 3 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge soon">Phase 3 — Soon</span>
+      <span class="phase-title">Be Found on AI Search</span>
+      <span class="phase-desc">May 2026</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card pending">
+        <div class="card-top">
+          <span class="card-icon">🧠</span>
+          <span class="card-status pending">Planned</span>
+        </div>
+        <h3>AI Overviews Optimisation</h3>
+        <p>Google now shows AI-written summaries at the top of search results. Getting your product or brand cited in these summaries drives huge visibility. Requires specific content formatting and structured data.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div></div></div>
+      </div>
+
+      <div class="card pending">
+        <div class="card-top">
+          <span class="card-icon">💬</span>
+          <span class="card-status pending">Planned</span>
+        </div>
+        <h3>ChatGPT & Perplexity Presence</h3>
+        <p>When someone asks ChatGPT "what's the best USB-C cable in the UK?" your brand should appear. This is the new SEO frontier. Built through structured content and authority signals.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div></div></div>
+      </div>
+
+      <div class="card pending">
+        <div class="card-top">
+          <span class="card-icon">📄</span>
+          <span class="card-status pending">Planned</span>
+        </div>
+        <h3>llms.txt File</h3>
+        <p>A new standard (like robots.txt but for AI). Tells AI crawlers exactly what Mcdodo is, what you sell, and your key pages. Helps AI systems describe your brand accurately.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Phase 4 -->
+  <div class="phase">
+    <div class="phase-header">
+      <span class="phase-badge future">Phase 4 — Future</span>
+      <span class="phase-title">Scale with Automation</span>
+      <span class="phase-desc">June 2026+</span>
+    </div>
+    <div class="cards-grid">
+
+      <div class="card pending">
+        <div class="card-top">
+          <span class="card-icon">⚡</span>
+          <span class="card-status pending">Future</span>
+        </div>
+        <h3>AI-Assisted Blog Writing</h3>
+        <p>Automated pipeline: Claude writes a draft blog post each week targeting a new keyword, you review and publish. Keeps content fresh without writing everything yourself.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div></div></div>
+      </div>
+
+      <div class="card pending">
+        <div class="card-top">
+          <span class="card-icon">🏆</span>
+          <span class="card-status pending">Future</span>
+        </div>
+        <h3>Competitor Comparison Pages</h3>
+        <p>"Mcdodo vs Anker", "Best USB-C cables UK 2026" — pages specifically targeting people comparing brands. High purchase intent traffic.</p>
+        <div class="impact">Impact <div class="dots"><div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div><div class="dot"></div><div class="dot"></div></div></div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Content Strategy -->
+  <div class="section-title">Content Strategy — What Articles We're Writing</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:48px;">
+
+    <div class="content-box">
+      <h3>Buying Guides (High Traffic)</h3>
+      <p>People searching before they buy. These convert into sales directly.</p>
+      <div class="keyword-chips">
+        <span class="chip high">best USB-C cable UK</span>
+        <span class="chip high">best fast charger iPhone 15</span>
+        <span class="chip">best charging cable 2026</span>
+        <span class="chip">fastest USB-C cable UK</span>
+        <span class="chip">best MacBook charger UK</span>
+      </div>
+    </div>
+
+    <div class="content-box">
+      <h3>How-To Guides (Awareness)</h3>
+      <p>Educational content that builds trust and brand awareness.</p>
+      <div class="keyword-chips">
+        <span class="chip high">how to fast charge iPhone</span>
+        <span class="chip">what watt charger do I need</span>
+        <span class="chip">USB-C vs Lightning cable</span>
+        <span class="chip">why is my phone charging slowly</span>
+        <span class="chip">USB-C cable lengths explained</span>
+      </div>
+    </div>
+
+    <div class="content-box">
+      <h3>Comparison Pages (High Intent)</h3>
+      <p>People comparing brands right before purchase.</p>
+      <div class="keyword-chips">
+        <span class="chip high">Mcdodo vs Anker cables</span>
+        <span class="chip">best USB-C cables under £10</span>
+        <span class="chip">Mcdodo review UK</span>
+        <span class="chip high">Anker vs Mcdodo charger</span>
+      </div>
+    </div>
+
+    <div class="content-box">
+      <h3>Device-Specific Pages (Niche)</h3>
+      <p>Targeting exact device searches with product recommendations.</p>
+      <div class="keyword-chips">
+        <span class="chip">best charger for Samsung S24</span>
+        <span class="chip high">iPhone 15 USB-C cable UK</span>
+        <span class="chip">MacBook Air charger UK</span>
+        <span class="chip">Nintendo Switch charger cable</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- AI Automation -->
+  <div class="section-title">Can Claude Automate Daily Content?</div>
+  <div class="ai-box">
+    <h3>Yes — but with a human review step (recommended)</h3>
+    <p style="margin-bottom:14px;">We can build a system where Claude generates a new blog article draft every week targeting a keyword from the list above. You get an email with the draft, approve it, and it publishes automatically. This keeps your site fresh with zero writing effort on your part.</p>
+    <p style="margin-bottom:14px;color:#818cf8;">Note: "ClaudeBot" in robots.txt is Anthropic's web crawler that reads websites — it's separate from Claude the AI assistant. We'd use the Claude API to generate content, not ClaudeBot the crawler. We've unblocked ClaudeBot so Anthropic's AI can read and understand your site.</p>
+    <div>
+      <span class="tag">Claude API</span>
+      <span class="tag">Weekly drafts</span>
+      <span class="tag">You approve</span>
+      <span class="tag">Auto-publish</span>
+      <span class="tag">Zero writing</span>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:40px 0;color:#374151;font-size:0.8rem;">
+    Mcdodo UK SEO Roadmap — Generated March 2026
+  </div>
+
+</div>
+</body>
+</html>

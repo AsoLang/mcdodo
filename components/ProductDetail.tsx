@@ -337,7 +337,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                   >
                     <Image
                       src={img}
-                      alt={`Thumbnail ${idx + 1}`}
+                      alt={`${product.title} - view ${idx + 1}`}
                       fill
                       sizes="(max-width: 768px) 25vw, 12vw"
                       className="object-contain p-2"
@@ -647,7 +647,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                   >
                     <Image 
                       src={img} 
-                      alt={`Gallery ${idx + 1}`} 
+                      alt={`${product.title} gallery image ${idx + 1}`}
                       fill 
                       sizes="(max-width: 768px) 50vw, 33vw"
                       className="object-cover" 

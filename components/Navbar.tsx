@@ -98,6 +98,9 @@ export default function Navbar() {
               <Link href="/about" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
                 About
               </Link>
+              <Link href="/blog" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+                Blog
+              </Link>
             </div>
             
             {/* Right Icons */}
@@ -192,13 +195,21 @@ export default function Navbar() {
                       <Package size={18} />
                       Categories
                     </Link>
-                    <Link 
-                      href="/about" 
+                    <Link
+                      href="/about"
                       onClick={closeMobileMenu}
                       className="flex items-center gap-3 text-base font-semibold text-gray-900 hover:text-orange-600 transition-colors py-2.5 px-3 rounded-lg hover:bg-orange-50"
                     >
                       <Heart size={18} />
                       About Us
+                    </Link>
+                    <Link
+                      href="/blog"
+                      onClick={closeMobileMenu}
+                      className="flex items-center gap-3 text-base font-semibold text-gray-900 hover:text-orange-600 transition-colors py-2.5 px-3 rounded-lg hover:bg-orange-50"
+                    >
+                      <Truck size={18} />
+                      Blog
                     </Link>
                   </div>
                 </div>

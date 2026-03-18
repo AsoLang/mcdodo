@@ -6,7 +6,14 @@
       "Bash(cd:*)",
       "Bash(node:*)",
       "Bash(rm -rf .next)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Read(//c/Users/asoan/**)",
+      "Bash(powershell -ExecutionPolicy Bypass -File claude-seo/install.ps1)",
+      "Bash(bash claude-seo/install.sh)",
+      "WebFetch(domain:mcdodo.co.uk)",
+      "Bash(grep -rn \"alt=\" app/shop/p/[slug]/page.tsx)",
+      "Bash(git stash:*)",
+      "Bash(git add:*)"
     ]
   }
 }
