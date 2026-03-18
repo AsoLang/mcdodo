@@ -133,9 +133,11 @@ export async function POST(request: NextRequest) {
     const next = KEYWORDS.find((k) => !used.has(k)) || KEYWORDS[0];
 
     // Build prompt
+    const currentYear = new Date().getFullYear();
     const prompt = `You are an SEO content writer for Mcdodo UK, a British e-commerce brand selling premium USB-C cables, fast chargers, wireless chargers, and charging accessories at mcdodo.co.uk.
 
 Write a high-quality SEO blog article targeting the keyword: "${next}"
+Current year: ${currentYear} - use this year in titles and throughout the article, NOT 2024 or 2025.
 
 Requirements:
 - Length: 1,400 to 1,800 words
