@@ -77,7 +77,7 @@ export default function CartSidebar() {
       return;
     }
 
-    if (!prevFreeShipping.current && isFreeShipping) {
+    if (!prevFreeShipping.current && isFreeShipping && isOpen) {
       setTimeout(() => fireConfetti(), 150);
     }
 
