@@ -252,12 +252,9 @@ Output only the HTML content, nothing else.`;
       </div>
 
       <div style="text-align:center;margin-bottom:16px;">
-        <a href="${approveUrl}" style="display:inline-block;background:#16a34a;color:white;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:1rem;margin-right:12px;">
-          Approve and Publish
-        </a>
-        <a href="${rejectUrl}" style="display:inline-block;background:#dc2626;color:white;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:700;font-size:1rem;">
-          Reject
-        </a>
+        <a href="${approveUrl}" style="display:inline-block;background:#16a34a;color:white;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:700;font-size:1rem;margin-right:8px;margin-bottom:8px;">Approve and Publish</a>
+        <a href="${rejectUrl}" style="display:inline-block;background:#dc2626;color:white;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:700;font-size:1rem;margin-right:8px;margin-bottom:8px;">Reject</a>
+        <a href="https://www.mcdodo.co.uk/api/blog/regenerate-image/${approvalToken}" style="display:inline-block;background:#374151;color:white;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:700;font-size:1rem;margin-bottom:8px;">New Image</a>
       </div>
 
       <p style="text-align:center;font-size:0.8rem;color:#9ca3af;">

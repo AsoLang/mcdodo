@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { neon } from '@neondatabase/serverless';
 import { Metadata } from 'next';
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Charging Guides & Tips | Mcdodo UK Blog',
@@ -46,7 +46,7 @@ export default async function BlogPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-gray-900 to-gray-800 py-16 md:py-24">
+      <section className="bg-gradient-to-br from-gray-900 to-gray-800 pt-32 md:pt-40 pb-16 md:pb-24">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
             Charging Guides &amp; Tips

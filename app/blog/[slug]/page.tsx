@@ -73,7 +73,7 @@ export default async function BlogPostPage({ params }: Props) {
       />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-gray-900 to-gray-800 py-12 md:py-16">
+      <section className="bg-gradient-to-br from-gray-900 to-gray-800 pt-28 md:pt-32 pb-12 md:pb-16">
         <div className="max-w-3xl mx-auto px-4">
           <Link href="/blog" className="text-orange-400 hover:text-orange-300 text-sm mb-4 inline-block transition">
             &larr; Back to guides
@@ -87,7 +87,7 @@ export default async function BlogPostPage({ params }: Props) {
             {post.title}
           </h1>
           <div className="flex items-center gap-4 text-sm text-gray-400">
-            <span>Mcdodo UK</span>
+            <span>Mcdodo (UK)</span>
             <span>-</span>
             <span>
               {new Date(post.published_at).toLocaleDateString('en-GB', {
