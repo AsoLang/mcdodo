@@ -10,7 +10,7 @@ function normalizeProductTitle(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-const reviews = [
+const importedReviewFeed = [
   { id: 1, name: 'James H.', rating: 5, product: '36W GaN Fast Charger', date: '14 Jan 2025', review: 'Had it about three weeks now and charges my iPhone 15 Pro without any fuss. Went from 10% to full in just over an hour which is plenty fast enough for me.' },
   { id: 2, name: 'Sophie T.', rating: 5, product: 'USB-C to Lightning Cable 1.2m', date: '9 Jan 2025', review: 'Previous cable frayed at the connector after about six weeks. This one has been in my bag every day since October and looks the same as when I got it.' },
   { id: 3, name: 'Marcus W.', rating: 4, product: '65W Dual Port Charger', date: '3 Jan 2025', review: 'Charges my laptop and phone together without slowing either down. My only gripe is the cable is not included so factor that in.' },
@@ -125,6 +125,15 @@ const reviews = [
   { id: 112, name: 'Karzan S', rating: 4, product: 'Wireless Earphones Pro', date: '16 Mar 2026', review: '' },
   { id: 113, name: 'Mariwan H', rating: 4, product: '120W Car Charger', date: '12 Mar 2026', review: '' },
 ];
+
+const reviews = importedReviewFeed.map((record) => ({
+  id: record.id,
+  name: record.name,
+  rating: record.rating,
+  product: record.product,
+  date: record.date,
+  review: record.review,
+}));
 
 const totalReviews = reviews.length;
 const fiveStarCount = reviews.filter(r => r.rating === 5).length;
