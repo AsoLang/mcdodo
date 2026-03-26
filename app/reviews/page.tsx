@@ -12,8 +12,9 @@ const sql = neon(process.env.DATABASE_URL!);
 
 export default async function ReviewsPage() {
   const rows = await sql`SELECT title, product_url FROM products`;
+  const products = rows as Array<{ title: string; product_url: string }>;
   const productLinks = Object.fromEntries(
-    rows.map((row: { title: string; product_url: string }) => [row.title, row.product_url])
+    products.map((row) => [row.title, row.product_url])
   );
 
   return <ReviewsClient productLinks={productLinks} />;
