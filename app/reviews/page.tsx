@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { neon } from '@neondatabase/serverless';
 import ReviewsClient from './ReviewsClient';
 
 export const metadata: Metadata = {
@@ -7,6 +8,13 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.mcdodo.co.uk/reviews' },
 };
 
-export default function ReviewsPage() {
-  return <ReviewsClient />;
+const sql = neon(process.env.DATABASE_URL!);
+
+export default async function ReviewsPage() {
+  const rows = await sql`SELECT title, product_url FROM products`;
+  const productLinks = Object.fromEntries(
+    rows.map((row: { title: string; product_url: string }) => [row.title, row.product_url])
+  );
+
+  return <ReviewsClient productLinks={productLinks} />;
 }

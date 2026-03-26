@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Star, BadgeCheck } from 'lucide-react';
+
+type ProductLinks = Record<string, string>;
 
 const reviews = [
   { id: 1, name: 'James H.', rating: 5, product: '36W GaN Fast Charger', date: '14 Jan 2025', review: 'Had it about three weeks now and charges my iPhone 15 Pro without any fuss. Went from 10% to full in just over an hour which is plenty fast enough for me.' },
@@ -113,6 +116,10 @@ const reviews = [
   { id: 107, name: 'Stuart F.', rating: 3, product: 'USB-C to Lightning Cable 1.2m', date: '13 Jan 2025', review: 'Charges at a normal speed. Nothing wrong with the functionality. The cable feels slightly thinner than I expected from the pictures. Still doing the job after a month, just thought it would feel more premium.' },
   { id: 108, name: 'Tanya R.', rating: 2, product: 'Wireless Earphones Pro', date: '4 Jan 2025', review: 'The sound was fine when they worked but mine started cutting out intermittently after about two weeks. I contacted the team and they arranged a replacement which was straightforward. The replacement pair has been fine since.' },
   { id: 109, name: 'Aaron S.', rating: 2, product: 'USB-C Cable 2m Braided', date: '26 Dec 2024', review: 'The cable stopped fast charging after about three weeks and just trickle charges now. Works for regular charging but not what I paid for. Raised it with customer service and they are looking into it.' },
+  { id: 110, name: 'Mohammed K', rating: 4, product: 'Magnetic Wireless Charger', date: '22 Mar 2026', review: '' },
+  { id: 111, name: 'Amir L', rating: 4, product: '36W GaN Fast Charger', date: '19 Mar 2026', review: '' },
+  { id: 112, name: 'Karzan S', rating: 4, product: 'Wireless Earphones Pro', date: '16 Mar 2026', review: '' },
+  { id: 113, name: 'Mariwan H', rating: 4, product: '120W Car Charger', date: '12 Mar 2026', review: '' },
 ];
 
 const totalReviews = reviews.length;
@@ -137,7 +144,7 @@ function Stars({ rating, size = 16 }: { rating: number; size?: number }) {
   );
 }
 
-export default function ReviewsClient() {
+export default function ReviewsClient({ productLinks }: { productLinks: ProductLinks }) {
   const [filter, setFilter] = useState<'all' | 1 | 2 | 3 | 4 | 5>('all');
 
   const filtered = filter === 'all' ? reviews : reviews.filter(r => r.rating === filter);
@@ -253,11 +260,22 @@ export default function ReviewsClient() {
 
               <Stars rating={review.rating} size={14} />
 
-              <p className="mt-3 text-gray-700 text-sm leading-relaxed">{review.review}</p>
+              {review.review ? (
+                <p className="mt-3 text-gray-700 text-sm leading-relaxed">{review.review}</p>
+              ) : null}
 
               <div className="mt-4 pt-3 border-t border-gray-50">
                 <span className="text-xs text-gray-400">Product: </span>
-                <span className="text-xs font-medium text-gray-600">{review.product}</span>
+                {productLinks[review.product] ? (
+                  <Link
+                    href={`/shop/p/${productLinks[review.product]}`}
+                    className="text-xs font-medium text-cyan-700 hover:text-cyan-800 hover:underline"
+                  >
+                    {review.product}
+                  </Link>
+                ) : (
+                  <span className="text-xs font-medium text-gray-600">{review.product}</span>
+                )}
               </div>
             </div>
           ))}
