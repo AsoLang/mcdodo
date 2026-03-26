@@ -6,6 +6,10 @@ import { Star, BadgeCheck } from 'lucide-react';
 
 type ProductLinks = Record<string, string>;
 
+function normalizeProductTitle(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
 const reviews = [
   { id: 1, name: 'James H.', rating: 5, product: '36W GaN Fast Charger', date: '14 Jan 2025', review: 'Had it about three weeks now and charges my iPhone 15 Pro without any fuss. Went from 10% to full in just over an hour which is plenty fast enough for me.' },
   { id: 2, name: 'Sophie T.', rating: 5, product: 'USB-C to Lightning Cable 1.2m', date: '9 Jan 2025', review: 'Previous cable frayed at the connector after about six weeks. This one has been in my bag every day since October and looks the same as when I got it.' },
@@ -113,11 +117,11 @@ const reviews = [
   { id: 104, name: 'Jodie K.', rating: 3, product: 'Magnetic Car Phone Holder', date: '10 Feb 2025', review: 'Holds the phone well on straight roads. On sharper turns it has slipped once or twice. I repositioned the vent clip and it improved a bit. The magnet strength seems fine for lighter phones.' },
   { id: 105, name: 'Brett H.', rating: 3, product: '65W Dual Port Charger', date: '1 Feb 2025', review: 'Works as described. My laptop does charge from it but noticeably slower than my original charger when both ports are in use. Single device works great. Just something to be aware of if you want full speed on both.' },
   { id: 106, name: 'Lauren M.', rating: 3, product: '120W Car Charger', date: '22 Jan 2025', review: 'Does charge the phone quickly which is what I wanted. The fit in my car socket is quite tight and a bit awkward to remove. Took a bit of getting used to. Happy enough with the charging performance though.' },
-  { id: 107, name: 'Stuart F.', rating: 3, product: 'USB-C to Lightning Cable 1.2m', date: '13 Jan 2025', review: 'Charges at a normal speed. Nothing wrong with the functionality. The cable feels slightly thinner than I expected from the pictures. Still doing the job after a month, just thought it would feel more premium.' },
-  { id: 108, name: 'Tanya R.', rating: 2, product: 'Wireless Earphones Pro', date: '4 Jan 2025', review: 'The sound was fine when they worked but mine started cutting out intermittently after about two weeks. I contacted the team and they arranged a replacement which was straightforward. The replacement pair has been fine since.' },
-  { id: 109, name: 'Aaron S.', rating: 2, product: 'USB-C Cable 2m Braided', date: '26 Dec 2024', review: 'The cable stopped fast charging after about three weeks and just trickle charges now. Works for regular charging but not what I paid for. Raised it with customer service and they are looking into it.' },
-  { id: 110, name: 'Mohammed K', rating: 4, product: 'Magnetic Wireless Charger', date: '22 Mar 2026', review: '' },
-  { id: 111, name: 'Amir L', rating: 4, product: '36W GaN Fast Charger', date: '19 Mar 2026', review: '' },
+  { id: 107, name: 'Mohammed K', rating: 4, product: 'Magnetic Wireless Charger', date: '22 Mar 2026', review: '' },
+  { id: 108, name: 'Stuart F.', rating: 3, product: 'USB-C to Lightning Cable 1.2m', date: '13 Jan 2025', review: 'Charges at a normal speed. Nothing wrong with the functionality. The cable feels slightly thinner than I expected from the pictures. Still doing the job after a month, just thought it would feel more premium.' },
+  { id: 109, name: 'Tanya R.', rating: 2, product: 'Wireless Earphones Pro', date: '4 Jan 2025', review: 'The sound was fine when they worked but mine started cutting out intermittently after about two weeks. I contacted the team and they arranged a replacement which was straightforward. The replacement pair has been fine since.' },
+  { id: 110, name: 'Amir L', rating: 4, product: '36W GaN Fast Charger', date: '19 Mar 2026', review: '' },
+  { id: 111, name: 'Aaron S.', rating: 2, product: 'USB-C Cable 2m Braided', date: '26 Dec 2024', review: 'The cable stopped fast charging after about three weeks and just trickle charges now. Works for regular charging but not what I paid for. Raised it with customer service and they are looking into it.' },
   { id: 112, name: 'Karzan S', rating: 4, product: 'Wireless Earphones Pro', date: '16 Mar 2026', review: '' },
   { id: 113, name: 'Mariwan H', rating: 4, product: '120W Car Charger', date: '12 Mar 2026', review: '' },
 ];
@@ -180,7 +184,9 @@ export default function ReviewsClient({ productLinks }: { productLinks: ProductL
           <div className="max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="text-center">
               <div className="text-7xl font-black text-gray-900 leading-none mb-3">{avgRating}</div>
-              <Stars rating={5} size={28} />
+              <div className="flex justify-center">
+                <Stars rating={5} size={28} />
+              </div>
               <p className="text-gray-500 mt-3 text-sm">{totalReviews} reviews</p>
             </div>
 
@@ -266,15 +272,20 @@ export default function ReviewsClient({ productLinks }: { productLinks: ProductL
 
               <div className="mt-4 pt-3 border-t border-gray-50">
                 <span className="text-xs text-gray-400">Product: </span>
-                {productLinks[review.product] ? (
+                {productLinks[normalizeProductTitle(review.product)] ? (
                   <Link
-                    href={`/shop/p/${productLinks[review.product]}`}
+                    href={`/shop/p/${productLinks[normalizeProductTitle(review.product)]}`}
                     className="text-xs font-medium text-cyan-700 hover:text-cyan-800 hover:underline"
                   >
                     {review.product}
                   </Link>
                 ) : (
-                  <span className="text-xs font-medium text-gray-600">{review.product}</span>
+                  <Link
+                    href="/archive"
+                    className="text-xs font-medium text-gray-600 hover:text-gray-800 hover:underline"
+                  >
+                    {review.product}
+                  </Link>
                 )}
               </div>
             </div>
