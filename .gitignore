@@ -42,3 +42,7 @@ next-env.d.ts
 
 # handover
 HANDOVER.md
+
+# local AI/agent docs and memory
+CLAUDE.md
+.claude/

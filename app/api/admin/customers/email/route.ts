@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
 import { Resend } from 'resend';
+import { verifySessionToken } from '@/lib/session';
 
 const sql = neon(process.env.DATABASE_URL!);
 const resend = new Resend(process.env.RESEND_API_KEY!);
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
     // --- AUTH CHECK ---
     const cookieStore = await cookies();
     const adminAuth = cookieStore.get('admin_auth');
-    if (!adminAuth || adminAuth.value !== 'true') {
+    if (!adminAuth || !(await verifySessionToken(adminAuth.value))) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
