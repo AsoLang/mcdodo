@@ -51,6 +51,16 @@ interface Product {
 
 type SortOption = 'newest' | 'price-low' | 'price-high' | 'name';
 
+interface ArchivedProduct {
+  id: string;
+  title: string;
+  product_url: string;
+  image: string;
+  price: number;
+  sale_price: number;
+  on_sale: boolean;
+}
+
 // Competitor-Matched Gradients
 const GRADIENT_BACKGROUNDS = [
   'bg-gradient-to-br from-blue-300 via-blue-400 to-blue-500', // Light Blue
@@ -108,6 +118,11 @@ export default function ShopPage({ products }: { products: Product[] }) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const [archivedProducts, setArchivedProducts] = useState<ArchivedProduct[]>([]);
+  const [archivedPage, setArchivedPage] = useState(0);
+  const [archivedLoading, setArchivedLoading] = useState(false);
+  const [archivedHasMore, setArchivedHasMore] = useState(true);
+  const [archivedShown, setArchivedShown] = useState(false);
 
   // Update search when URL params change
   useEffect(() => {
@@ -192,6 +207,22 @@ export default function ShopPage({ products }: { products: Product[] }) {
 
     return filtered;
   }, [products, search, selectedCategory, sortBy, priceRange, showOnSale]);
+
+  async function loadArchived() {
+    if (archivedLoading) return;
+    setArchivedLoading(true);
+    const nextPage = archivedPage + 1;
+    try {
+      const res = await fetch(`/api/archived-products?page=${nextPage}`);
+      const data = await res.json();
+      setArchivedProducts((prev) => [...prev, ...data.products]);
+      setArchivedPage(nextPage);
+      setArchivedHasMore(data.hasMore);
+      setArchivedShown(true);
+    } finally {
+      setArchivedLoading(false);
+    }
+  }
 
   const FilterSidebar = () => (
     <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
@@ -632,6 +663,64 @@ export default function ShopPage({ products }: { products: Product[] }) {
                   Clear all filters
                 </button>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Archived Products */}
+        <div className="mt-12">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-sm text-gray-400 font-medium uppercase tracking-widest">Previously Available</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          {archivedShown && archivedProducts.length > 0 && (
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6 mb-6">
+              {archivedProducts.map((product) => (
+                <div key={product.id}>
+                  <div className="bg-white rounded-xl shadow-md overflow-hidden group relative ring-1 ring-gray-200 opacity-75">
+                    <a href={`/shop/p/${product.product_url}`}>
+                      <div className="relative aspect-square bg-gray-50">
+                        <Image
+                          src={product.image}
+                          alt={product.title}
+                          fill
+                          unoptimized
+                          sizes="(max-width: 768px) 50vw, 33vw"
+                          className="object-contain p-4 sm:p-6 grayscale group-hover:grayscale-0 transition-all duration-300"
+                        />
+                        <div className="absolute top-2 right-2">
+                          <div className="bg-gray-500 text-white px-2.5 py-1 text-[10px] font-bold shadow-md rounded-full">
+                            Sold Out
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-3 sm:p-4">
+                        <h3 className="font-semibold text-gray-700 mb-2 line-clamp-2 min-h-[2.5rem] text-sm">{product.title}</h3>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-base sm:text-lg font-bold text-gray-400 line-through">
+                            £{(product.on_sale ? product.sale_price : product.price).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-center">
+            {(!archivedShown || archivedHasMore) && (
+              <button
+                onClick={loadArchived}
+                disabled={archivedLoading}
+                className="flex items-center gap-2 px-6 py-3 border border-gray-300 rounded-xl text-gray-600 font-medium hover:border-gray-400 hover:text-gray-900 transition disabled:opacity-50"
+              >
+                {archivedLoading ? <Loader2 size={16} className="animate-spin" /> : <ChevronDown size={16} />}
+                {archivedLoading ? 'Loading...' : 'See more'}
+              </button>
             )}
           </div>
         </div>
