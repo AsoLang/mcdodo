@@ -586,7 +586,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               <div className="space-y-3">
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <Truck size={20} className="text-orange-500 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-900">Fast, Free Shipping</span>
+                  <span className="text-sm font-medium text-gray-900">UK-Based, Ready to Ship</span>
                 </div>
 
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
