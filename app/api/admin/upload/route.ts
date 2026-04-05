@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
       const blob = await put(file.name, file, {
         access: 'public',
         addRandomSuffix: true,
+        cacheControlMaxAge: 31536000,
       });
       console.log(`Uploaded: ${blob.url}`);
       return blob.url;

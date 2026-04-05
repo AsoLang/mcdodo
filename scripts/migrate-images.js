@@ -50,6 +50,8 @@ async function migrateImages() {
         const blob = await put(filename, imageBuffer, {
           access: 'public',
           token: process.env.BLOB_READ_WRITE_TOKEN,
+          addRandomSuffix: true,
+          cacheControlMaxAge: 31536000,
         });
         
         newImages.push(blob.url);

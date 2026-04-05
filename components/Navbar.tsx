@@ -2,7 +2,6 @@
 
 'use client';
 
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShoppingCart, Search, Menu, X, ShoppingBag, Package, Truck, Heart, BookOpen, LayoutGrid } from 'lucide-react';
@@ -24,39 +23,38 @@ interface SearchProduct {
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { scrollY } = useScroll();
   const { itemCount, openCart } = useCart();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [products, setProducts] = useState<SearchProduct[]>([]);
+  const [searchLoaded, setSearchLoaded] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const backgroundColor = useTransform(
-    scrollY,
-    [0, 100],
-    ["rgba(255, 255, 255, 0.85)", "rgba(255, 255, 255, 0.98)"]
-  );
-  const boxShadow = useTransform(
-    scrollY,
-    [0, 100],
-    ["0px 0px 0px rgba(0,0,0,0)", "0px 4px 20px rgba(0,0,0,0.1)"]
-  );
-
-  // Fetch products for search
   useEffect(() => {
-    if (pathname?.startsWith('/admin')) return;
+    const handleScroll = () => setScrolled(window.scrollY > 100);
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!searchOpen || searchLoaded || pathname?.startsWith('/admin')) return;
+
     const fetchProducts = async () => {
       try {
         const res = await fetch('/api/products/search');
         if (res.ok) {
           const data = await res.json();
           setProducts(data);
+          setSearchLoaded(true);
         }
       } catch (error) {
         console.error('[Navbar] Failed to fetch products:', error);
       }
     };
+
     fetchProducts();
-  }, [pathname]);
+  }, [pathname, searchLoaded, searchOpen]);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -64,18 +62,15 @@ export default function Navbar() {
 
   return (
     <>
-      <motion.nav 
-        style={{ backgroundColor, boxShadow }} 
-        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg border-b border-gray-100"
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 border-b border-gray-100 backdrop-blur-lg transition-[background-color,box-shadow] duration-200 ${
+          scrolled ? 'bg-white/98 shadow-[0px_4px_20px_rgba(0,0,0,0.1)]' : 'bg-white/85 shadow-none'
+        }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
             <Link href="/" onClick={closeMobileMenu}>
-              <motion.div 
-                whileHover={{ scale: 1.05 }} 
-                transition={{ duration: 0.2 }}
-                className="flex items-center"
-              >
+              <div className="flex items-center transition-transform duration-200 hover:scale-105">
                 <Image 
                   src="/mcdodo-logo.png" 
                   alt="Mcdodo" 
@@ -84,7 +79,7 @@ export default function Navbar() {
                   className="h-6 md:h-10 w-auto"
                   priority
                 />
-              </motion.div>
+              </div>
             </Link>
             
             {/* Desktop Menu */}
@@ -105,74 +100,53 @@ export default function Navbar() {
             
             {/* Right Icons */}
             <div className="flex items-center space-x-4 md:space-x-6">
-              <motion.button
+              <button
                 onClick={() => setSearchOpen(true)}
-                whileHover={{ scale: 1.1 }} 
-                whileTap={{ scale: 0.9 }} 
-                transition={{ duration: 0.2 }}
-                className="text-gray-700 hover:text-orange-600 transition-colors"
+                className="text-gray-700 hover:text-orange-600 transition duration-200 hover:scale-110 active:scale-95"
                 aria-label="Search products"
               >
                 <Search size={20} className="md:w-6 md:h-6" />
-              </motion.button>
+              </button>
               
-              <motion.button 
+              <button
                 onClick={openCart}
-                whileHover={{ scale: 1.1 }} 
-                whileTap={{ scale: 0.9 }} 
-                transition={{ duration: 0.2 }}
-                className="text-gray-700 hover:text-orange-600 relative transition-colors"
+                className="text-gray-700 hover:text-orange-600 relative transition duration-200 hover:scale-110 active:scale-95"
                 aria-label={`Shopping cart with ${itemCount} items`}
               >
                 <ShoppingCart size={20} className="md:w-6 md:h-6" />
                 {itemCount > 0 && (
-                  <motion.span 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
+                  <span
                     className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center font-semibold text-[10px] md:text-xs"
                   >
                     {itemCount > 99 ? '99+' : itemCount}
-                  </motion.span>
+                  </span>
                 )}
-              </motion.button>
+              </button>
               
               {/* Mobile Menu Button */}
-              <motion.button 
+              <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                whileHover={{ scale: 1.1 }} 
-                whileTap={{ scale: 0.9 }} 
-                transition={{ duration: 0.2 }}
-                className="md:hidden text-gray-700 hover:text-orange-600 transition-colors"
+                className="md:hidden text-gray-700 hover:text-orange-600 transition duration-200 hover:scale-110 active:scale-95"
                 aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
               >
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </motion.button>
+              </button>
             </div>
           </div>
         </div>
-      </motion.nav>
+      </nav>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeMobileMenu}
-              className="fixed inset-0 bg-black/50 z-40 md:hidden"
-            />
-            
-            {/* Menu Panel - Scrollable */}
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'tween', duration: 0.15, ease: 'easeOut' }}
-              className="fixed top-16 right-0 bottom-0 w-80 bg-white shadow-2xl z-40 md:hidden overflow-y-auto"
-            >
+      {mobileMenuOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={closeMobileMenu}
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          />
+          
+          {/* Menu Panel - Scrollable */}
+          <div className="fixed top-16 right-0 bottom-0 w-80 bg-white shadow-2xl z-40 md:hidden overflow-y-auto">
               <div className="p-6 space-y-6">
                 
                 {/* Main Navigation */}
@@ -266,10 +240,9 @@ export default function Navbar() {
                 </div>
 
               </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+          </div>
+        </>
+      )}
 
       {/* Search Modal */}
       <SearchModal 

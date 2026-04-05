@@ -51,7 +51,12 @@ tech e-commerce aesthetic matching Mcdodo UK brand colours (orange #ea580c, dark
     const buffer = Buffer.from(b64, 'base64');
     const ext = mimeType.includes('png') ? 'png' : 'jpg';
     const filename = `blog/${Date.now()}-${keyword.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.${ext}`;
-    const blob = await put(filename, buffer, { access: 'public', contentType: mimeType });
+    const blob = await put(filename, buffer, {
+      access: 'public',
+      addRandomSuffix: true,
+      contentType: mimeType,
+      cacheControlMaxAge: 31536000,
+    });
 
     await sql`UPDATE blog_posts SET featured_image = ${blob.url} WHERE id = ${id}`;
 

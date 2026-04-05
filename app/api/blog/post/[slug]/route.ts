@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
+const PUBLIC_CACHE_HEADER = 'public, max-age=120, s-maxage=86400, stale-while-revalidate=604800';
 
 export async function GET(
   _request: NextRequest,
@@ -18,5 +19,9 @@ export async function GET(
     LIMIT 1
   `;
   if (posts.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  return NextResponse.json(posts[0]);
+  return NextResponse.json(posts[0], {
+    headers: {
+      'Cache-Control': PUBLIC_CACHE_HEADER,
+    },
+  });
 }

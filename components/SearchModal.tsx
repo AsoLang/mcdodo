@@ -3,7 +3,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -58,39 +57,21 @@ export default function SearchModal({ isOpen, onClose, products }: SearchModalPr
         .slice(0, 8)
     : [];
 
-  // Debug logging
-  useEffect(() => {
-    if (query) {
-      console.log('[SearchModal] Query:', query);
-      console.log('[SearchModal] Total products:', products.length);
-      console.log('[SearchModal] Filtered results:', filteredProducts.length);
-    }
-  }, [query, products.length, filteredProducts.length]);
-
   // Popular searches (you can customize these)
   const popularSearches = ['USB-C Cable', 'Fast Charger', 'Lightning Cable', 'Power Bank'];
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
-          />
+  if (!isOpen) return null;
 
-          {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            transition={{ type: 'tween', duration: 0.15, ease: 'easeOut' }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl z-50 overflow-hidden"
-          >
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
+      />
+
+      {/* Modal */}
+      <div className="fixed top-20 left-1/2 -translate-x-1/2 w-full max-w-2xl mx-4 bg-white rounded-2xl shadow-2xl z-50 overflow-hidden">
             {/* Search Input */}
             <div className="p-6 border-b border-gray-200">
               <div className="relative">
@@ -214,9 +195,7 @@ export default function SearchModal({ isOpen, onClose, products }: SearchModalPr
                 </div>
               )}
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+      </div>
+    </>
   );
 }

@@ -4,25 +4,21 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
-
-// Generate URL slug from title
-function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
+const SEARCH_CACHE_HEADER = 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800';
+export const dynamic = 'force-static';
+export const revalidate = 3600;
 
 export async function GET() {
   try {
-    console.log('[Search API] Fetching products for search...');
-    
     const products = await sql`
       SELECT 
         p.id,
         p.title,
-        p.product_url,
-        p.categories,
+        COALESCE(
+          p.product_url,
+          TRIM(BOTH '-' FROM REGEXP_REPLACE(LOWER(TRIM(p.title)), '[^a-z0-9]+', '-', 'g'))
+        ) as product_url,
+        COALESCE(p.categories, '') as categories,
         pv.price as price,
         pv.sale_price as sale_price,
         pv.on_sale,
@@ -43,21 +39,23 @@ export async function GET() {
       ORDER BY p.created_at DESC
     `;
 
-    console.log(`[Search API] Found ${products.length} products`);
-    
-    // Transform to ensure consistent types and generate missing URLs
-    const formattedProducts = products.map(p => ({
-      id: p.id,
-      title: p.title,
-      product_url: p.product_url || generateSlug(p.title),
-      categories: p.categories || '',
-      price: Number(p.price || 0),
-      sale_price: Number(p.sale_price || 0),
-      on_sale: p.on_sale || false,
-      image: p.image || ''
-    }));
-
-    return NextResponse.json(formattedProducts);
+    return NextResponse.json(
+      products.map(p => ({
+        id: p.id,
+        title: p.title,
+        product_url: p.product_url,
+        categories: p.categories,
+        price: Number(p.price || 0),
+        sale_price: Number(p.sale_price || 0),
+        on_sale: p.on_sale || false,
+        image: p.image || ''
+      })),
+      {
+        headers: {
+          'Cache-Control': SEARCH_CACHE_HEADER,
+        },
+      }
+    );
   } catch (error) {
     console.error('[Search API] Error:', error);
     return NextResponse.json({ error: 'Failed to fetch products', details: String(error) }, { status: 500 });

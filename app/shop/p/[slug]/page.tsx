@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { neon } from '@neondatabase/serverless';
 import ProductDetail from '@/components/ProductDetail';
 import type { Metadata } from 'next';
+import { cache } from 'react';
 
 export const dynamic = 'force-static';
 export const revalidate = 3600;
@@ -64,10 +65,26 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-async function getProduct(slug: string): Promise<Product | null> {
+const getProduct = cache(async (slug: string): Promise<Product | null> => {
   try {
     const products = await sql`
-      SELECT * FROM products 
+      SELECT 
+        id,
+        title,
+        description,
+        categories,
+        seo_title,
+        seo_description,
+        seo_keywords,
+        product_url,
+        visible,
+        accordions,
+        product_images,
+        gallery_images,
+        review_count,
+        review_rating,
+        related_products
+      FROM products 
       WHERE product_url = ${slug} 
     `;
 
@@ -143,7 +160,7 @@ async function getProduct(slug: string): Promise<Product | null> {
     console.error('Error fetching product:', error);
     return null;
   }
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

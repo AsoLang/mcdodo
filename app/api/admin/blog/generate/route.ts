@@ -95,7 +95,9 @@ tech e-commerce aesthetic matching Mcdodo UK brand colours (orange #ea580c, dark
     const filename = `blog/${Date.now()}-${keyword.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.${ext}`;
     const blob = await put(filename, buffer, {
       access: 'public',
+      addRandomSuffix: true,
       contentType: mimeType,
+      cacheControlMaxAge: 31536000,
     });
 
     return blob.url;

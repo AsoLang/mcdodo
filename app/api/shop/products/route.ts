@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
+const PUBLIC_CACHE_HEADER = 'public, max-age=120, s-maxage=86400, stale-while-revalidate=604800';
 
 export const dynamic = 'force-static';
 export const revalidate = 3600;
@@ -49,7 +50,7 @@ export async function GET() {
     
     return NextResponse.json(products, {
       headers: {
-        'Cache-Control': 's-maxage=300, stale-while-revalidate=600',
+        'Cache-Control': PUBLIC_CACHE_HEADER,
       },
     });
   } catch (error) {

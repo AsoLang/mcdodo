@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
+const PUBLIC_CACHE_HEADER = 'public, max-age=120, s-maxage=86400, stale-while-revalidate=604800';
 
 export async function GET(
   _req: Request,
@@ -27,7 +28,14 @@ export async function GET(
       ORDER BY price ASC
     `;
 
-    return NextResponse.json({ ...product, variants });
+    return NextResponse.json(
+      { ...product, variants },
+      {
+        headers: {
+          'Cache-Control': PUBLIC_CACHE_HEADER,
+        },
+      }
+    );
   } catch {
     return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
   }
