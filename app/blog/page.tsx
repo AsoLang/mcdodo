@@ -4,8 +4,7 @@ import { neon } from '@neondatabase/serverless';
 import { Metadata } from 'next';
 import BlogClient from './BlogClient';
 
-export const dynamic = 'force-static';
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Charging Guides & Tips | Mcdodo (UK) Blog',
