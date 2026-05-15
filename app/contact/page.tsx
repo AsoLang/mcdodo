@@ -51,9 +51,9 @@ export default function ContactPage() {
     () => ({
       '@context': 'https://schema.org',
       '@type': 'ContactPage',
-      name: 'Contact Mcdodo UK',
+      name: 'Contact Mcdodo (UK)',
       url: 'https://mcdodo.co.uk/contact',
-      description: 'Contact Mcdodo UK for order support, shipping questions and product help.',
+      description: 'Contact Mcdodo (UK) for order support, shipping questions and product help.',
     }),
     []
   );
@@ -141,7 +141,7 @@ export default function ContactPage() {
               <Reveal delay={0.1}>
                 <p className="mt-6 text-lg text-black font-medium leading-relaxed">
                   Have a question about our fast chargers or cables? Need help with an order?
-                  Drop us a message and the Mcdodo UK team will help you out.
+                  Drop us a message and the Mcdodo (UK) team will help you out.
                 </p>
               </Reveal>
             </section>
@@ -191,9 +191,9 @@ export default function ContactPage() {
             <Reveal delay={0.3}>
               <div className="rounded-3xl bg-white p-8 shadow-2xl shadow-gray-200 border border-gray-100">
                 <div className="mb-6 rounded-2xl border border-orange-200 bg-orange-50 p-4 text-sm leading-relaxed text-orange-950">
-                  <p className="font-bold">Mcdodo UK verkauft nicht über Amazon.</p>
+                  <p className="font-bold">Mcdodo (UK) verkauft nicht über Amazon.</p>
                   <p className="mt-2">
-                    Mcdodo UK verkauft nicht über Amazon. Wir können keine Rücksendungen, Ersatzlieferungen, Garantiefälle oder Erstattungen für Amazon-Bestellungen bearbeiten. Bitte kontaktieren Sie den Verkäufer direkt über Ihr Amazon-Konto.
+                    Mcdodo (UK) verkauft nicht über Amazon. Wir können keine Rücksendungen, Ersatzlieferungen, Garantiefälle oder Erstattungen für Amazon-Bestellungen bearbeiten. Bitte kontaktieren Sie den Verkäufer direkt über Ihr Amazon-Konto.
                   </p>
                 </div>
 
@@ -367,7 +367,7 @@ export default function ContactPage() {
         </div>
 
         <footer className="mt-20 border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <span>&copy; {new Date().getFullYear()} Mcdodo UK</span>
+          <span>&copy; {new Date().getFullYear()} Mcdodo (UK)</span>
           <div className="flex gap-6 font-medium text-gray-600">
             <Link href="/" className="hover:text-orange-600 transition-colors">Home</Link>
             <Link href="/shop" className="hover:text-orange-600 transition-colors">Shop</Link>
