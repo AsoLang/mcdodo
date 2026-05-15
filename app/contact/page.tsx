@@ -8,6 +8,12 @@ import { useMemo, useState } from 'react';
 import { Loader2, CheckCircle, AlertCircle, Send, HelpCircle, Package, MessageSquare } from 'lucide-react';
 import { Turnstile } from '@marsidev/react-turnstile';
 
+const AMAZON_SUPPORT_NOTICE =
+  'F\u00fcr Amazon-Bestellungen k\u00f6nnen wir leider keinen Support anbieten. Bitte \u00f6ffnen Sie Ihre Amazon-Bestellungen und kontaktieren Sie den dort angegebenen Verk\u00e4ufer direkt.';
+
+const AMAZON_SIGNAL_PATTERNS = ['amazon', 'amazon.de', 'amazon order', 'bestellnummer'];
+const AMAZON_ORDER_ID_REGEX = /\b\d{3}-\d{7}-\d{7}\b/;
+
 /* ---------- Reveal Animation Component ---------- */
 function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   return (
@@ -23,6 +29,7 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
 }
 
 export default function ContactPage() {
+  const [purchaseSource, setPurchaseSource] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [orderNumber, setOrderNumber] = useState('');
@@ -33,8 +40,8 @@ export default function ContactPage() {
   const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Validation: Check basic lengths and if token exists
   const canSend =
+    purchaseSource === 'website' &&
     name.trim().length >= 2 &&
     email.trim().includes('@') &&
     message.trim().length >= 10 &&
@@ -51,31 +58,32 @@ export default function ContactPage() {
     []
   );
 
+  const containsAmazonSignals = (value: string) => {
+    const normalizedValue = value.toLowerCase();
+    return (
+      AMAZON_SIGNAL_PATTERNS.some((signal) => normalizedValue.includes(signal)) ||
+      AMAZON_ORDER_ID_REGEX.test(normalizedValue)
+    );
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setDone(null);
     setError(null);
 
-    // Combine inputs to check everything at once
+    if (purchaseSource !== 'website') {
+      setError(AMAZON_SUPPORT_NOTICE);
+      return;
+    }
+
     const allInputText = `${message} ${orderNumber} ${name}`.toLowerCase();
-
-    // 1. Check for "Amazon" keyword
-    if (allInputText.includes('amazon')) {
-      setError('Please contact Amazon Support directly for Amazon orders.');
+    if (containsAmazonSignals(allInputText)) {
+      setError(AMAZON_SUPPORT_NOTICE);
       return;
     }
 
-    // 2. Check for Amazon Order ID Pattern (e.g. 123-1234567-1234567)
-    // \d{3} = 3 digits, \d{7} = 7 digits
-    const amazonOrderRegex = /\d{3}-\d{7}-\d{7}/;
-    if (amazonOrderRegex.test(allInputText)) {
-      setError('This looks like an Amazon order number. Please contact Amazon directly.');
-      return;
-    }
-
-    // 4. Check standard validation
     if (!canSend) {
-      setError('Please complete the captcha and fill in all fields.');
+      setError('Please choose where you ordered, complete the captcha, and fill in all required fields.');
       return;
     }
 
@@ -89,7 +97,7 @@ export default function ContactPage() {
           email: email.trim(),
           orderNumber: orderNumber.trim() || null,
           message: message.trim(),
-          token: token,
+          token,
         }),
       });
 
@@ -100,11 +108,13 @@ export default function ContactPage() {
         return;
       }
 
-      setDone('Message sent successfully! We’ll be in touch shortly.');
+      setDone("Message sent successfully! We'll be in touch shortly.");
+      setPurchaseSource('');
       setName('');
       setEmail('');
       setOrderNumber('');
       setMessage('');
+      setToken(null);
     } catch {
       setError('Network error. Please try again later.');
     } finally {
@@ -120,13 +130,8 @@ export default function ContactPage() {
       />
 
       <div className="max-w-6xl mx-auto">
-        {/* MAIN LAYOUT GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          
-          {/* LEFT COLUMN: Header + Info (Aligned top) */}
           <div className="lg:col-span-5 space-y-12">
-            
-            {/* Header Section */}
             <section className="text-left">
               <Reveal>
                 <h1 className="text-4xl md:text-6xl font-black text-black tracking-tight leading-none">
@@ -135,13 +140,12 @@ export default function ContactPage() {
               </Reveal>
               <Reveal delay={0.1}>
                 <p className="mt-6 text-lg text-black font-medium leading-relaxed">
-                  Have a question about our fast chargers or cables? Need help with an order? 
+                  Have a question about our fast chargers or cables? Need help with an order?
                   Drop us a message and the Mcdodo UK team will help you out.
                 </p>
               </Reveal>
             </section>
 
-            {/* Support Info Blocks */}
             <Reveal delay={0.2}>
               <div className="space-y-8">
                 <div className="flex gap-4 group">
@@ -151,7 +155,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="text-lg font-bold text-black">Order Support</h3>
                     <p className="mt-1 text-gray-600">
-                      Include your order number (e.g., #12345) to help us find your details faster.
+                      Include your order number if you purchased on mcdodo.co.uk so we can find your details faster.
                     </p>
                   </div>
                 </div>
@@ -175,7 +179,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="text-lg font-bold text-black">Response Time</h3>
                     <p className="mt-1 text-gray-600">
-                      We typically reply within 24 hours (Mon-Fri). Check your spam folder if you don't see us!
+                      We typically reply within 24 hours (Mon-Fri). Check your spam folder if you do not see us.
                     </p>
                   </div>
                 </div>
@@ -183,13 +187,17 @@ export default function ContactPage() {
             </Reveal>
           </div>
 
-          {/* RIGHT COLUMN: The Form Card */}
           <div className="lg:col-span-7">
             <Reveal delay={0.3}>
               <div className="rounded-3xl bg-white p-8 shadow-2xl shadow-gray-200 border border-gray-100">
-                
-                {/* Success/Error Messages */}
-                <AnimatePresence mode='wait'>
+                <div className="mb-6 rounded-2xl border border-orange-200 bg-orange-50 p-4 text-sm leading-relaxed text-orange-950">
+                  <p className="font-bold">Mcdodo UK verkauft nicht über Amazon.</p>
+                  <p className="mt-2">
+                    Mcdodo UK verkauft nicht über Amazon. Wir können keine Rücksendungen, Ersatzlieferungen, Garantiefälle oder Erstattungen für Amazon-Bestellungen bearbeiten. Bitte kontaktieren Sie den Verkäufer direkt über Ihr Amazon-Konto.
+                  </p>
+                </div>
+
+                <AnimatePresence mode="wait">
                   {done && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
@@ -214,106 +222,152 @@ export default function ContactPage() {
                   )}
                 </AnimatePresence>
 
-                <form onSubmit={onSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Name Input */}
-                    <div className="space-y-2">
-                      <label htmlFor="contact-name" className="text-sm font-bold text-black ml-1">Name</label>
-                      <input
-                        id="contact-name"
-                        name="name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        autoComplete="name"
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10"
-                        placeholder="Your name"
-                      />
-                    </div>
-
-                    {/* Email Input */}
-                    <div className="space-y-2">
-                      <label htmlFor="contact-email" className="text-sm font-bold text-black ml-1">Email</label>
-                      <input
-                        id="contact-email"
-                        name="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        autoComplete="email"
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10"
-                        placeholder="you@example.com"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Order Number */}
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <label htmlFor="contact-order" className="text-sm font-bold text-black ml-1">
-                      Order number <span className="text-gray-500 font-medium text-xs ml-1">(Optional)</span>
+                    <label htmlFor="purchase-source" className="text-sm font-bold text-black ml-1">
+                      Kaufort ausw&auml;hlen
                     </label>
-                    <input
-                      id="contact-order"
-                      name="orderNumber"
-                      value={orderNumber}
-                      onChange={(e) => setOrderNumber(e.target.value)}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10"
-                      placeholder="e.g. #12345"
-                    />
+                    <select
+                      id="purchase-source"
+                      name="purchaseSource"
+                      value={purchaseSource}
+                      onChange={(e) => {
+                        const nextValue = e.target.value;
+                        setPurchaseSource(nextValue);
+                        setDone(null);
+                        setError(nextValue === 'amazon' ? AMAZON_SUPPORT_NOTICE : null);
+                      }}
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10"
+                      required
+                    >
+                      <option value="" disabled>
+                        Bitte ausw&auml;hlen
+                      </option>
+                      <option value="website">Ich habe auf mcdodo.co.uk bestellt</option>
+                      <option value="amazon">Ich habe auf Amazon bestellt</option>
+                    </select>
                   </div>
 
-                  {/* Message */}
-                  <div className="space-y-2">
-                    <label htmlFor="contact-message" className="text-sm font-bold text-black ml-1">Message</label>
-                    <textarea
-                      id="contact-message"
-                      name="message"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      className="w-full min-h-[160px] rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 resize-y"
-                      placeholder="How can we help you today?"
-                    />
-                    <div className="flex items-center gap-2 text-xs text-gray-500 ml-1">
-                      <AlertCircle size={12} className="text-orange-500" />
-                      Please do not include sensitive card details.
-                    </div>
-                  </div>
+                  <AnimatePresence mode="wait">
+                    {purchaseSource === 'amazon' ? (
+                      <motion.div
+                        key="amazon-notice"
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -12 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-950"
+                      >
+                        <p className="text-base font-bold">{AMAZON_SUPPORT_NOTICE}</p>
+                        <p className="mt-4 text-sm font-bold text-red-800">
+                          Amazon Konto &ouml;ffnen &rarr; Meine Bestellungen &rarr; Verk&auml;ufer kontaktieren
+                        </p>
+                      </motion.div>
+                    ) : purchaseSource === 'website' ? (
+                      <motion.form
+                        key="contact-form"
+                        onSubmit={onSubmit}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -12 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        className="space-y-6"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2">
+                            <label htmlFor="contact-name" className="text-sm font-bold text-black ml-1">Name</label>
+                            <input
+                              id="contact-name"
+                              name="name"
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
+                              autoComplete="name"
+                              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10"
+                              placeholder="Your name"
+                            />
+                          </div>
 
-                  {/* Turnstile Widget */}
-                  <div className="w-full">
-                    <Turnstile
-                      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                      onSuccess={setToken}
-                    />
-                  </div>
+                          <div className="space-y-2">
+                            <label htmlFor="contact-email" className="text-sm font-bold text-black ml-1">Email</label>
+                            <input
+                              id="contact-email"
+                              name="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              autoComplete="email"
+                              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10"
+                              placeholder="you@example.com"
+                            />
+                          </div>
+                        </div>
 
-                  {/* Submit Button */}
-                  <button
-                    type="submit"
-                    disabled={sending}
-                    className="group relative w-full overflow-hidden rounded-xl bg-orange-600 px-6 py-4 font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700 hover:shadow-orange-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      {sending ? (
-                        <>
-                          <Loader2 className="animate-spin" size={20} />
-                          <span>Sending Message...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Send Message</span>
-                          <Send size={18} className="transition-transform group-hover:translate-x-1" />
-                        </>
-                      )}
-                    </div>
-                  </button>
-                </form>
+                        <div className="space-y-2">
+                          <label htmlFor="contact-order" className="text-sm font-bold text-black ml-1">
+                            Bestellnummer von mcdodo.co.uk <span className="text-gray-500 font-medium text-xs ml-1">(Optional)</span>
+                          </label>
+                          <input
+                            id="contact-order"
+                            name="orderNumber"
+                            value={orderNumber}
+                            onChange={(e) => setOrderNumber(e.target.value)}
+                            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10"
+                            placeholder="z. B. #12345"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label htmlFor="contact-message" className="text-sm font-bold text-black ml-1">Message</label>
+                          <textarea
+                            id="contact-message"
+                            name="message"
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            className="w-full min-h-[160px] rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-black placeholder-gray-500 outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 resize-y"
+                            placeholder="How can we help you today?"
+                          />
+                          <div className="flex items-center gap-2 text-xs text-gray-500 ml-1">
+                            <AlertCircle size={12} className="text-orange-500" />
+                            Please do not include sensitive card details.
+                          </div>
+                        </div>
+
+                        <div className="w-full">
+                          <Turnstile
+                            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                            onSuccess={setToken}
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={sending}
+                          className="group relative w-full overflow-hidden rounded-xl bg-orange-600 px-6 py-4 font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700 hover:shadow-orange-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            {sending ? (
+                              <>
+                                <Loader2 className="animate-spin" size={20} />
+                                <span>Sending Message...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>Send Message</span>
+                                <Send size={18} className="transition-transform group-hover:translate-x-1" />
+                              </>
+                            )}
+                          </div>
+                        </button>
+                      </motion.form>
+                    ) : null}
+                  </AnimatePresence>
+                </div>
               </div>
             </Reveal>
           </div>
         </div>
 
-        {/* FOOTER */}
         <footer className="mt-20 border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <span>© {new Date().getFullYear()} Mcdodo UK</span>
+          <span>&copy; {new Date().getFullYear()} Mcdodo UK</span>
           <div className="flex gap-6 font-medium text-gray-600">
             <Link href="/" className="hover:text-orange-600 transition-colors">Home</Link>
             <Link href="/shop" className="hover:text-orange-600 transition-colors">Shop</Link>
