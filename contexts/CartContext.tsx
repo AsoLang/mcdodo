@@ -33,6 +33,7 @@ interface CartContextType {
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (variantId: string) => void;
   updateQuantity: (variantId: string, quantity: number) => void;
+  updateItemStock: (variantId: string, stock: number) => void;
   clearCart: () => void;
   openCart: () => void;
   closeCart: () => void;
@@ -108,6 +109,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [removeItem]
   );
 
+  const updateItemStock = useCallback((variantId: string, stock: number) => {
+    setItems((currentItems) =>
+      currentItems
+        .map((item) =>
+          item.id === variantId
+            ? { ...item, stock, quantity: Math.min(item.quantity, stock) }
+            : item
+        )
+        .filter((item) => item.stock > 0 && item.quantity > 0)
+    );
+  }, []);
+
   const clearCart = useCallback(() => {
     setItems([]);
   }, []);
@@ -133,6 +146,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addItem,
       removeItem,
       updateQuantity,
+      updateItemStock,
       clearCart,
       openCart,
       closeCart,
@@ -145,6 +159,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addItem,
       removeItem,
       updateQuantity,
+      updateItemStock,
       clearCart,
       openCart,
       closeCart,

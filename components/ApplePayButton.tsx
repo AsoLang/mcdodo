@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useCart } from '@/contexts/CartContext';
 
 interface ApplePayButtonProps {
   productId: string;
@@ -15,6 +16,8 @@ interface ApplePayButtonProps {
   productUrl: string;
   selectedColor?: string;
   selectedSize?: string;
+  quantity?: number;
+  stock?: number;
   disabled?: boolean;
 }
 
@@ -29,8 +32,11 @@ export default function ApplePayButton({
   productUrl,
   selectedColor,
   selectedSize,
+  quantity = 1,
+  stock = quantity,
   disabled = false
 }: ApplePayButtonProps) {
+  const { addItem, updateItemStock } = useCart();
   const [isMobile, setIsMobile] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -46,6 +52,16 @@ export default function ApplePayButton({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  useEffect(() => {
+    const resetProcessing = () => setIsProcessing(false);
+    window.addEventListener('pageshow', resetProcessing);
+    document.addEventListener('visibilitychange', resetProcessing);
+    return () => {
+      window.removeEventListener('pageshow', resetProcessing);
+      document.removeEventListener('visibilitychange', resetProcessing);
+    };
+  }, []);
+
   const handleApplePay = async () => {
     if (disabled) return;
     
@@ -53,6 +69,22 @@ export default function ApplePayButton({
 
     try {
       const finalPrice = onSale && salePrice ? salePrice : price;
+
+      for (let i = 0; i < quantity; i++) {
+        addItem({
+          id: variantId,
+          productId,
+          productUrl,
+          title: productTitle,
+          color: selectedColor,
+          size: selectedSize,
+          price,
+          salePrice: salePrice ?? price,
+          onSale,
+          image,
+          stock,
+        });
+      }
 
       const res = await fetch('/api/apple-pay-checkout', {
         method: 'POST',
@@ -66,7 +98,7 @@ export default function ApplePayButton({
           productUrl,
           color: selectedColor,
           size: selectedSize,
-          quantity: 1
+          quantity
         })
       });
 
@@ -74,8 +106,12 @@ export default function ApplePayButton({
 
       if (data.url) {
         window.location.href = data.url;
+      } else if (data.code === 'STOCK_CHANGED') {
+        updateItemStock(variantId, Number(data.available || 0));
+        alert(data.error || 'This item is no longer available in that quantity.');
+        setIsProcessing(false);
       } else {
-        alert('Failed to process Apple Pay');
+        alert(data.error || 'Failed to process Apple Pay');
         setIsProcessing(false);
       }
     } catch (error) {

@@ -23,8 +23,9 @@ async function decrementStock(items: any[]) {
     try {
       const variantResult = await sql`
         UPDATE product_variants 
-        SET stock = GREATEST(0, stock - ${item.quantity})
+        SET stock = stock - ${item.quantity}
         WHERE id = ${item.id}
+        AND stock >= ${item.quantity}
         RETURNING product_id, stock
       `;
 
@@ -38,6 +39,8 @@ async function decrementStock(items: any[]) {
           `;
         }
         console.log(`✅ Stock updated for variant ${item.id}: ${variantResult[0].stock} remaining`);
+      } else {
+        console.error(`[Stock Update] Insufficient stock for variant ${item.id}`);
       }
     } catch (error) {
       console.error(`❌ [Stock Update] Failed for ID ${item.id}:`, error);

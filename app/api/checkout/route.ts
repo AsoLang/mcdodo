@@ -2,10 +2,12 @@
 
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { neon } from '@neondatabase/serverless';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20' as any,
 });
+const sql = neon(process.env.DATABASE_URL!);
 
 type CartItem = {
   id?: string | number;
@@ -24,6 +26,38 @@ function detectDevice(ua: string | null): 'mobile' | 'desktop' {
   return /mobile|android|iphone|ipad|tablet/i.test(ua || '') ? 'mobile' : 'desktop';
 }
 
+async function validateStock(items: CartItem[]) {
+  const variantIds = items
+    .map((item) => item.id)
+    .filter((id): id is string | number => id !== undefined && id !== null)
+    .map(String);
+
+  if (variantIds.length === 0) return [];
+
+  const rows = await sql`
+    SELECT id::text, stock::int
+    FROM product_variants
+    WHERE id = ANY(${variantIds})
+  `;
+
+  const stockById = new Map(rows.map((row: any) => [String(row.id), Number(row.stock || 0)]));
+
+  return items
+    .map((item) => {
+      const id = item.id != null ? String(item.id) : '';
+      const available = stockById.get(id) ?? 0;
+      if (!id || item.quantity <= available) return null;
+
+      return {
+        id,
+        title: item.title,
+        requested: item.quantity,
+        available,
+      };
+    })
+    .filter(Boolean);
+}
+
 export async function POST(req: Request) {
   try {
     const { items, shippingCost, discountCode } = (await req.json()) as {
@@ -37,6 +71,18 @@ export async function POST(req: Request) {
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: 'No items provided' }, { status: 400 });
+    }
+
+    const stockIssues = await validateStock(items);
+    if (stockIssues.length > 0) {
+      return NextResponse.json(
+        {
+          error: 'Some items in your basket are no longer available in that quantity.',
+          code: 'STOCK_CHANGED',
+          issues: stockIssues,
+        },
+        { status: 409 }
+      );
     }
 
     // 1) Calculate subtotal (using the same prices you show in-cart)

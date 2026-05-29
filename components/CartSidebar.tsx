@@ -12,8 +12,9 @@ import confetti from 'canvas-confetti';
 
 export default function CartSidebar() {
   const pathname = usePathname();
-  const { items, itemCount, total, isOpen, closeCart, updateQuantity, removeItem } = useCart();
+  const { items, itemCount, total, isOpen, closeCart, updateQuantity, updateItemStock, removeItem } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
   
   // Discount state
   const [discountCode, setDiscountCode] = useState('');
@@ -132,6 +133,7 @@ export default function CartSidebar() {
 
   const handleCheckout = async () => {
     setIsCheckingOut(true);
+    setCheckoutError('');
     
     try {
       const res = await fetch('/api/checkout', {
@@ -148,13 +150,19 @@ export default function CartSidebar() {
       
       if (data.url) {
         window.location.href = data.url;
+      } else if (data.code === 'STOCK_CHANGED' && Array.isArray(data.issues)) {
+        data.issues.forEach((issue: any) => {
+          if (issue?.id) updateItemStock(String(issue.id), Number(issue.available || 0));
+        });
+        setCheckoutError(data.error || 'Some basket quantities were updated because stock changed.');
+        setIsCheckingOut(false);
       } else {
-        alert('Failed to create checkout session');
+        setCheckoutError(data.error || 'Failed to create checkout session');
         setIsCheckingOut(false);
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Failed to proceed to checkout');
+      setCheckoutError('Failed to proceed to checkout');
       setIsCheckingOut(false);
     }
   };
@@ -467,6 +475,13 @@ export default function CartSidebar() {
                 >
                   {isCheckingOut ? 'Processing...' : 'Proceed to Checkout'}
                 </button>
+
+                {checkoutError && (
+                  <div className="mb-3 flex items-start gap-2 rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
+                    <AlertCircle size={16} className="mt-0.5 flex-shrink-0" />
+                    <span>{checkoutError}</span>
+                  </div>
+                )}
 
                 <button
                   onClick={closeCart}

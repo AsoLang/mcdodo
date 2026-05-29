@@ -1,17 +1,40 @@
 // Path: app/api/apple-pay-checkout/route.ts
 
 import { NextResponse } from 'next/server';
+import { neon } from '@neondatabase/serverless';
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const sql = neon(process.env.DATABASE_URL!);
 
 export async function POST(req: Request) {
   try {
     const { productId, variantId, title, price, image, productUrl, color, size, quantity } = await req.json();
+    const requestedQuantity = Math.max(1, Number(quantity || 1));
+
+    if (variantId) {
+      const rows = await sql`
+        SELECT stock::int
+        FROM product_variants
+        WHERE id = ${variantId}
+        LIMIT 1
+      `;
+      const available = Number(rows[0]?.stock || 0);
+      if (requestedQuantity > available) {
+        return NextResponse.json(
+          {
+            error: 'This item is no longer available in that quantity.',
+            code: 'STOCK_CHANGED',
+            available,
+          },
+          { status: 409 }
+        );
+      }
+    }
 
     const SHIPPING_COST = 3.99;
     const FREE_SHIPPING_THRESHOLD = 20.00;
 
-    const subtotal = price * quantity;
+    const subtotal = price * requestedQuantity;
     const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
 
     // Build product name with variants
@@ -42,7 +65,7 @@ export async function POST(req: Request) {
           },
           unit_amount: Math.round(price * 100),
         },
-        quantity: quantity,
+        quantity: requestedQuantity,
       }
     ];
 

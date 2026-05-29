@@ -82,6 +82,7 @@ export default function ProductDetail({ product }: { product: Product }) {
   const [galleryModalOpen, setGalleryModalOpen] = useState(false);
   const [galleryModalIndex, setGalleryModalIndex] = useState(0);
   const [isBuyingNow, setIsBuyingNow] = useState(false);
+  const [buyNowError, setBuyNowError] = useState('');
 
   const price = Number(selectedVariant.price);
   const salePrice = Number(selectedVariant.sale_price);
@@ -157,6 +158,7 @@ export default function ProductDetail({ product }: { product: Product }) {
   const handleBuyNow = async () => {
     if (stock === 0) return;
     setIsBuyingNow(true);
+    setBuyNowError('');
 
     try {
       const imagePath = displayImages[0] || '/placeholder.jpg';
@@ -232,13 +234,16 @@ export default function ProductDetail({ product }: { product: Product }) {
       
       if (data.url) {
         window.location.href = data.url;
+      } else if (data.code === 'STOCK_CHANGED') {
+        setBuyNowError(data.error || 'This item quantity is no longer available.');
+        setIsBuyingNow(false);
       } else {
-        alert('Failed to create checkout session');
+        setBuyNowError(data.error || 'Failed to create checkout session');
         setIsBuyingNow(false);
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      alert('Failed to proceed to checkout');
+      setBuyNowError('Failed to proceed to checkout');
       setIsBuyingNow(false);
     }
   };
@@ -535,8 +540,15 @@ export default function ProductDetail({ product }: { product: Product }) {
                 productUrl={product.product_url}
                 selectedColor={selectedVariant.color || undefined}
                 selectedSize={selectedVariant.size || undefined}
+                quantity={quantity}
+                stock={stock}
                 disabled={stock === 0}
               />
+              {buyNowError && (
+                <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
+                  {buyNowError}
+                </div>
+              )}
             </div>
 
             {/* Description */}
