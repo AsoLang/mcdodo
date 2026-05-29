@@ -140,19 +140,21 @@ export default function ProductDetail({ product }: { product: Product }) {
     
     const image = displayImages[0] || '/placeholder.jpg';
     
-    addItem({
-      id: selectedVariant.id,
-      productId: product.id,
-      productUrl: product.product_url,
-      title: product.title,
-      color: selectedVariant.color || undefined,
-      size: selectedVariant.size || undefined,
-      price: price,
-      salePrice: salePrice,
-      onSale: onSale,
-      image: image,
-      stock: stock
-    });
+    for (let i = 0; i < quantity; i++) {
+      addItem({
+        id: selectedVariant.id,
+        productId: product.id,
+        productUrl: product.product_url,
+        title: product.title,
+        color: selectedVariant.color || undefined,
+        size: selectedVariant.size || undefined,
+        price: price,
+        salePrice: salePrice,
+        onSale: onSale,
+        image: image,
+        stock: stock
+      });
+    }
   };
 
   const handleBuyNow = async () => {

@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChargeGuard 140W Auto-Off Adapter | Mcdodo (UK)</title>
+  <meta name="description" content="ChargeGuard 140W Auto-Off Adapter protects battery health with physical power cut-off, dual charging modes, and full-speed USB-C charging.">
+  <style>
+    :root {
+      --ink: #111318;
+      --muted: #69707d;
+      --paper: #f8fafc;
+      --white: #ffffff;
+      --orange: #ff6a1a;
+      --orange-dark: #e65300;
+      --cyan: #00b8ff;
+      --blue: #155eef;
+      --green: #15b981;
+      --line: rgba(17, 19, 24, 0.12);
+      --shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+      --radius: 28px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img, video {
+      max-width: 100%;
+      display: block;
+    }
+
+    .page {
+      overflow: hidden;
+    }
+
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.82);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+      backdrop-filter: blur(18px);
+    }
+
+    .nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-logo {
+      width: 142px;
+      height: auto;
+      display: block;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      font-size: 14px;
+      color: #3a414d;
+      font-weight: 700;
+    }
+
+    .nav-cta, .btn {
+      border: 0;
+      cursor: pointer;
+      border-radius: 999px;
+      font-weight: 900;
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .nav-cta {
+      padding: 11px 18px;
+      background: var(--ink);
+      color: white;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px 24px;
+      min-height: 54px;
+      font-size: 16px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--orange), #ffb000);
+      color: white;
+      box-shadow: 0 18px 42px rgba(255, 106, 26, 0.34);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+    }
+
+    .btn:hover, .nav-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 38px rgba(15, 23, 42, 0.22);
+    }
+
+    .is-loading {
+      pointer-events: none;
+      opacity: 0.72;
+    }
+
+    .hero {
+      padding: 124px 22px 64px;
+      background:
+        radial-gradient(circle at 78% 20%, rgba(0, 184, 255, 0.22), transparent 34%),
+        radial-gradient(circle at 20% 18%, rgba(255, 106, 26, 0.24), transparent 32%),
+        linear-gradient(135deg, #0d111a 0%, #171b24 48%, #232a36 100%);
+      color: white;
+    }
+
+    .hero-grid {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+      align-items: center;
+      gap: 56px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      color: #ffcf9f;
+      background: rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hero h1 {
+      margin: 22px 0 18px;
+      font-size: clamp(44px, 7vw, 86px);
+      line-height: 0.92;
+      letter-spacing: -0.045em;
+      max-width: 760px;
+    }
+
+    .hero-copy {
+      color: #c9d3e1;
+      max-width: 620px;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.55;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 32px 0;
+      flex-wrap: wrap;
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      max-width: 620px;
+    }
+
+    .stat {
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.07);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 24px;
+      letter-spacing: -0.03em;
+    }
+
+    .stat span {
+      color: #aab7c8;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 590px;
+      display: grid;
+      place-items: center;
+    }
+
+    .product-glow {
+      position: absolute;
+      width: 460px;
+      height: 460px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 184, 255, 0.38), transparent 62%);
+      filter: blur(10px);
+    }
+
+    .hero-card {
+      position: relative;
+      width: min(100%, 500px);
+      padding: 24px;
+      border-radius: 34px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero-card img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      filter: drop-shadow(0 28px 42px rgba(0, 0, 0, 0.36));
+    }
+
+    .floating-badge {
+      position: absolute;
+      right: 14px;
+      bottom: 24px;
+      display: grid;
+      gap: 4px;
+      width: 168px;
+      padding: 16px;
+      border-radius: 20px;
+      color: var(--ink);
+      background: white;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+    }
+
+    .floating-badge strong {
+      font-size: 26px;
+    }
+
+    .floating-badge span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .section {
+      padding: 86px 22px;
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .section-head {
+      max-width: 760px;
+      margin-bottom: 38px;
+    }
+
+    .section-kicker {
+      color: var(--orange-dark);
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .section h2 {
+      margin: 10px 0 14px;
+      font-size: clamp(32px, 5vw, 58px);
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .section p {
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .feature-dots {
+      display: none;
+    }
+
+    .feature-card {
+      padding: 24px;
+      border-radius: 24px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 46px rgba(15, 23, 42, 0.12);
+    }
+
+    .icon {
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #fff0e5, #e6f8ff);
+      color: var(--orange-dark);
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      letter-spacing: -0.02em;
+    }
+
+    .feature-card p {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .showcase {
+      background: #ffffff;
+    }
+
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 34px;
+      align-items: center;
+    }
+
+    .media-stack {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .media-tile {
+      min-height: 260px;
+      border-radius: 26px;
+      overflow: hidden;
+      background: #eef3f8;
+      border: 1px solid var(--line);
+    }
+
+    .media-tile.large {
+      grid-column: span 2;
+      min-height: 360px;
+    }
+
+    .media-tile img, .media-tile video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .spec-panel {
+      padding: 34px;
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, #10141c, #1b2230);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin: 18px 0 24px;
+    }
+
+    .price {
+      font-size: 54px;
+      font-weight: 950;
+      letter-spacing: -0.05em;
+    }
+
+    .was {
+      color: #99a5b8;
+      text-decoration: line-through;
+      font-weight: 800;
+    }
+
+    .spec-list {
+      display: grid;
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    .spec-list.detached {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin: 0;
+    }
+
+    .spec {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .spec-list.detached .spec {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      min-height: 120px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+      box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+    }
+
+    .spec span {
+      color: #aeb9ca;
+    }
+
+    .spec strong {
+      text-align: right;
+    }
+
+    .spec-list.detached .spec strong {
+      text-align: left;
+      font-size: 18px;
+    }
+
+    .mode-section {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.9)),
+        radial-gradient(circle at 78% 24%, rgba(0, 184, 255, 0.18), transparent 30%);
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .mode-card {
+      padding: 28px;
+      border-radius: 28px;
+      background: white;
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+    }
+
+    .mode-light {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      margin-bottom: 18px;
+    }
+
+    .mode-light.white {
+      background: #ffffff;
+      border: 10px solid #e7edf5;
+      box-shadow: 0 0 36px rgba(255, 255, 255, 0.8), inset 0 0 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .mode-light.blue {
+      background: #0eb7ff;
+      border: 10px solid #c7efff;
+      box-shadow: 0 0 36px rgba(0, 184, 255, 0.54), inset 0 0 10px rgba(0, 0, 0, 0.12);
+    }
+
+    .proof {
+      background: #10141c;
+      color: white;
+    }
+
+    .proof.section {
+      padding-top: 58px;
+      padding-bottom: 58px;
+    }
+
+    .proof .section-head {
+      margin-bottom: 24px;
+    }
+
+    .proof .section-kicker {
+      color: #ffcf9f;
+    }
+
+    .proof p {
+      color: #aeb9ca;
+    }
+
+    .review-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .review-dots {
+      display: none;
+    }
+
+    .review-extra {
+      display: none;
+    }
+
+    .review {
+      padding: 24px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stars {
+      color: #ffb000;
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+    }
+
+    .review blockquote {
+      margin: 0 0 18px;
+      color: #e7edf5;
+      line-height: 1.6;
+      font-size: 15px;
+      flex: 1;
+    }
+
+    .review cite {
+      color: #aeb9ca;
+      font-style: normal;
+      font-weight: 800;
+    }
+
+    .faq-grid {
+      display: grid;
+      grid-template-columns: 0.75fr 1.25fr;
+      gap: 36px;
+      align-items: start;
+    }
+
+    .accordion {
+      display: grid;
+      gap: 12px;
+    }
+
+    .accordion-item {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+      overflow: hidden;
+    }
+
+    .accordion-button {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 20px;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+      text-align: left;
+    }
+
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 220ms ease;
+    }
+
+    .accordion-content p {
+      margin: 0;
+      padding: 0 20px 20px;
+      font-size: 15px;
+    }
+
+    .accordion-item.active .accordion-content {
+      max-height: 220px;
+    }
+
+    .accordion-item.active .plus {
+      transform: rotate(45deg);
+    }
+
+    .plus {
+      transition: transform 180ms ease;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .final-cta {
+      padding: 90px 22px;
+      background: linear-gradient(135deg, #ff6a1a, #ffb000);
+      color: white;
+      text-align: center;
+    }
+
+    .final-cta h2 {
+      max-width: 780px;
+      margin: 0 auto 18px;
+      font-size: clamp(36px, 6vw, 66px);
+      line-height: 0.98;
+      letter-spacing: -0.045em;
+    }
+
+    .final-cta p {
+      max-width: 650px;
+      margin: 0 auto 28px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    .final-cta .btn {
+      background: white;
+      color: var(--ink);
+    }
+
+    .footer {
+      background: #0d111a;
+      color: #aeb9ca;
+      padding: 42px 22px;
+    }
+
+    .footer-grid {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      font-weight: 800;
+    }
+
+    .footer small {
+      display: block;
+      margin-top: 8px;
+      color: #748194;
+    }
+
+    .mobile-buy-card {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 10px;
+      z-index: 30;
+      display: none;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      background: linear-gradient(135deg, rgba(255, 106, 26, 0.96), rgba(255, 176, 0, 0.96));
+      border: 1px solid rgba(255, 255, 255, 0.36);
+      border-radius: 24px;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 18px 52px rgba(214, 83, 0, 0.38);
+    }
+
+    .sticky-thumb {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.88);
+      object-fit: contain;
+      padding: 6px;
+      flex-shrink: 0;
+    }
+
+    .sticky-info {
+      min-width: 0;
+      flex: 1;
+      color: white;
+    }
+
+    .sticky-badge {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      margin-bottom: 4px;
+      border-radius: 999px;
+      background: rgba(17, 19, 24, 0.18);
+      color: white;
+      font-size: 10px;
+      font-weight: 950;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .sticky-title {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    .sticky-price {
+      display: block;
+      font-size: 13px;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .sticky-actions {
+      display: flex;
+      flex-shrink: 0;
+    }
+
+    .sticky-actions a {
+      height: 48px;
+      min-width: 102px;
+      border-radius: 15px;
+      display: grid;
+      place-items: center;
+      font-weight: 950;
+    }
+
+    .buy-mobile {
+      min-width: 120px;
+      background: #fff;
+      color: var(--orange-dark);
+      font-size: 15px;
+      box-shadow: 0 12px 26px rgba(90, 37, 0, 0.18);
+    }
+
+    @media (max-width: 900px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hero-grid, .showcase-grid, .faq-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        min-height: 440px;
+      }
+
+      .feature-grid, .review-grid, .mode-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .feature-grid {
+        display: flex;
+        gap: 14px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding: 18px;
+        padding: 4px 18px 18px;
+        margin: 0 -18px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      .feature-grid::-webkit-scrollbar {
+        display: none;
+      }
+
+      .feature-card {
+        min-width: 84vw;
+        scroll-snap-align: center;
+        scroll-snap-stop: always;
+      }
+
+      .feature-dots {
+        display: flex;
+        justify-content: center;
+        gap: 7px;
+        margin-top: 6px;
+      }
+
+      .feature-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        border: 0;
+        background: rgba(17, 19, 24, 0.18);
+      }
+
+      .feature-dot.active {
+        width: 24px;
+        background: var(--orange);
+      }
+
+      .review-grid {
+        display: flex;
+        gap: 14px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding: 18px;
+        padding: 4px 18px 18px;
+        margin: 0 -18px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+
+      .review-extra {
+        display: flex;
+      }
+
+      .review-grid::-webkit-scrollbar {
+        display: none;
+      }
+
+      .review {
+        min-width: 84vw;
+        min-height: 240px;
+        scroll-snap-align: center;
+        scroll-snap-stop: always;
+        transform: translateZ(0);
+      }
+
+      .review-dots {
+        display: flex;
+        justify-content: center;
+        gap: 7px;
+        margin-top: 6px;
+      }
+
+      .review-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        border: 0;
+        background: rgba(255, 255, 255, 0.28);
+      }
+
+      .review-dot.active {
+        width: 24px;
+        background: #ffb000;
+      }
+
+      .spec-list.detached {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .media-tile, .media-tile.large {
+        min-height: 240px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .hero {
+        padding-top: 102px;
+      }
+
+      .nav-inner {
+        padding: 12px 16px;
+      }
+
+      .hero-actions {
+        display: grid;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .hero-card {
+        padding: 14px;
+        border-radius: 24px;
+      }
+
+      .floating-badge {
+        position: static;
+        width: 100%;
+        margin-top: 12px;
+      }
+
+      .section {
+        padding: 64px 18px;
+      }
+
+      .media-stack {
+        grid-template-columns: 1fr;
+      }
+
+      .media-tile.large {
+        grid-column: auto;
+      }
+
+      .spec-panel {
+        padding: 24px;
+      }
+
+      .price {
+        font-size: 42px;
+      }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-links {
+        justify-content: flex-start;
+      }
+
+      .mobile-buy-card {
+        display: flex;
+      }
+
+      body {
+        padding-bottom: 112px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .sticky-actions a {
+        min-width: 90px;
+        font-size: 13px;
+      }
+
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="nav">
+      <div class="nav-inner">
+        <a class="brand" href="#top" aria-label="Mcdodo (UK) home">
+          <img class="brand-logo" src="/mcdodo-logo.png" alt="Mcdodo (UK)">
+        </a>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#modes">Modes</a>
+          <a href="#specs">Specs</a>
+          <a href="#faq">FAQ</a>
+        </div>
+        <a class="nav-cta js-checkout" href="/api/chargeguard-checkout">Shop now</a>
+      </div>
+    </nav>
+
+    <header class="hero" id="top">
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow">New battery care essential</span>
+          <h1>Stop charging at full. Start protecting every device.</h1>
+          <p class="hero-copy">Meet the ChargeGuard 140W Auto-Off Adapter, a compact USB-C protector that physically disconnects power after full charge detection for safer overnight charging.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary js-checkout" href="/api/chargeguard-checkout">Buy ChargeGuard</a>
+            <a class="btn btn-secondary" href="#features">See how it works</a>
+          </div>
+          <div class="hero-stats">
+            <div class="stat">
+              <strong>140W</strong>
+              <span>USB-C power support</span>
+            </div>
+            <div class="stat">
+              <strong>2 modes</strong>
+              <span>Phones and small devices</span>
+            </div>
+            <div class="stat">
+              <strong>26g</strong>
+              <span>Travel-ready build</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-visual">
+          <div class="product-glow"></div>
+          <div class="hero-card">
+            <img src="/media/nop/on-iphone%20(1).png" alt="ChargeGuard 140W Auto-Off Adapter on a smartphone">
+            <div class="floating-badge">
+              <strong>Auto-off</strong>
+              <span>Hardware-level power cut after charge completion</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="section" id="features">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="section-kicker">Why it matters</span>
+          <h2>A smarter layer between your charger and your battery.</h2>
+          <p>ChargeGuard is built for people who leave devices plugged in overnight, at a desk, or beside the bed. It helps reduce unnecessary trickle charging by cutting power at the hardware level after full-charge behaviour is detected.</p>
+        </div>
+        <div class="feature-grid" id="featureCarousel">
+          <article class="feature-card">
+            <div class="icon">⏻</div>
+            <h3>Physical hard disconnection</h3>
+            <p>A smart control chip triggers a relay-based power cut instead of relying only on software current limiting.</p>
+          </article>
+          <article class="feature-card">
+            <div class="icon">⚡</div>
+            <h3>Full-speed 140W charging</h3>
+            <p>Supports high-output USB-C charging for phones, tablets, laptops, handheld devices, and power banks.</p>
+          </article>
+          <article class="feature-card">
+            <div class="icon">◐</div>
+            <h3>Dual smart modes</h3>
+            <p>White light mode is tuned for screen devices; blue light mode is tuned for smaller accessories and standby gadgets.</p>
+          </article>
+          <article class="feature-card">
+            <div class="icon">▣</div>
+            <h3>Port-friendly cushioning</h3>
+            <p>A soft silicone contact layer helps reduce daily wear around the device port during insertion and removal.</p>
+          </article>
+          <article class="feature-card">
+            <div class="icon">✦</div>
+            <h3>Multi-layer protection</h3>
+            <p>Designed with safeguards for overvoltage, overcurrent, overheating, and short-circuit protection.</p>
+          </article>
+          <article class="feature-card">
+            <div class="icon">✓</div>
+            <h3>Certified confidence</h3>
+            <p>Built with fire-resistant PC material and tested for CE, FCC, and RoHS compliance.</p>
+          </article>
+        </div>
+        <div class="feature-dots" aria-hidden="true">
+          <button class="feature-dot active" type="button"></button>
+          <button class="feature-dot" type="button"></button>
+          <button class="feature-dot" type="button"></button>
+          <button class="feature-dot" type="button"></button>
+          <button class="feature-dot" type="button"></button>
+          <button class="feature-dot" type="button"></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section showcase" id="specs">
+      <div class="wrap showcase-grid">
+        <div class="media-stack">
+          <div class="media-tile large">
+            <img src="/media/nop/holding-product-in-hand%20(1).png" alt="ChargeGuard compact adapter held in hand">
+          </div>
+          <div class="media-tile">
+            <img src="/media/nop/up-close-to-iphone%20(1).png" alt="ChargeGuard connected to a phone">
+          </div>
+          <div class="media-tile">
+            <video src="/media/nop/6af7f593-d641-4ba7-bcc9-ccfd56db76c4.mp4" autoplay muted loop playsinline aria-label="ChargeGuard product video"></video>
+          </div>
+        </div>
+        <div class="spec-panel" id="buy">
+          <span class="section-kicker">Product showcase</span>
+          <h2>ChargeGuard 140W Auto-Off Adapter</h2>
+          <p>Compact USB-C charging disconnector for battery-conscious charging at home, work, and travel.</p>
+          <div class="price-row">
+            <span class="price">£29.99</span>
+            <span class="was">£39.99</span>
+          </div>
+          <a class="btn btn-primary js-checkout" href="/api/chargeguard-checkout">Buy now</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="section-kicker">Technical details</span>
+          <h2>Compact size. Serious charging control.</h2>
+          <p>The ChargeGuard adapter is small enough for daily carry while supporting high-power USB-C charging and multi-device use.</p>
+        </div>
+        <div class="spec-list detached">
+          <div class="spec"><span>Model</span><strong>ChargeGuard KH-51</strong></div>
+          <div class="spec"><span>USB-C DC range</span><strong>5V-28V, 0A-5A</strong></div>
+          <div class="spec"><span>Maximum output</span><strong>140W</strong></div>
+          <div class="spec"><span>Material</span><strong>Fire-resistant PC</strong></div>
+          <div class="spec"><span>Size</span><strong>42 x 34.5 x 19.3mm</strong></div>
+          <div class="spec"><span>Weight</span><strong>26g</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section mode-section" id="modes">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="section-kicker">Two charge profiles</span>
+          <h2>Choose the mode that matches your device.</h2>
+          <p>Press the button once to switch between white and blue light modes before charging. Each mode uses a different full-charge recognition profile.</p>
+        </div>
+        <div class="mode-grid">
+          <article class="mode-card">
+            <div class="mode-light white"></div>
+            <h3>White light mode</h3>
+            <p>Best for phones, tablets, laptops, and other devices with displays or active standby behaviour. After the device reaches 100%, ChargeGuard allows the final top-off phase, then cuts power automatically.</p>
+          </article>
+          <article class="mode-card">
+            <div class="mode-light blue"></div>
+            <h3>Blue light mode</h3>
+            <p>Best for smaller non-screen devices such as earbuds, shavers, power banks, mini fans, beauty tools, and portable accessories. It is tuned for faster post-full disconnection.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section proof">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="section-kicker">Customer feedback</span>
+          <h2>Made for everyday charging routines.</h2>
+          <p>Customers use ChargeGuard to make overnight charging, desk setups, and travel charging feel more controlled.</p>
+        </div>
+        <div class="review-grid" id="reviewCarousel">
+          <article class="review review-extra">
+            <div class="stars">★★★★★</div>
+            <blockquote>"I keep my phone plugged in overnight and wanted something more reassuring than a normal cable. This feels like a tiny safety switch."</blockquote>
+            <cite>Amelia R., Manchester</cite>
+          </article>
+          <article class="review review-extra">
+            <div class="stars">★★★★★</div>
+            <blockquote>"The white and blue modes make sense. I use white for my tablet and blue for earbuds. It is small enough to stay in my travel pouch."</blockquote>
+            <cite>Daniel K., Leeds</cite>
+          </article>
+          <article class="review review-extra">
+            <div class="stars">★★★★★</div>
+            <blockquote>"My laptop still charges quickly, but I like having an auto-off adapter between my charger and device when I am away from the desk."</blockquote>
+            <cite>Nadia S., Bristol</cite>
+          </article>
+          <article class="review">
+            <div class="stars">★★★★★</div>
+            <blockquote>"It is the first charging accessory I actually leave attached to my desk cable. The auto-off behaviour makes my setup feel cleaner."</blockquote>
+            <cite>Marcus T., Birmingham</cite>
+          </article>
+          <article class="review">
+            <div class="stars">★★★★★</div>
+            <blockquote>"Small, simple, and useful. I bought it for my phone, then started using it with my power bank and earbuds as well."</blockquote>
+            <cite>Sophie L., Glasgow</cite>
+          </article>
+          <article class="review">
+            <div class="stars">★★★★★</div>
+            <blockquote>"The blue light mode is perfect for smaller gadgets. It feels like the missing link between a fast charger and battery care."</blockquote>
+            <cite>Omar H., Cardiff</cite>
+          </article>
+        </div>
+        <div class="review-dots" aria-hidden="true">
+          <button class="review-dot active" type="button"></button>
+          <button class="review-dot" type="button"></button>
+          <button class="review-dot" type="button"></button>
+          <button class="review-dot" type="button"></button>
+          <button class="review-dot" type="button"></button>
+          <button class="review-dot" type="button"></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="wrap faq-grid">
+        <div class="section-head">
+          <span class="section-kicker">Need to know</span>
+          <h2>Simple answers before you charge.</h2>
+          <p>ChargeGuard is an automatic charging disconnector. It is not a wall charger and should be used with a compatible USB-C power adapter and cable.</p>
+        </div>
+        <div class="accordion">
+          <div class="accordion-item active">
+            <button class="accordion-button" type="button">
+              <span>Does it stop charging the moment my phone says 100%?</span>
+              <span class="plus">+</span>
+            </button>
+            <div class="accordion-content">
+              <p>No. Many devices continue a final top-off stage after showing 100%. In white light mode, ChargeGuard typically disconnects after that final low-current phase is detected.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-button" type="button">
+              <span>Can it charge laptops?</span>
+              <span class="plus">+</span>
+            </button>
+            <div class="accordion-content">
+              <p>Yes, it supports up to 140W USB-C power delivery when paired with a suitable charger and cable.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-button" type="button">
+              <span>How do I test the cut-off function?</span>
+              <span class="plus">+</span>
+            </button>
+            <div class="accordion-content">
+              <p>During normal charging, press and hold the button for five seconds until the white and blue lights flash alternately, then release. It should cut power shortly after.</p>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-button" type="button">
+              <span>Is this a charger?</span>
+              <span class="plus">+</span>
+            </button>
+            <div class="accordion-content">
+              <p>No. It sits between your USB-C charger/cable and your device as an automatic full-charge disconnector.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="wrap">
+        <h2>Give every USB-C device a smarter charging finish.</h2>
+        <p>Protect your overnight routine with a compact auto-off adapter built for fast charging, automatic power cut-off, and everyday battery care.</p>
+        <a class="btn js-checkout" href="/api/chargeguard-checkout">Buy ChargeGuard</a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-grid">
+        <div>
+          <div class="brand">
+            <img class="brand-logo" src="/mcdodo-logo.png" alt="Mcdodo (UK)">
+          </div>
+          <small>Support: support@mcdodo.co.uk · Mcdodo (UK) Customer Care</small>
+          <small>© 2026 Mcdodo (UK). All rights reserved.</small>
+        </div>
+        <div class="footer-links">
+          <a href="/shop">Shop</a>
+          <a href="/shipping">Shipping</a>
+          <a href="/returns">Returns</a>
+          <a href="/contact">Contact</a>
+        </div>
+      </div>
+    </footer>
+
+    <div class="mobile-buy-card" aria-label="Quick purchase actions">
+      <img class="sticky-thumb" src="/media/nop/holding-product-in-hand%20(1).png" alt="ChargeGuard">
+      <div class="sticky-info">
+        <span class="sticky-badge">Auto-off · 140W</span>
+        <span class="sticky-title">ChargeGuard KH-51</span>
+        <span class="sticky-price">£29.99 today</span>
+      </div>
+      <div class="sticky-actions">
+        <a class="buy-mobile js-checkout" href="/api/chargeguard-checkout">Buy now</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const checkoutButtons = document.querySelectorAll('.js-checkout');
+    const accordionButtons = document.querySelectorAll('.accordion-button');
+    const featureCarousel = document.getElementById('featureCarousel');
+    const featureDots = document.querySelectorAll('.feature-dot');
+    const reviewCarousel = document.getElementById('reviewCarousel');
+    const reviewDots = document.querySelectorAll('.review-dot');
+
+    checkoutButtons.forEach((button) => {
+      button.addEventListener('click', async (event) => {
+        event.preventDefault();
+        const originalText = button.textContent;
+        button.classList.add('is-loading');
+        button.textContent = 'Opening checkout...';
+
+        try {
+          const response = await fetch('/api/chargeguard-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity: 1 })
+          });
+          const data = await response.json();
+
+          if (data.url) {
+            window.location.href = data.url;
+            return;
+          }
+
+          alert(data.error || 'Checkout is temporarily unavailable.');
+        } catch (error) {
+          alert('Checkout is temporarily unavailable.');
+        } finally {
+          button.classList.remove('is-loading');
+          button.textContent = originalText;
+        }
+      });
+    });
+
+    accordionButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const item = button.closest('.accordion-item');
+        const siblings = item.parentElement.querySelectorAll('.accordion-item');
+
+        siblings.forEach((sibling) => {
+          if (sibling !== item) sibling.classList.remove('active');
+        });
+
+        item.classList.toggle('active');
+      });
+    });
+
+    function wireDots(carousel, dots, cardSelector) {
+      let ticking = false;
+      carousel.addEventListener('scroll', () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+          const cards = Array.from(carousel.querySelectorAll(cardSelector));
+          const center = carousel.scrollLeft + carousel.clientWidth / 2;
+          let activeIndex = 0;
+          let closest = Infinity;
+
+          cards.forEach((card, index) => {
+            const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+            const distance = Math.abs(center - cardCenter);
+            if (distance < closest) {
+              closest = distance;
+              activeIndex = index;
+            }
+          });
+
+          dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === activeIndex);
+          });
+          ticking = false;
+        });
+      }, { passive: true });
+    }
+
+    if (featureCarousel && featureDots.length) {
+      wireDots(featureCarousel, featureDots, '.feature-card');
+
+      let featureTimer = null;
+      let featureIndex = 0;
+      const featureCards = Array.from(featureCarousel.querySelectorAll('.feature-card'));
+
+      const stopFeatureAutoplay = () => {
+        if (featureTimer) clearInterval(featureTimer);
+        featureTimer = null;
+      };
+
+      const startFeatureAutoplay = () => {
+        if (featureTimer || window.innerWidth > 900 || featureCards.length < 2) return;
+        featureTimer = setInterval(() => {
+          featureIndex = (featureIndex + 1) % featureCards.length;
+          featureCarousel.scrollTo({
+            left: featureCards[featureIndex].offsetLeft - 18,
+            behavior: 'smooth'
+          });
+        }, 1300);
+      };
+
+      const featureObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) startFeatureAutoplay();
+          else stopFeatureAutoplay();
+        });
+      }, { threshold: 0.45 });
+
+      featureObserver.observe(featureCarousel);
+
+      featureCarousel.addEventListener('pointerdown', stopFeatureAutoplay, { passive: true });
+      featureCarousel.addEventListener('touchstart', stopFeatureAutoplay, { passive: true });
+    }
+
+    if (reviewCarousel && reviewDots.length) {
+      wireDots(reviewCarousel, reviewDots, '.review');
+    }
+  </script>
+</body>
+</html>
