@@ -145,7 +145,7 @@ export async function POST(req: Request) {
         const productData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData.ProductData =
           {
             name: item.title,
-            images: item.image ? [item.image] : [],
+            images: item.image ? [encodeURI(item.image)] : [],
             ...(descriptionText ? { description: descriptionText } : {}),
             ...(Object.keys(metadata).length > 0 ? { metadata } : {}),
           };

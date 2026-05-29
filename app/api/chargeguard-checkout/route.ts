@@ -69,9 +69,9 @@ export async function POST(req: Request) {
     const imagePath = Array.isArray(product.images) && product.images[0]
       ? product.images[0]
       : FALLBACK_IMAGE;
-    const imageUrl = imagePath.startsWith('http')
+    const imageUrl = encodeURI(imagePath.startsWith('http')
       ? imagePath
-      : `${origin}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
+      : `${origin}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`);
     const subtotal = unitPrice * quantity;
     const shippingCost = subtotal >= 20 ? 0 : 3.99;
 
