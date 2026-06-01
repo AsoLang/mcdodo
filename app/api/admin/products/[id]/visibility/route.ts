@@ -1,6 +1,7 @@
 // Path: app/api/admin/products/[id]/visibility/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { neon } from '@neondatabase/serverless';
 import { cookies } from 'next/headers';
 import { verifySessionToken } from '@/lib/session';
@@ -26,11 +27,22 @@ export async function PATCH(
 
     console.log(`[Visibility API] Updating product ${id} to visible: ${visible}`);
 
-    await sql`
+    const updated = await sql`
       UPDATE products 
       SET visible = ${visible}
       WHERE id = ${id}
+      RETURNING product_url
     `;
+
+    const slug = updated?.[0]?.product_url as string | undefined;
+    if (slug) revalidatePath(`/shop/p/${slug}`);
+    revalidatePath('/shop');
+    revalidatePath('/archive');
+    revalidatePath('/categories');
+    revalidatePath('/shop/wireless-earphones');
+    revalidatePath('/api/shop/products');
+    revalidatePath('/api/products/search');
+    revalidatePath('/sitemap.xml');
 
     return NextResponse.json({ success: true });
   } catch (error) {
