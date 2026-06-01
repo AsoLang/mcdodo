@@ -196,15 +196,17 @@ export default function ProductsPage() {
     setTogglingVisibility((prev) => ({ ...prev, [product.id]: true }));
 
     try {
-      await fetch(`/api/admin/products`, {
-        method: 'PUT',
+      const res = await fetch(`/api/admin/products/${product.id}/visibility`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: product.id,
           visible: !product.visible,
-          stock: product.total_stock 
         }),
       });
+
+      if (!res.ok) {
+        throw new Error('Visibility update failed');
+      }
 
       setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, visible: !p.visible } : p)));
     } catch {
@@ -281,6 +283,12 @@ export default function ProductsPage() {
     const lowStock = products.filter((p) => getStockStatus(Number(p.total_stock || 0)) === 'low').length;
     const outOfStock = products.filter((p) => getStockStatus(Number(p.total_stock || 0)) === 'out').length;
     return { all, inStock, lowStock, outOfStock };
+  }, [products]);
+
+  const visibilityCounts = useMemo(() => {
+    const visible = products.filter((p) => p.visible).length;
+    const hidden = products.filter((p) => !p.visible).length;
+    return { all: products.length, visible, hidden };
   }, [products]);
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -550,7 +558,20 @@ export default function ProductsPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-3 mb-4 flex gap-6 text-xs overflow-x-auto">
-          {/* ... (Keep existing filter buttons) ... */}
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <span className="text-gray-700 font-semibold">Visibility:</span>
+            <button onClick={() => setVisibilityFilter('visible')} className={`px-2 py-1 rounded ${visibilityFilter === 'visible' ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+              <Eye size={14} className="inline mr-1" />
+              Visible ({visibilityCounts.visible})
+            </button>
+            <button onClick={() => setVisibilityFilter('hidden')} className={`px-2 py-1 rounded ${visibilityFilter === 'hidden' ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+              <EyeOff size={14} className="inline mr-1" />
+              Hidden ({visibilityCounts.hidden})
+            </button>
+            <button onClick={() => setVisibilityFilter('all')} className={`px-2 py-1 rounded ${visibilityFilter === 'all' ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-700'}`}>
+              All ({visibilityCounts.all})
+            </button>
+          </div>
           <div className="flex items-center gap-2 whitespace-nowrap">
             <span className="text-gray-700 font-semibold">Stock:</span>
             <button onClick={() => setStockFilter('all')} className={`px-2 py-1 rounded ${stockFilter === 'all' ? 'bg-orange-600 text-white' : 'bg-gray-100 text-gray-700'}`}>All</button>
