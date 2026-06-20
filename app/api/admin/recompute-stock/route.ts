@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
 import { verifySessionToken } from '@/lib/session';
+import { isCronRequestAuthorized } from '@/lib/cron-auth';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -15,16 +16,7 @@ async function isAuthenticated() {
 
 async function handleRecompute(req: Request) {
   try {
-    const cronSecret = process.env.CRON_SECRET;
-    const headerSecret = typeof cronSecret === 'string' ? cronSecret : null;
-    const incomingSecret = req.headers.get('x-cron-secret');
-    const authHeader = req.headers.get('authorization') || '';
-    const bearer = headerSecret ? `Bearer ${headerSecret}` : '';
-
-    const isCronAuthorized =
-      (headerSecret && incomingSecret && incomingSecret === headerSecret) ||
-      (bearer && authHeader === bearer);
-    if (!isCronAuthorized && !(await isAuthenticated())) {
+    if (!isCronRequestAuthorized(req) && !(await isAuthenticated())) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

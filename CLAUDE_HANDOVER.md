@@ -1,9 +1,18 @@
 # Mcdodo Handover
 
-Current date: 2026-05-29
+Current date: 2026-06-01
 
 ## What Changed
 
+- Fixed admin product visibility controls on `/admin/products`.
+  - Added `Visible`, `Hidden`, and `All` filters so hidden products can be found and restored.
+  - Changed the eye button to call `PATCH /api/admin/products/[id]/visibility`.
+  - Pushed commit `d30bcfb` (`Fix admin product visibility controls`).
+- Fixed public shop cache after quick visibility toggles.
+  - `app/api/admin/products/[id]/visibility/route.ts` now revalidates public product/listing routes after toggling visibility.
+  - Revalidated paths include `/shop`, product detail page, `/archive`, `/categories`, `/shop/wireless-earphones`, shop/search APIs, and sitemap.
+  - Pushed commit `ba79465` (`Revalidate shop after visibility toggle`).
+- Drafted updated ChargeGuard product description copy with `<br>` spacing and a link to `https://www.mcdodo.co.uk/nop-landing.html`.
 - Built a standalone landing page at `public/nop-landing.html`.
 - Added a direct Stripe checkout route at `app/api/chargeguard-checkout/route.ts`.
 - Wired the landing page buttons to create checkout sessions directly instead of routing through `/shop`.
@@ -44,6 +53,8 @@ Current date: 2026-05-29
 
 - [public/nop-landing.html](./public/nop-landing.html)
 - [app/api/chargeguard-checkout/route.ts](./app/api/chargeguard-checkout/route.ts)
+- [app/admin/products/page.tsx](./app/admin/products/page.tsx)
+- [app/api/admin/products/[id]/visibility/route.ts](./app/api/admin/products/[id]/visibility/route.ts)
 - [app/api/checkout/route.ts](./app/api/checkout/route.ts)
 - [app/api/apple-pay-checkout/route.ts](./app/api/apple-pay-checkout/route.ts)
 - [app/api/webhooks/stripe/route.ts](./app/api/webhooks/stripe/route.ts)
@@ -63,13 +74,14 @@ Current date: 2026-05-29
 
 - Add the new product and variant into Neon so it appears in `/shop`.
 - Confirm the slug in Neon matches `chargeguard-kh-51` or update `app/api/chargeguard-checkout/route.ts`.
+- After Vercel deploys `ba79465`, if a product was made visible before the fix and still does not show on `/shop`, toggle it hidden then visible once more to trigger fresh revalidation.
 - Test the landing page checkout on a real mobile device.
 - Decide whether the mobile sticky buy bar should remain a single-button action or show more purchase metadata.
 
 ## Useful Notes
 
+- `/shop` is statically cached (`revalidate = 3600`), so admin visibility changes must explicitly call `revalidatePath`.
 - The site already has a success page at `app/success/page.tsx`.
 - The promo banner is hidden on `/success`.
 - The cart and checkout flow now handle stale stock more gracefully than before.
 - The landing page is standalone and does not depend on the main shop UI.
-

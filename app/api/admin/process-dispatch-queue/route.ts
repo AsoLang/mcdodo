@@ -5,12 +5,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { sendDispatchEmail } from '@/lib/email';
+import { isCronRequestAuthorized } from '@/lib/cron-auth';
 
 const sql = neon(process.env.DATABASE_URL!);
 
 export async function GET(request: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && request.headers.get('x-cron-secret') !== cronSecret) {
+  if (!isCronRequestAuthorized(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -89,7 +89,9 @@ export async function GET(request: NextRequest) {
           const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://www.mcdodo.co.uk';
           const genRes = await fetch(`${baseUrl}/api/admin/blog/generate`, {
             method: 'POST',
-            headers: { 'x-cron-secret': process.env.CRON_SECRET || '' },
+            headers: {
+              Authorization: `Bearer ${process.env.CRON_SECRET}`,
+            },
           });
           if (genRes.ok) {
             console.log('[DispatchQueue] Weekly blog article generated');

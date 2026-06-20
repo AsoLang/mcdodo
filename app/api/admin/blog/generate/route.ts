@@ -7,6 +7,8 @@ import { verifySessionToken } from '@/lib/session';
 import { cookies } from 'next/headers';
 import { Resend } from 'resend';
 import { put } from '@vercel/blob';
+import { isCronRequestAuthorized } from '@/lib/cron-auth';
+import { sanitizeRichHtml } from '@/lib/html';
 
 const sql = neon(process.env.DATABASE_URL!);
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -116,9 +118,7 @@ function slugify(text: string): string {
 
 export async function POST(request: NextRequest) {
   // Auth check - allow admin cookie or cron secret
-  const cronSecret = process.env.CRON_SECRET;
-  const isCron = cronSecret && request.headers.get('x-cron-secret') === cronSecret;
-  if (!isCron) {
+  if (!isCronRequestAuthorized(request)) {
     const cookieStore = await cookies();
     const token = cookieStore.get('admin_auth')?.value;
     if (!token || !(await verifySessionToken(token))) {
@@ -186,13 +186,15 @@ Output only the HTML content, nothing else.`;
     }
 
     // Strip smart quotes just in case
-    const cleanContent = content
-      .replace(/\u2018/g, "'")
-      .replace(/\u2019/g, "'")
-      .replace(/\u201c/g, '"')
-      .replace(/\u201d/g, '"')
-      .replace(/\u2013/g, '-')
-      .replace(/\u2014/g, '-');
+    const cleanContent = sanitizeRichHtml(
+      content
+        .replace(/\u2018/g, "'")
+        .replace(/\u2019/g, "'")
+        .replace(/\u201c/g, '"')
+        .replace(/\u201d/g, '"')
+        .replace(/\u2013/g, '-')
+        .replace(/\u2014/g, '-')
+    );
 
     // Extract title from H1
     const titleMatch = cleanContent.match(/<h1[^>]*>(.*?)<\/h1>/i);

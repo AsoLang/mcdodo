@@ -163,24 +163,9 @@ export default function ProductDetail({ product }: { product: Product }) {
     setBuyNowError('');
 
     try {
-      const imagePath = displayImages[0] || '/placeholder.jpg';
-      
-      const imageUrl = imagePath.startsWith('http') 
-        ? imagePath 
-        : `${window.location.origin}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`;
-      
-      const finalPrice = onSale ? salePrice : price;
-
       // Merge cart items + this Buy Now item into one payload
       const buyNowItem = {
         id: selectedVariant.id,
-        title: product.title,
-        image: imageUrl,
-        price: price,
-        salePrice: salePrice,
-        onSale: onSale,
-        color: selectedVariant.color,
-        size: selectedVariant.size,
         quantity: quantity
       };
 
@@ -188,13 +173,6 @@ export default function ProductDetail({ product }: { product: Product }) {
         .filter(item => item.id !== selectedVariant.id)
         .map(item => ({
           id: item.id,
-          title: item.title,
-          image: item.image.startsWith('http') ? item.image : `${window.location.origin}${item.image.startsWith('/') ? '' : '/'}${item.image}`,
-          price: item.price,
-          salePrice: item.salePrice,
-          onSale: item.onSale,
-          color: item.color,
-          size: item.size,
           quantity: item.quantity
         }));
 
@@ -203,11 +181,6 @@ export default function ProductDetail({ product }: { product: Product }) {
       if (cartMatch) buyNowItem.quantity = cartMatch.quantity + quantity;
 
       const allItems = [...existingItems, buyNowItem];
-
-      const totalAmount = allItems.reduce((sum, item) => sum + (item.onSale ? item.salePrice : item.price) * item.quantity, 0);
-      const shippingCost = totalAmount >= 20 ? 0 : 3.99;
-
-      const stripePayload = { items: allItems, shippingCost };
 
       const cartItemBackup = {
         id: selectedVariant.id,
@@ -229,7 +202,7 @@ export default function ProductDetail({ product }: { product: Product }) {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(stripePayload)
+        body: JSON.stringify({ items: allItems })
       });
 
       const data = await res.json();

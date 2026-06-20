@@ -140,8 +140,10 @@ export default function CartSidebar() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          items,
-          shippingCost,
+          items: items.map((item) => ({
+            id: item.id,
+            quantity: item.quantity,
+          })),
           discountCode: appliedDiscount?.code || null,
         }),
       });

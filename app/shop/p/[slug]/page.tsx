@@ -5,6 +5,7 @@ import { neon } from '@neondatabase/serverless';
 import ProductDetail from '@/components/ProductDetail';
 import type { Metadata } from 'next';
 import { cache } from 'react';
+import { safeJsonLd, sanitizeRichHtml } from '@/lib/html';
 
 export const dynamic = 'force-static';
 export const revalidate = 3600;
@@ -146,10 +147,19 @@ const getProduct = cache(async (slug: string): Promise<Product | null> => {
       });
     }
 
-    return { 
+    const accordions = Array.isArray(product.accordions)
+      ? product.accordions.map((accordion: Accordion) => ({
+          ...accordion,
+          title: sanitizeRichHtml(accordion.title).replace(/<[^>]*>/g, ''),
+          content: sanitizeRichHtml(accordion.content),
+        }))
+      : [];
+
+    return {
       ...product,
+      description: sanitizeRichHtml(product.description),
       variants: variants as ProductVariant[],
-      accordions: product.accordions || [],
+      accordions,
       product_images: product.product_images || [],
       gallery_images: product.gallery_images || [],
       review_count: product.review_count || 0,
@@ -264,7 +274,7 @@ export default async function ProductPage({ params }: Props) {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <ProductDetail product={product} />
     </>

@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { neon } from '@neondatabase/serverless';
+import { getSiteUrl } from '@/lib/site-url';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20' as any,
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const sql = neon(process.env.DATABASE_URL!);
 
 const PRODUCT_SLUG = 'chargeguard-kh-51';
@@ -18,7 +17,7 @@ function detectDevice(ua: string | null): 'mobile' | 'desktop' {
 
 export async function POST(req: Request) {
   try {
-    const origin = req.headers.get('origin') || 'http://localhost:3000';
+    const siteUrl = getSiteUrl();
     const device = detectDevice(req.headers.get('user-agent'));
     const body = await req.json().catch(() => ({}));
     const quantity = Math.max(1, Math.min(10, Number(body?.quantity || 1)));
@@ -71,7 +70,7 @@ export async function POST(req: Request) {
       : FALLBACK_IMAGE;
     const imageUrl = encodeURI(imagePath.startsWith('http')
       ? imagePath
-      : `${origin}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`);
+      : `${siteUrl}${imagePath.startsWith('/') ? '' : '/'}${imagePath}`);
     const subtotal = unitPrice * quantity;
     const shippingCost = subtotal >= 20 ? 0 : 3.99;
 
@@ -114,8 +113,8 @@ export async function POST(req: Request) {
       shipping_address_collection: {
         allowed_countries: ['GB'],
       },
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/nop-landing.html`,
+      success_url: `${siteUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${siteUrl}/nop-landing.html`,
       metadata: {
         device,
         source: 'chargeguard_landing',
@@ -123,8 +122,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[ChargeGuard Checkout] Error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to create checkout session' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
   }
 }

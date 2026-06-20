@@ -68,8 +68,6 @@ export default function ApplePayButton({
     setIsProcessing(true);
 
     try {
-      const finalPrice = onSale && salePrice ? salePrice : price;
-
       for (let i = 0; i < quantity; i++) {
         addItem({
           id: variantId,
@@ -90,14 +88,7 @@ export default function ApplePayButton({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          productId,
           variantId,
-          title: productTitle,
-          price: finalPrice,
-          image,
-          productUrl,
-          color: selectedColor,
-          size: selectedSize,
           quantity
         })
       });
@@ -129,7 +120,6 @@ export default function ApplePayButton({
       onClick={handleApplePay}
       disabled={disabled || isProcessing}
       className="apple-pay-button apple-pay-button-black w-full h-12 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-      // @ts-ignore - Apple Pay button styling not recognized by TypeScript
       style={{
         WebkitAppearance: '-apple-pay-button',
       }}

@@ -5,6 +5,7 @@ import { neon } from '@neondatabase/serverless';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
+import { safeJsonLd, sanitizeRichHtml } from '@/lib/html';
 
 export const revalidate = 3600;
 
@@ -69,7 +70,7 @@ export default async function BlogPostPage({ params }: Props) {
     <main className="min-h-screen bg-white">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }}
       />
 
       {/* Hero with optional featured image background */}
@@ -148,7 +149,7 @@ export default async function BlogPostPage({ params }: Props) {
             [&_li]:my-1.5 [&_li]:text-gray-800
             [&_strong]:text-gray-900 [&_strong]:font-semibold
             [&_a]:text-orange-600 [&_a]:no-underline hover:[&_a]:underline"
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(post.content) }}
         />
 
         {/* CTA */}

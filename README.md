@@ -20,6 +20,18 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Security configuration
+
+Production requires these values in the deployment environment:
+
+- `ADMIN_SESSION_SECRET`: a cryptographically random secret of at least 32 characters.
+- `ADMIN_PASSWORD_HASH`: a bcrypt hash of the admin password. `ADMIN_PASSWORD` remains supported as a migration fallback.
+- `CRON_SECRET`: required for every Vercel cron route; requests fail closed if it is absent.
+- `NEXT_PUBLIC_BASE_URL`: the canonical HTTPS origin, for example `https://www.mcdodo.co.uk`.
+- `STRIPE_WEBHOOK_SECRET`: configure Stripe to send `checkout.session.completed` and `checkout.session.async_payment_succeeded` to `/api/webhooks/stripe`.
+
+Changing `ADMIN_SESSION_SECRET` invalidates all existing admin sessions.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
