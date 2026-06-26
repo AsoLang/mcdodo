@@ -22,21 +22,12 @@ interface ApplePayButtonProps {
 }
 
 export default function ApplePayButton({
-  productId,
   variantId,
-  productTitle,
-  price,
-  salePrice,
-  onSale,
-  image,
-  productUrl,
-  selectedColor,
-  selectedSize,
   quantity = 1,
   stock = quantity,
   disabled = false
 }: ApplePayButtonProps) {
-  const { addItem, updateItemStock } = useCart();
+  const { updateItemStock } = useCart();
   const [isMobile, setIsMobile] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -68,28 +59,16 @@ export default function ApplePayButton({
     setIsProcessing(true);
 
     try {
-      for (let i = 0; i < quantity; i++) {
-        addItem({
-          id: variantId,
-          productId,
-          productUrl,
-          title: productTitle,
-          color: selectedColor,
-          size: selectedSize,
-          price,
-          salePrice: salePrice ?? price,
-          onSale,
-          image,
-          stock,
-        });
-      }
-
       const res = await fetch('/api/apple-pay-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          variantId,
-          quantity
+          items: [
+            {
+              id: variantId,
+              quantity
+            }
+          ]
         })
       });
 
