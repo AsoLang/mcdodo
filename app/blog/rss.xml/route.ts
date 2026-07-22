@@ -6,6 +6,9 @@ import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
+export const dynamic = 'force-static';
+export const revalidate = 604800;
+
 export async function GET() {
   const baseUrl = 'https://www.mcdodo.co.uk';
 
@@ -53,7 +56,7 @@ export async function GET() {
   return new NextResponse(xml, {
     headers: {
       'Content-Type': 'application/xml',
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': 'public, max-age=300, s-maxage=604800, stale-while-revalidate=2592000',
     },
   });
 }

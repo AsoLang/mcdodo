@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
 import { verifySessionToken } from '@/lib/session';
+import { revalidateProductContent } from '@/lib/public-cache';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -42,6 +43,8 @@ export async function POST(req: Request) {
       FROM data
       WHERE p.id = data.id
     `;
+
+    revalidateProductContent();
 
     return NextResponse.json({ ok: true });
   } catch (error) {

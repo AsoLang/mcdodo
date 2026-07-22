@@ -50,7 +50,14 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ products, hasMore });
+    return NextResponse.json(
+      { products, hasMore },
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=300, s-maxage=604800, stale-while-revalidate=2592000',
+        },
+      }
+    );
   } catch (error) {
     console.error('[archived-products] error:', error);
     return NextResponse.json({ products: [], hasMore: false }, { status: 500 });

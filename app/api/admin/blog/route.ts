@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { verifySessionToken } from '@/lib/session';
 import { cookies } from 'next/headers';
+import { revalidateBlogContent } from '@/lib/public-cache';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -44,11 +45,11 @@ export async function PATCH(request: NextRequest) {
   const validStatuses = ['draft', 'published', 'rejected'];
   if (!validStatuses.includes(status)) return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
 
-  if (status === 'published') {
-    await sql`UPDATE blog_posts SET status = 'published', published_at = NOW() WHERE id = ${id}`;
-  } else {
-    await sql`UPDATE blog_posts SET status = ${status} WHERE id = ${id}`;
-  }
+  const updated = status === 'published'
+    ? await sql`UPDATE blog_posts SET status = 'published', published_at = NOW() WHERE id = ${id} RETURNING slug`
+    : await sql`UPDATE blog_posts SET status = ${status} WHERE id = ${id} RETURNING slug`;
+
+  revalidateBlogContent(updated?.[0]?.slug as string | undefined);
 
   return NextResponse.json({ success: true });
 }
@@ -60,6 +61,7 @@ export async function DELETE(request: NextRequest) {
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 });
 
-  await sql`DELETE FROM blog_posts WHERE id = ${id}`;
+  const deleted = await sql`DELETE FROM blog_posts WHERE id = ${id} RETURNING slug`;
+  revalidateBlogContent(deleted?.[0]?.slug as string | undefined);
   return NextResponse.json({ success: true });
 }

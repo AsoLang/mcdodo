@@ -5,6 +5,7 @@ import {
   sendAdminOrderNotificationEmail,
   sendOrderConfirmationEmail,
 } from '@/lib/email';
+import { revalidateProductContent } from '@/lib/public-cache';
 
 export const runtime = 'nodejs';
 
@@ -279,6 +280,10 @@ export async function POST(request: NextRequest) {
     if (!savedOrder.created || !savedOrder.orderNumber || !savedOrder.createdAt) {
       return NextResponse.json({ received: true });
     }
+
+    revalidateProductContent(
+      savedOrder.items.map((item) => item.product_url)
+    );
 
     const customerEmail =
       session.customer_details?.email || session.customer_email || '';

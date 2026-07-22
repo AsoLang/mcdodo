@@ -11,19 +11,20 @@ export default function VisitorTracker() {
     if (ran.current) return;
     ran.current = true;
 
-    // Track the visit (throttled to reduce DB usage)
-    const visited = sessionStorage.getItem('visited_session');
-    const lastTracked = localStorage.getItem('last_visit_track');
-    const now = Date.now();
-    const sixHours = 6 * 60 * 60 * 1000;
+    // Make one sampling decision per browser per day. Previously the random
+    // check repeated on every page until it succeeded, causing excess writes.
+    const today = new Date().toISOString().slice(0, 10);
+    if (localStorage.getItem('visit_sample_day') === today) return;
 
-    const sampleRate = 0.25; // track ~25% of visits to reduce DB usage
+    localStorage.setItem('visit_sample_day', today);
+    const sampleRate = 0.25;
+    if (Math.random() >= sampleRate) return;
 
-    if (!visited && (!lastTracked || now - Number(lastTracked) > sixHours) && Math.random() < sampleRate) {
-      fetch('/api/track-visit', { method: 'POST' });
-      sessionStorage.setItem('visited_session', 'true');
-      localStorage.setItem('last_visit_track', String(now));
-    }
+    fetch('/api/track-visit', {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+    }).catch(() => {});
   }, []);
 
   return null; // Invisible component

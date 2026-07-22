@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifySessionToken } from '@/lib/session';
 import { neon } from '@neondatabase/serverless';
+import { revalidatePath } from 'next/cache';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -30,6 +31,8 @@ export async function PUT(request: NextRequest) {
     VALUES ('promo_banner', ${JSON.stringify(body)}::jsonb, NOW())
     ON CONFLICT (key) DO UPDATE SET value = ${JSON.stringify(body)}::jsonb, updated_at = NOW()
   `;
+
+  revalidatePath('/api/promo-banner');
 
   return NextResponse.json({ ok: true });
 }

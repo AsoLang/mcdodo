@@ -1,10 +1,10 @@
 // Path: app/api/admin/products/[id]/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { neon } from '@neondatabase/serverless';
 import { verifySessionToken } from '@/lib/session';
+import { revalidateProductContent } from '@/lib/public-cache';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -101,12 +101,7 @@ export async function PUT(
       throw new Error(`Product update failed: ${prodError}`);
     }
 
-    // Revalidate product and listings so changes show immediately
     const newSlug = product_url as string | undefined;
-    if (newSlug) revalidatePath(`/shop/p/${newSlug}`);
-    if (oldSlug && oldSlug !== newSlug) revalidatePath(`/shop/p/${oldSlug}`);
-    revalidatePath('/shop');
-    revalidatePath('/archive');
 
     // Handle variants
     if (variants && Array.isArray(variants)) {
@@ -228,6 +223,7 @@ export async function PUT(
       }
     }
 
+    revalidateProductContent([oldSlug, newSlug]);
     console.log('=== UPDATE COMPLETE ===\n');
     return NextResponse.json({ success: true });
   } catch (error: any) {
@@ -253,8 +249,11 @@ export async function DELETE(
     }
 
     const { id } = await params;
+    const existing = await sql`SELECT product_url FROM products WHERE id = ${id}`;
+    const slug = existing?.[0]?.product_url as string | undefined;
     await sql`DELETE FROM product_variants WHERE product_id = ${id}`;
     await sql`DELETE FROM products WHERE id = ${id}`;
+    revalidateProductContent([slug]);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting product:', error);

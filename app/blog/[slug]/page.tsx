@@ -6,8 +6,9 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
 import { safeJsonLd, sanitizeRichHtml } from '@/lib/html';
+import { cache } from 'react';
 
-export const revalidate = 3600;
+export const revalidate = 604800;
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -15,7 +16,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-async function getPost(slug: string) {
+const getPost = cache(async (slug: string) => {
   try {
     const posts = await sql`
       SELECT id, title, slug, content, excerpt, keyword, published_at, reading_time_mins, seo_title, seo_description, featured_image
@@ -27,7 +28,7 @@ async function getPost(slug: string) {
   } catch {
     return null;
   }
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

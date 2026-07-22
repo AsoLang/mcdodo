@@ -5,6 +5,7 @@ import { neon } from '@neondatabase/serverless';
 import { verifySessionToken } from '@/lib/session';
 import { cookies } from 'next/headers';
 import { put } from '@vercel/blob';
+import { revalidateBlogContent } from '@/lib/public-cache';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -58,7 +59,8 @@ tech e-commerce aesthetic matching Mcdodo UK brand colours (orange #ea580c, dark
       cacheControlMaxAge: 31536000,
     });
 
-    await sql`UPDATE blog_posts SET featured_image = ${blob.url} WHERE id = ${id}`;
+    const updated = await sql`UPDATE blog_posts SET featured_image = ${blob.url} WHERE id = ${id} RETURNING slug`;
+    revalidateBlogContent(updated?.[0]?.slug as string | undefined);
 
     return NextResponse.json({ success: true, url: blob.url });
   } catch (err) {

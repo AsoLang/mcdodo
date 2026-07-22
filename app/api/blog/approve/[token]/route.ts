@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import { revalidateBlogContent } from '@/lib/public-cache';
 
 const sql = neon(process.env.DATABASE_URL!);
 
@@ -17,7 +18,7 @@ export async function GET(
     return new NextResponse('Invalid link', { status: 400 });
   }
 
-  const posts = await sql`SELECT id, title FROM blog_posts WHERE approval_token = ${token}`;
+  const posts = await sql`SELECT id, title, slug FROM blog_posts WHERE approval_token = ${token}`;
   if (posts.length === 0) {
     return new NextResponse('Link expired or not found', { status: 404 });
   }
@@ -26,6 +27,7 @@ export async function GET(
 
   if (action === 'approve') {
     await sql`UPDATE blog_posts SET status = 'published', published_at = NOW() WHERE id = ${post.id}`;
+    revalidateBlogContent(post.slug as string);
     return new NextResponse(
       `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Published</title>
       <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f0f0f;color:white;text-align:center;}
@@ -41,6 +43,7 @@ export async function GET(
     );
   } else {
     await sql`UPDATE blog_posts SET status = 'rejected' WHERE id = ${post.id}`;
+    revalidateBlogContent(post.slug as string);
     return new NextResponse(
       `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Rejected</title>
       <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f0f0f;color:white;text-align:center;}

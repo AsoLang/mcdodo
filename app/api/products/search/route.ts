@@ -4,9 +4,9 @@ import { NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
-const SEARCH_CACHE_HEADER = 'public, max-age=300, s-maxage=86400, stale-while-revalidate=604800';
+const SEARCH_CACHE_HEADER = 'public, max-age=300, s-maxage=604800, stale-while-revalidate=2592000';
 export const dynamic = 'force-static';
-export const revalidate = 3600;
+export const revalidate = 604800;
 
 export async function GET() {
   try {

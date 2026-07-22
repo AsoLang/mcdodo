@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { put } from '@vercel/blob';
 import { Resend } from 'resend';
+import { revalidateBlogContent } from '@/lib/public-cache';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -16,12 +17,12 @@ export async function GET(
 ) {
   const { token } = await params;
 
-  const posts = await sql`SELECT id, keyword, title, excerpt FROM blog_posts WHERE approval_token = ${token} LIMIT 1`;
+  const posts = await sql`SELECT id, keyword, title, excerpt, slug FROM blog_posts WHERE approval_token = ${token} LIMIT 1`;
   if (posts.length === 0) {
     return new NextResponse('Link expired or not found', { status: 404 });
   }
 
-  const { id, keyword, title, excerpt } = posts[0];
+  const { id, keyword, title, excerpt, slug } = posts[0];
 
   try {
     const imagePrompt = `Professional tech product photography style blog header image for an article about "${keyword}".
@@ -60,6 +61,7 @@ tech e-commerce aesthetic matching Mcdodo UK brand colours (orange #ea580c, dark
     });
 
     await sql`UPDATE blog_posts SET featured_image = ${blob.url} WHERE id = ${id}`;
+    revalidateBlogContent(slug as string);
 
     // Re-send approval email with new image
     const baseUrl = 'https://www.mcdodo.co.uk';

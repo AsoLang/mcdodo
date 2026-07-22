@@ -8,7 +8,7 @@ import { cache } from 'react';
 import { safeJsonLd, sanitizeRichHtml } from '@/lib/html';
 
 export const dynamic = 'force-static';
-export const revalidate = 3600;
+export const revalidate = 604800;
 
 const sql = neon(process.env.DATABASE_URL!);
 

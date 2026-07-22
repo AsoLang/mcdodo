@@ -5,7 +5,7 @@ import { neon } from '@neondatabase/serverless';
 import { Metadata } from 'next';
 
 export const dynamic = 'force-static';
-export const revalidate = 3600;
+export const revalidate = 604800;
 
 export const metadata: Metadata = {
   title: 'USB-C Cables, Fast Chargers & Charging Accessories | Mcdodo UK',
